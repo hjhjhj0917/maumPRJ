@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    const $menuToggle = $('#mobile-menu');
+    const $menuToggle = $('#mobileMenu');
     const $navMenu = $('.nav-menu');
 
     $menuToggle.click(function() {

@@ -23,22 +23,22 @@
         <div class="slider-wrapper">
             <div class="slide active">
                 <h2>Creative.</h2>
-                <p>우리 서비스의 첫 번째 장점을 소개합니다.<br>이곳은 슬라이드되는 영역입니다.</p>
+                <p>우리 서비스의 첫 번째 장점을 소개합니다.<br>마우스를 오른쪽 영역에 올려보세요.</p>
             </div>
             <div class="slide">
                 <h2>Smart.</h2>
-                <p>자동화된 시스템으로 더 편리하게 관리하세요.<br>두 번째 슬라이드 내용입니다.</p>
+                <p>자동화된 시스템으로 더 편리하게 관리하세요.<br>로그인 화면이 확장됩니다.</p>
             </div>
             <div class="slide">
                 <h2>Secure.</h2>
-                <p>당신의 소중한 정보를 안전하게 지킵니다.<br>세 번째 슬라이드 내용입니다.</p>
+                <p>당신의 소중한 정보를 안전하게 지킵니다.<br>비밀번호 찾기도 가능합니다.</p>
             </div>
         </div>
 
         <div class="dots-container">
-            <span class="dot active" onclick="currentSlide(0)"></span>
-            <span class="dot" onclick="currentSlide(1)"></span>
-            <span class="dot" onclick="currentSlide(2)"></span>
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
         </div>
     </div>
 
@@ -48,17 +48,30 @@
 
             <form action="#" method="POST">
                 <div class="input-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="Enter Username" required>
+                    <label for="userId">User ID</label>
+                    <input type="text" id="userId" name="userId" placeholder="아이디를 입력하세요" required>
                 </div>
 
                 <div class="input-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Enter Password" required>
+                    <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
                 </div>
 
-                <button type="submit" class="btn-login">LOGIN</button>
+                <button type="submit" class="btn-login">로그인</button>
             </form>
+
+            <div class="find-links">
+                <div class="find-row">
+                    <a href="/account/find-id">아이디 찾기</a>
+                    <span class="separator">|</span>
+                    <a href="/account/find-pw">비밀번호 찾기</a>
+                </div>
+            </div>
+
+            <div class="signup-box">
+                아직 회원이 아니시라면, 지금 바로 샤쿠로를 시작해 보세요. <a href="/account/register" class="link-signup">회원가입</a>
+            </div>
+
         </div>
     </div>
 </div>
