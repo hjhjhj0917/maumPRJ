@@ -1,0 +1,42 @@
+  <header th:fragment="header">
+    <a href="/home/main" class="logo-container">
+      Shakuro
+    </a>
+
+    <div class="menu-toggle" id="mobile-menu">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </div>
+
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <a href="#" class="nav-link">Programmer</a>
+      </li>
+
+      <li class="nav-item">
+        <a href="#" class="nav-link">Designer ▾</a>
+        <ul class="dropdown-content">
+          <li><a href="#">Web Designer</a></li>
+          <li><a href="#">UI/UX Designer</a></li>
+          <li><a href="#">Graphic Designer</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item">
+        <a href="#" class="nav-link">Manager ▾</a>
+        <ul class="dropdown-content">
+          <li><a href="#">Project Manager</a></li>
+          <li><a href="#">Product Owner</a></li>
+        </ul>
+      </li>
+
+      <li class="nav-item">
+        <a href="#" class="nav-link">QA Engineer</a>
+      </li>
+
+      <li class="nav-item">
+        <button class="btn-signin">로그인</button>
+      </li>
+    </ul>
+  </header>

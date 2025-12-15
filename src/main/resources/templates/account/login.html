@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인</title>
+
+    <link rel="stylesheet" th:href="@{/css/account/login.css}">
+    <link rel="stylesheet" th:href="@{/css/includes/header.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+    <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
+    <script th:src="@{/js/account/login.js}"></script>
+    <script th:src="@{/js/includes/header.js}"></script>
+</head>
+<body>
+
+<div th:replace="includes/header :: header"></div>
+
+<div class="container">
+
+    <div class="slider-section">
+        <div class="slider-wrapper">
+            <div class="slide active">
+                <h2>Creative.</h2>
+                <p>우리 서비스의 첫 번째 장점을 소개합니다.<br>이곳은 슬라이드되는 영역입니다.</p>
+            </div>
+            <div class="slide">
+                <h2>Smart.</h2>
+                <p>자동화된 시스템으로 더 편리하게 관리하세요.<br>두 번째 슬라이드 내용입니다.</p>
+            </div>
+            <div class="slide">
+                <h2>Secure.</h2>
+                <p>당신의 소중한 정보를 안전하게 지킵니다.<br>세 번째 슬라이드 내용입니다.</p>
+            </div>
+        </div>
+
+        <div class="dots-container">
+            <span class="dot active" onclick="currentSlide(0)"></span>
+            <span class="dot" onclick="currentSlide(1)"></span>
+            <span class="dot" onclick="currentSlide(2)"></span>
+        </div>
+    </div>
+
+    <div class="login-section">
+        <div class="login-card">
+            <h3>YOUR COMPANY</h3>
+
+            <form action="#" method="POST">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter Username" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter Password" required>
+                </div>
+
+                <button type="submit" class="btn-login">LOGIN</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
