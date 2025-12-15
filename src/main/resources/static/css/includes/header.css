@@ -53,7 +53,7 @@ header {
 }
 
 .nav-link:hover {
-    color: #8bece6;
+    color: #FFD166;
 }
 
 .nav-item {
@@ -88,7 +88,7 @@ header {
 
 .dropdown-content a:hover {
     background-color: #f1f1f1;
-    color: #8bece6;
+    color: #FFD166;
 }
 
 @media (min-width: 769px) {
@@ -99,7 +99,7 @@ header {
 
 .btn-signin {
     padding: 8px 20px;
-    border: 1px solid #ddd;
+    border: 1px solid #FFD166;
     border-radius: 4px;
     background-color: transparent;
     color: #333;
@@ -108,10 +108,11 @@ header {
     cursor: pointer;
     transition: all 0.3s;
 }
+
 .btn-signin:hover {
-    background-color: #333;
-    color: #fff;
-    border-color: #333;
+    background-color: #FFD166;
+    color: #333;
+    border-color: #FFD166;
 }
 
 .menu-toggle {

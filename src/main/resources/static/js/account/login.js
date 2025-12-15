@@ -2,6 +2,7 @@ $(document).ready(function() {
 
     let slideIndex = 0;
     const $slides = $(".slide");
+    const $bgSlides = $(".bg-slide");
     const $dots = $(".dot");
     let timer;
 
@@ -15,23 +16,21 @@ $(document).ready(function() {
         if (n < 0) slideIndex = $slides.length - 1;
 
         $slides.removeClass("active").eq(slideIndex).addClass("active");
+        $bgSlides.removeClass("active").eq(slideIndex).addClass("active");
         $dots.removeClass("active").eq(slideIndex).addClass("active");
     }
 
     function startAutoSlide() {
         if (timer) clearInterval(timer);
-
         timer = setInterval(function() {
             slideIndex++;
             showSlides(slideIndex);
-        }, 3000);
+        }, 4000);
     }
 
     $dots.click(function() {
         clearInterval(timer);
-
         slideIndex = $(this).index();
-
         showSlides(slideIndex);
         startAutoSlide();
     });
