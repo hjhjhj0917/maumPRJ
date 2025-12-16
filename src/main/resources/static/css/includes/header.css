@@ -99,7 +99,7 @@ header {
 
 .btn-signin {
     padding: 8px 20px;
-    border: 1px solid #FFD166;
+    border: 1px solid;
     border-radius: 4px;
     background-color: transparent;
     color: #333;

@@ -1,0 +1,195 @@
+header {
+    /* 1. 배경을 흰색으로 변경 */
+    background-color: #ffffff !important;
+
+    /* 2. 위치를 절대좌표(겹침)에서 상대좌표(밀어냄)로 변경 */
+    position: relative !important;
+
+    /* 3. 헤더 하단에 살짝 그림자를 주어 본문과 구분 (선택사항) */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.main-content {
+    width: 100%;
+    /* 헤더 높이만큼 상단 여백이 필요할 수 있음 (헤더가 fixed라면) */
+    /* padding-top: 60px; */
+}
+
+/* --- 1. 히어로 섹션 (메인 배너) --- */
+.hero-section {
+    position: relative;
+    width: 100%;
+    height: 70vh; /* 화면 높이의 70% 차지 (2/3 정도) */
+    min-height: 500px; /* 너무 작아지지 않게 최소 높이 설정 */
+    display: flex;
+    align-items: center; /* 텍스트 수직 중앙 정렬 */
+    overflow: hidden;
+}
+
+/* 배경 이미지 */
+.hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center; /* 이미지 중앙 정렬 */
+    z-index: 0;
+    /* 줌인 효과 (선택사항 - 부드러운 느낌) */
+    animation: zoomEffect 20s infinite alternate;
+}
+
+@keyframes zoomEffect {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+}
+
+/* 오버레이 (텍스트 가독성 확보) */
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 왼쪽은 어둡고 오른쪽은 투명하게 (그라데이션) */
+    background: linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 100%);
+    z-index: 1;
+}
+
+/* 내용 컨테이너 */
+.hero-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1200px; /* 전체 너비 제한 */
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 텍스트 박스 */
+.hero-text-box {
+    max-width: 600px; /* 텍스트가 너무 퍼지지 않게 제한 */
+    color: white;
+    text-align: left;
+}
+
+.main-title {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.main-title .highlight {
+    color: #FFD166; /* 메인 포인트 컬러 (노란색) 적용 */
+}
+
+.sub-title {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 40px;
+    color: #f0f0f0;
+    text-shadow: 0 1px 5px rgba(0,0,0,0.3);
+}
+
+/* 버튼 그룹 */
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-primary {
+    padding: 15px 30px;
+    background-color: #FFD166;
+    color: #333;
+    font-weight: bold;
+    border-radius: 30px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 209, 102, 0.4);
+}
+
+.btn-primary:hover {
+    background-color: #E0B34A;
+    transform: translateY(-3px);
+}
+
+.btn-secondary {
+    padding: 15px 30px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-weight: bold;
+    border: 1px solid white;
+    border-radius: 30px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.btn-secondary:hover {
+    background-color: white;
+    color: #333;
+    transform: translateY(-3px);
+}
+
+/* --- 2. 하단 콘텐츠 섹션 (스크롤 테스트용) --- */
+.content-section {
+    padding: 80px 20px;
+    background-color: #fff;
+    text-align: center;
+}
+
+.content-section h2 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.content-section p {
+    color: #666;
+}
+
+/* --- 반응형 (모바일) 설정 --- */
+@media (max-width: 768px) {
+    .hero-section {
+        height: 100vh; /* 모바일에서는 화면을 꽉 채우는 게 더 예쁨 */
+        justify-content: center; /* 중앙 정렬 */
+    }
+
+    .hero-bg {
+        /* 모바일에서는 이미지가 잘릴 수 있으니 위치 조정 */
+        background-position: center;
+    }
+
+    .hero-overlay {
+        /* 모바일은 전체적으로 어둡게 처리하여 텍스트 가독성 높임 */
+        background: rgba(0,0,0,0.4);
+    }
+
+    .hero-text-box {
+        text-align: center; /* 텍스트 중앙 정렬 */
+        padding: 0 20px;
+    }
+
+    .main-title {
+        font-size: 2rem; /* 폰트 사이즈 줄임 */
+    }
+
+    .sub-title {
+        font-size: 1rem;
+        margin-bottom: 30px;
+    }
+
+    .hero-buttons {
+        justify-content: center; /* 버튼도 중앙 정렬 */
+        flex-direction: column; /* 버튼 세로 배치 */
+    }
+
+    .btn-primary, .btn-secondary {
+        width: 100%; /* 버튼 너비 꽉 채우기 */
+        text-align: center;
+    }
+}
