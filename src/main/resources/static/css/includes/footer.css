@@ -17,7 +17,7 @@ body {
 footer {
     background-color: #FFFDF5;
     color: #555;
-    padding: 50px 20px;
+    padding: 60px 20px;
     font-size: 14px;
 }
 
@@ -28,29 +28,33 @@ footer {
     justify-content: space-between;
     align-items: flex-start;
     flex-wrap: wrap;
-    gap: 30px;
+    gap: 40px;
 }
 
 .footer-content {
-    flex: 1 1 400px;
+    flex: 1;
+    min-width: 280px;
 }
 
 .footer-logo {
-    font-size: 22px;
-    font-weight: 700;
+    font-size: 24px;
+    font-weight: 800;
     color: #333;
     margin-bottom: 20px;
+    letter-spacing: -0.5px;
 }
 
 .footer-links {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .footer-links a {
     color: #555;
     text-decoration: none;
     margin-right: 20px;
+    font-weight: 500;
     transition: color 0.2s;
+    display: inline-block;
 }
 
 .footer-links a:hover {
@@ -58,13 +62,15 @@ footer {
 }
 
 .footer-links a.privacy {
-    font-weight: 600;
+    font-weight: 700;
     color: #333;
 }
 
 .footer-info {
-    margin-bottom: 15px;
-    line-height: 1.8;
+    margin-bottom: 20px;
+    line-height: 1.6;
+    color: #666;
+    font-style: normal;
 }
 
 .footer-info a {
@@ -79,51 +85,69 @@ footer {
 }
 
 .footer-info span {
-    margin-right: 15px;
-    display: inline-block;
+    display: block;
+    margin-bottom: 5px;
+}
+
+@media (min-width: 769px) {
+    .footer-info span {
+        display: inline-block;
+        margin-bottom: 0;
+        margin-right: 10px;
+    }
 }
 
 .footer-copyright {
     font-size: 13px;
     color: #999;
+    margin-top: 10px;
 }
 
 .footer-social {
-    flex-shrink: 0;
-    padding-top: 10px;
     display: flex;
     gap: 15px;
+    padding-top: 10px;
 }
 
 .footer-social a {
     color: #999;
-    font-size: 22px;
+    font-size: 24px;
     text-decoration: none;
-    transition: color 0.2s;
+    transition: all 0.2s;
 }
 
 .footer-social a:hover {
     color: #FFD166;
+    transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {
-    .footer-container {
-        flex-direction: column;
-        align-items: flex-start;
+    footer {
+        padding: 40px 20px;
     }
 
-    .footer-social {
-        padding-top: 20px;
-        justify-content: flex-start;
+    .footer-container {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .footer-content {
+        width: 100%;
+    }
+
+    .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
     }
 
     .footer-links a {
-        display: block;
-        margin: 5px 0;
+        margin-right: 0;
     }
 
-    .footer-info span {
-        display: block;
-        margin: 3px 0;
+    .footer-social {
+        width: 100%;
+        justify-content: flex-start;
+        padding-top: 0;
     }
 }
