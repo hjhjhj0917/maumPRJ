@@ -20,4 +20,22 @@ public class AccountController {
 
         return "account/login";
     }
+
+    @GetMapping(value = "find-id")
+    public String findId() {
+
+        log.info("{}.findId Start!", this.getClass().getName());
+        log.info("{}.findId End!", this.getClass().getName());
+
+        return "account/find-id";
+    }
+
+    @GetMapping(value = "find-pw")
+    public String findPw() {
+
+        log.info("{}.findPw Start!", this.getClass().getName());
+        log.info("{}.findPw End!", this.getClass().getName());
+
+        return "account/find-pw";
+    }
 }

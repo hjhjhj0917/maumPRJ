@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Slf4j
 public class HomeController {
 
-    @GetMapping(value = "main")
-    public String main() {
+    @GetMapping(value = "/")
+    public String index() {
 
-        log.info("{}.main Start!", this.getClass().getName());
-        log.info("{}.main End!", this.getClass().getName());
+        log.info("{}.index Start!", this.getClass().getName());
+        log.info("{}.index End!", this.getClass().getName());
 
-        return "main";
+        return "index";
     }
 }
