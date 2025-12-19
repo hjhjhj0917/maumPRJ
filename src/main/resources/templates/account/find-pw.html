@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
   <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
-  <script th:src="@{/js/account/find-pw.js}"></script>
   <script th:src="@{/js/includes/header.js}"></script>
 </head>
 <body>
@@ -18,71 +17,34 @@
 <div th:replace="includes/header :: header"></div>
 
 <div class="container">
+  <div class="find-pw-card">
+    <h3>비밀번호 찾기</h3>
 
-  <div class="slider-section">
+    <form action="/account/find-pw" method="POST">
 
-    <div class="bg-slider">
-      <div class="bg-slide active" style="background-image: url('/images/account/account-background.jpg');"></div>
-      <div class="bg-slide" style="background-image: url('/images/account/account-background1.jpg');"></div>
-      <div class="bg-slide" style="background-image: url('/images/account/account-background2.jpg');"></div>
+      <div class="input-group">
+        <label for="userId">User ID</label>
+        <input type="text" id="userId" name="userId" placeholder="아이디를 입력하세요." required>
+      </div>
+
+      <div class="input-group">
+        <label for="userEmail">E-mail</label>
+        <input type="email" id="userEmail" name="userEmail" placeholder="가입한 이메일을 입력하세요." required>
+      </div>
+
+      <button type="submit" class="btn-confirm">확인</button>
+    </form>
+
+    <div class="auth-links">
+      <a href="/account/login">ㅤ ㅤ로그인</a>
+      <span class="separator">|</span>
+      <a href="/account/find-id">아이디 찾기</a>
     </div>
 
-    <div class="slider-overlay"></div>
-
-    <div class="slider-wrapper">
-      <div class="slide active">
-        <h2>Understanding.</h2>
-        <p>아이의 마음과 감정을 세심하게 이해합니다.<br>일상의 작은 생각까지 놓치지 않고 살펴봐요.</p>
-      </div>
-      <div class="slide">
-        <h2>Recording.</h2>
-        <p>아이의 일기와 소중한 순간들을 기록합니다.<br>매일의 생각과 감정을 편리하게 남길 수 있어요.</p>
-      </div>
-      <div class="slide">
-        <h2>Impressions.</h2>
-        <p>아이의 감정과 생각을 분석하고 의미 있는 인사이트를 제공합니다.<br>작은 이야기 속에도 마음의 변화가 담겨 있어요.</p>
-      </div>
+    <div class="signup-box">아직 회원이 아니시라면, 지금 바로 우리AI를 시작해 보세요.
+      <a href="/account/register" class="link-signup">회원가입</a>
     </div>
 
-    <div class="dots-container">
-      <span class="dot active"></span>
-      <span class="dot"></span>
-      <span class="dot"></span>
-    </div>
-  </div>
-
-  <div class="find-pw-section">
-    <div class="find-pw-card">
-      <h3>비밀번호 찾기</h3>
-      <p class="description">가입 시 등록한 아이디와 이메일을 입력해 주세요.</p>
-
-      <form action="/account/find-pw" method="POST">
-        <div class="input-group">
-          <label for="userId">User ID</label>
-          <input type="text" id="userId" name="userId" placeholder="아이디를 입력하세요" required>
-        </div>
-
-        <div class="input-group">
-          <label for="userEmail">E-mail</label>
-          <input type="email" id="userEmail" name="userEmail" placeholder="가입한 이메일을 입력하세요" required>
-        </div>
-
-        <button type="submit" class="btn-find">비밀번호 찾기</button>
-      </form>
-
-      <div class="auth-links">
-        <div class="link-row">
-          <a href="/account/login">ㅤ ㅤ로그인</a>
-          <span class="separator">|</span>
-          <a href="/account/find-id">아이디 찾기</a>
-        </div>
-      </div>
-
-      <div class="signup-box">
-        아직 회원이 아니시라면, 지금 바로 우리AI를 시작해 보세요. <a href="/account/register" class="link-signup">회원가입</a>
-      </div>
-
-    </div>
   </div>
 </div>
 

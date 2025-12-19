@@ -7,338 +7,138 @@ html, body {
 body {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    background-color: #f0f2f5;
-    overflow: hidden;
+    min-height: 100vh;
+    background-color: #ffffff;
+    font-family: 'Noto Sans KR', sans-serif;
 }
 
 .container {
-    display: flex;
     flex: 1;
-    width: 100%;
-}
-
-.slider-section {
-    flex: 1.2;
-    background-color: #FFD166;
-    color: white;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 50px;
-    overflow: hidden;
-    transition: flex 0.5s ease-in-out;
-}
-
-.bg-slider {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-}
-
-.bg-slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    opacity: 0;
-    transition: opacity 1.5s ease-in-out;
-}
-
-.bg-slide.active {
-    opacity: 1;
-}
-
-.slider-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.4);
-    z-index: 1;
-}
-
-.slider-wrapper {
-    position: relative;
-    z-index: 2;
-}
-
-.slide {
-    display: none;
-    animation: fadeText 1s ease-out;
-}
-
-.slide.active {
-    display: block;
-}
-
-.slide h2 {
-    font-size: 3.5rem;
-    margin-bottom: 20px;
-    font-weight: 700;
-    white-space: nowrap;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.slide p {
-    font-size: 1.2rem;
-    line-height: 1.6;
-    white-space: nowrap;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-@keyframes fadeText {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.dots-container {
-    position: absolute;
-    bottom: 40px;
-    left: 50px;
-    display: flex;
-    gap: 12px;
-    z-index: 2;
-}
-
-.dot {
-    cursor: pointer;
-    height: 12px;
-    width: 12px;
-    background-color: rgba(255,255,255,0.5);
-    border-radius: 50%;
-    transition: all 0.3s;
-}
-
-.dot.active, .dot:hover {
-    background-color: white;
-    transform: scale(1.2);
-}
-
-.find-pw-section {
-    flex: 0.8;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #ffffff;
-    transition: flex 0.5s ease-in-out;
-    position: relative;
-    z-index: 3;
-}
-
-.find-pw-section:hover {
-    flex: 1.5;
+    width: 100%;
+    padding: 0 20px;
 }
 
 .find-pw-card {
     width: 100%;
-    max-width: 400px;
-    padding: 40px;
-    position: relative;
-    padding-bottom: 80px;
+    max-width: 403px;
+    text-align: center;
+    padding-bottom: 50px;
 }
 
 .find-pw-card h3 {
-    text-align: center;
-    margin-bottom: 10px;
-    color: #333;
-    letter-spacing: 2px;
-    font-size: 1.5rem;
-}
-
-.find-pw-card .description {
-    margin-top: 37px;
-    margin-bottom: 25px;
-    color: #888;
-    font-size: 0.95rem;
+    font-size: 24px;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 60px;
 }
 
 .input-group {
-    margin-bottom: 30px;
+    margin-bottom: 40px;
+    text-align: left;
 }
 
 .input-group label {
     display: block;
     margin-bottom: 10px;
-    color: #555;
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
+    color: #999;
 }
 
 .input-group input {
     width: 100%;
-    padding: 10px 5px;
+    padding: 10px 0;
     border: none;
-    border-bottom: 2px solid #ddd;
+    border-bottom: 2px solid #eee;
     outline: none;
-    font-size: 1rem;
+    font-size: 15px;
+    color: #333;
     transition: border-color 0.3s;
+    background-color: transparent;
 }
 
 .input-group input::placeholder {
-    color: #d0d0d0;
-    opacity: 1;
+    color: #ccc;
+    font-size: 14px;
 }
 
 .input-group input:focus {
     border-bottom-color: #FFD166;
 }
 
-.btn-find {
+.btn-confirm {
     width: 100%;
     padding: 15px;
     background-color: #FFD166;
-    color: #333;
+    color: #000;
     border: none;
     border-radius: 30px;
-    font-size: 1rem;
-    font-weight: bold;
+    font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
     margin-top: 10px;
-    transition: background-color 0.3s, transform 0.1s;
-    box-shadow: 0 4px 15px rgba(255, 209, 102, 0.4);
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+    box-shadow: 0 4px 10px rgba(255, 209, 102, 0.3);
 }
 
-.btn-find:hover {
+.btn-confirm:hover {
     background-color: #E0B34A;
-    transform: translateY(-2px);
 }
 
 .auth-links {
-    text-align: center;
-    font-size: 0.9rem;
+    font-size: 13px;
     color: #888;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    margin-top: 0;
-    transition: all 0.5s ease-in-out;
+    margin-bottom: 40px;
 }
 
-.find-pw-section:hover .auth-links {
-    max-height: 50px;
-    opacity: 1;
-    margin-top: 25px;
-}
-
-.link-row a {
+.auth-links a {
     color: #888;
     text-decoration: none;
     transition: color 0.2s;
-    font-size: 0.85rem;
 }
 
-.link-row a:hover {
-    color: #FFD166;
+.auth-links a:hover {
+    color: #333;
+    font-weight: 600;
 }
 
 .separator {
-    margin: 0 8px;
+    margin: 0 10px;
     color: #ddd;
+    font-size: 10px;
+    vertical-align: middle;
 }
 
 .signup-box {
-    font-size: 0.9rem;
-    color: #888;
-    line-height: 1.5;
+    font-size: 14px;
+    color: #999;
+    line-height: 1.6;
     text-align: left;
-    position: absolute;
-    bottom: 0;
-    left: 40px;
-    right: 40px;
-    white-space: normal;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-}
-
-.find-pw-section:hover .signup-box {
-    opacity: 1;
+    width: 100%;
+    margin-top: 20px;
 }
 
 .link-signup {
     color: #FFD166;
     text-decoration: none;
-    font-weight: bold;
+    font-weight: 700;
     margin-left: 5px;
-    transition: color 0.2s;
-    display: inline-block;
 }
 
 .link-signup:hover {
-    color: #E0B34A;
     text-decoration: underline;
 }
 
-@media (max-width: 768px) {
-    body {
-        height: auto;
-        overflow-y: auto;
-    }
-
-    .container {
-        flex-direction: column;
-    }
-
-    .slider-section, .find-pw-section {
-        flex: auto;
-        transition: none;
-    }
-
-    .find-pw-section:hover {
-        flex: auto;
-    }
-
-    .slider-section {
-        padding: 40px 30px;
-        min-height: 300px;
-    }
-
-    .slide h2 {
-        font-size: 2.5rem;
-        white-space: normal;
-    }
-
-    .slide p {
-        white-space: normal;
-    }
-
-    .find-pw-section {
-        padding: 50px 20px;
-        background-color: #fff;
-        border-top-left-radius: 30px;
-        border-top-right-radius: 30px;
-        margin-top: -30px;
-        box-shadow: 0 -10px 20px rgba(0,0,0,0.05);
-    }
-
-    .auth-links {
-        max-height: none;
-        opacity: 1;
-        margin-top: 25px;
-    }
-
-    .signup-box {
-        position: static;
-        opacity: 1;
-        text-align: center;
-        margin-top: 30px;
-    }
-
+@media (max-width: 480px) {
     .find-pw-card {
-        padding-bottom: 20px;
+        padding: 20px;
+    }
+
+    .find-pw-card h3 {
+        margin-bottom: 40px;
     }
 }

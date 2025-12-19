@@ -3,7 +3,6 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
     user-select: none;
     pointer-events: auto;
     -webkit-user-select: none;
@@ -27,12 +26,15 @@ header {
 .logo-container {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
     text-decoration: none;
     z-index: 1001;
+}
+
+.logo-image {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+    display: block;
 }
 
 .nav-menu {
@@ -134,6 +136,10 @@ header {
 @media (max-width: 768px) {
     header {
         padding: 15px 20px;
+    }
+
+    .logo-image {
+        height: 45px;
     }
 
     .menu-toggle {

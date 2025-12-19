@@ -7,7 +7,7 @@
 
     <link rel="stylesheet" th:href="@{/css/includes/header.css}">
     <link rel="stylesheet" th:href="@{/css/includes/footer.css}">
-    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/index.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
     <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
@@ -21,29 +21,64 @@
 
     <section class="hero-section">
         <div class="hero-bg" style="background-image: url('/images/main-hero-background.jpg');"></div>
-        <div class="hero-overlay"></div> <div class="hero-container">
-        <div class="hero-text-box">
-            <h1 class="main-title">
-                서툰 글씨, 속에 숨겨진<br>
-                <span class="highlight">아이의 진짜 이야기</span>
-            </h1>
-            <p class="sub-title">
-                엄마도 몰랐던 우리 아이의 마음 날씨, 오늘 맑음인가요?<br>
-                AI가 분석하는 심리 리포트로 아이의 마음을 읽어보세요.
-            </p>
-            <div class="hero-buttons">
-                <a href="/diary/write" class="btn-primary">일기 쓰러 가기</a>
-                <a href="/analysis/intro" class="btn-secondary">자세히 알아보기</a>
+        <div class="hero-overlay"></div>
+
+        <div class="hero-container">
+            <div class="hero-text-box">
+                <h1 class="main-title">
+                    서툰 글씨, 속에 숨겨진<br>
+                    <span class="highlight">아이의 진짜 이야기</span>
+                </h1>
+                <p class="sub-title">
+                    엄마도 몰랐던 우리 아이의 마음 날씨, 오늘 맑음인가요?<br>
+                    AI가 분석하는 심리 리포트로 아이의 마음을 읽어보세요.
+                </p>
+                <div class="hero-buttons">
+                    <a href="/diary/write" class="btn-primary">일기 쓰러 가기</a>
+                    <a href="/analysis/intro" class="btn-secondary">자세히 알아보기</a>
+                </div>
             </div>
         </div>
-    </div>
     </section>
 
-    <section class="content-section">
+    <section class="uri-intro-section">
         <div class="container">
-            <h2>우리AI가 제공하는 특별한 서비스</h2>
-            <p>스크롤을 내려서 더 많은 정보를 확인해보세요.</p>
-            <div style="height: 500px; background-color: #f9f9f9; margin-top: 30px; border-radius: 10px;"></div>
+            <div class="section-header">
+                <h2>우리AI가 전하는 3가지 약속</h2>
+                <p>URI는 아이를 이해하고, 기록하며, 새로운 감동을 선사한다는 의미를 담고 있습니다.</p>
+            </div>
+
+            <div class="uri-card-wrapper">
+                <div class="uri-card">
+                    <div class="icon-circle">U</div>
+                    <h3>Understanding</h3>
+                    <p class="card-desc">
+                        아이의 마음과 감정을<br>
+                        세심하게 <b>이해합니다.</b><br>
+                        <span>일상의 작은 생각까지 놓치지 않고 살펴봐요.</span>
+                    </p>
+                </div>
+
+                <div class="uri-card">
+                    <div class="icon-circle">R</div>
+                    <h3>Recording</h3>
+                    <p class="card-desc">
+                        아이의 일기와 소중한 순간들을<br>
+                        <b>기록합니다.</b><br>
+                        <span>매일의 생각과 감정을 편리하게 남길 수 있어요.</span>
+                    </p>
+                </div>
+
+                <div class="uri-card">
+                    <div class="icon-circle">I</div>
+                    <h3>Impressions</h3>
+                    <p class="card-desc">
+                        의미 있는 인사이트로<br>
+                        <b>감동을 전합니다.</b><br>
+                        <span>작은 이야기 속에도 마음의 변화가 담겨 있어요.</span>
+                    </p>
+                </div>
+            </div>
         </div>
     </section>
 
