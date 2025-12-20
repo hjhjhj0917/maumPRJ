@@ -21,6 +21,15 @@ public class AccountController {
         return "account/login";
     }
 
+    @GetMapping(value = "register")
+    public String register() {
+
+        log.info("{}.register Start!", this.getClass().getName());
+        log.info("{}.register End!", this.getClass().getName());
+
+        return "account/register";
+    }
+
     @GetMapping(value = "find-id")
     public String findId() {
 

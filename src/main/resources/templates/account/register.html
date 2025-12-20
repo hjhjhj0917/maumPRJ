@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - 우리AI</title>
+
+    <link rel="stylesheet" th:href="@{/css/account/register.css}">
+    <link rel="stylesheet" th:href="@{/css/includes/header.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+    <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
+    <script th:src="@{/js/includes/header.js}"></script>
+    <script th:src="@{/js/account/register.js}"></script>
+</head>
+<body>
+
+<div th:replace="includes/header :: header"></div>
+
+<div class="container">
+    <div class="register-card">
+        <h3>회원가입</h3>
+
+        <div class="stepper-wrapper">
+            <div class="stepper-item active" id="stepper1">
+                <div class="step-label">계정정보</div>
+                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+            </div>
+            <div class="step-line"></div>
+            <div class="stepper-item" id="stepper2">
+                <div class="step-label">개인정보</div>
+                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+            </div>
+            <div class="step-line"></div>
+            <div class="stepper-item" id="stepper3">
+                <div class="step-label">인증</div>
+                <div class="step-circle"><i class="fa-solid fa-check"></i></div>
+            </div>
+        </div>
+
+        <form action="/account/register" method="POST" id="registerForm">
+
+            <div class="slide-viewport">
+                <div class="slide-track" id="slideTrack">
+
+                    <div class="form-step" id="step1">
+                        <div class="input-group">
+                            <label for="userId">User ID</label>
+                            <div class="flex-row">
+                                <input type="text" id="userId" name="userId" placeholder="아이디를 입력하세요.">
+                                <button type="button" class="btn-check">중복확인</button>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요.">
+                        </div>
+                        <div class="input-group">
+                            <label for="passwordConfirm">Confirm Password</label>
+                            <input type="password" id="passwordConfirm" placeholder="비밀번호를 다시 입력하세요.">
+                        </div>
+                        <div class="btn-row right">
+                            <button type="button" class="btn-next" onclick="nextStep(2)">다음</button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step2">
+                        <div class="input-group">
+                            <label for="userName">Name</label>
+                            <input type="text" id="userName" name="userName" placeholder="이름을 입력하세요.">
+                        </div>
+                        <div class="input-group">
+                            <label for="address">Address</label>
+                            <div class="flex-row">
+                                <input type="text" id="address" name="address" placeholder="주소를 입력하세요.">
+                                <button type="button" class="btn-check">우편번호</button>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="addressDetail">Apartment, etc ...</label>
+                            <input type="text" id="addressDetail" name="addressDetail" placeholder="상세주소를 입력하세요">
+                        </div>
+                        <div class="btn-row split">
+                            <button type="button" class="btn-prev" onclick="prevStep(1)">이전</button>
+                            <button type="button" class="btn-next" onclick="nextStep(3)">다음</button>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step3">
+                        <div class="input-group">
+                            <label for="email">E-mail</label>
+                            <div class="flex-row">
+                                <input type="email" id="email" name="email" placeholder="이메일을 입력하세요.">
+                                <button type="button" class="btn-check">인증번호</button>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="code">Code</label>
+                            <div class="flex-row">
+                                <input type="text" id="code" placeholder="인증번호를 입력하세요.">
+                                <button type="button" class="btn-check">확인</button>
+                            </div>
+                        </div>
+
+                        <div class="terms-group">
+                            <div class="term-item all-check">
+                                <input type="checkbox" id="checkAll">
+                                <label for="checkAll">전체동의</label>
+                            </div>
+                            <hr>
+                            <div class="term-item">
+                                <input type="checkbox" id="term1">
+                                <label for="term1">(필수) 서비스 이용 약관 <a href="#">보기</a></label>
+                            </div>
+                            <div class="term-item">
+                                <input type="checkbox" id="term2">
+                                <label for="term2">(필수) 개인정보 수집·이용 동의 <a href="#">보기</a></label>
+                            </div>
+                            <div class="term-item">
+                                <input type="checkbox" id="term3">
+                                <label for="term3">(필수) 아동 정보 처리 및 보호자 동의 <a href="#">보기</a></label>
+                            </div>
+                        </div>
+
+                        <div class="btn-row split">
+                            <button type="button" class="btn-prev" onclick="prevStep(2)">이전</button>
+                            <button type="submit" class="btn-submit">가입하기</button>
+                        </div>
+                    </div>
+
+                </div> </div> </form>
+
+        <div class="login-box">
+            이미 우리AI 회원이신가요? <a href="/account/login" class="link-login">로그인</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
