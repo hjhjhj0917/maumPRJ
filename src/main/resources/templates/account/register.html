@@ -43,7 +43,7 @@
             <div class="slide-viewport">
                 <div class="slide-track" id="slideTrack">
 
-                    <div class="form-step" id="step1">
+                    <div class="form-step active-slide" id="step1">
                         <div class="input-group">
                             <label for="userId">User ID</label>
                             <div class="flex-row">
@@ -58,9 +58,6 @@
                         <div class="input-group">
                             <label for="passwordConfirm">Confirm Password</label>
                             <input type="password" id="passwordConfirm" placeholder="비밀번호를 다시 입력하세요.">
-                        </div>
-                        <div class="btn-row right">
-                            <button type="button" class="btn-next" onclick="nextStep(2)">다음</button>
                         </div>
                     </div>
 
@@ -79,10 +76,6 @@
                         <div class="input-group">
                             <label for="addressDetail">Apartment, etc ...</label>
                             <input type="text" id="addressDetail" name="addressDetail" placeholder="상세주소를 입력하세요">
-                        </div>
-                        <div class="btn-row split">
-                            <button type="button" class="btn-prev" onclick="prevStep(1)">이전</button>
-                            <button type="button" class="btn-next" onclick="nextStep(3)">다음</button>
                         </div>
                     </div>
 
@@ -121,14 +114,31 @@
                                 <label for="term3">(필수) 아동 정보 처리 및 보호자 동의 <a href="#">보기</a></label>
                             </div>
                         </div>
-
-                        <div class="btn-row split">
-                            <button type="button" class="btn-prev" onclick="prevStep(2)">이전</button>
-                            <button type="submit" class="btn-submit">가입하기</button>
-                        </div>
                     </div>
 
-                </div> </div> </form>
+                </div> </div> <div class="action-buttons">
+            <div class="btn-step-group active" id="btns1">
+                <div class="btn-row right">
+                    <button type="button" class="btn-next" onclick="nextStep(2)">다음</button>
+                </div>
+            </div>
+
+            <div class="btn-step-group" id="btns2">
+                <div class="btn-row split">
+                    <button type="button" class="btn-prev" onclick="prevStep(1)">이전</button>
+                    <button type="button" class="btn-next" onclick="nextStep(3)">다음</button>
+                </div>
+            </div>
+
+            <div class="btn-step-group" id="btns3">
+                <div class="btn-row split">
+                    <button type="button" class="btn-prev" onclick="prevStep(2)">이전</button>
+                    <button type="submit" class="btn-submit">가입하기</button>
+                </div>
+            </div>
+        </div>
+
+        </form>
 
         <div class="login-box">
             이미 우리AI 회원이신가요? <a href="/account/login" class="link-login">로그인</a>
