@@ -47,4 +47,13 @@ public class AccountController {
 
         return "account/find-pw";
     }
+
+    @GetMapping(value = "addChild")
+    public String addChild() {
+
+        log.info("{}.addChild Start!", this.getClass().getName());
+        log.info("{}.addChild End!", this.getClass().getName());
+
+        return "account/add-child";
+    }
 }

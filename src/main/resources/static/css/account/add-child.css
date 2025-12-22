@@ -1,0 +1,232 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #ffffff;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 40px 20px;
+}
+
+.add-child-card {
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+    margin-top: 100px;
+    padding-bottom: 50px;
+}
+
+.add-child-card h3 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.add-child-card .description {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 40px;
+    line-height: 1.5;
+}
+
+.profile-select-section {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.profile-select-section label {
+    display: block;
+    margin-bottom: 15px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #999;
+    text-align: left;
+}
+
+.current-avatar-wrapper {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 25px auto;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    background-color: #f9f9f9;
+}
+
+.current-avatar-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-grid {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    max-width: 360px;
+    margin: 0 auto;
+}
+
+.avatar-item {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 3px solid transparent;
+    object-fit: cover;
+    background-color: #f9f9f9;
+}
+
+.avatar-item:hover {
+    transform: scale(1.1);
+}
+
+.avatar-item.selected {
+    border-color: #FFD166;
+    box-shadow: 0 4px 10px rgba(255, 209, 102, 0.3);
+}
+
+.input-group {
+    margin-bottom: 35px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #999;
+}
+
+.input-group input[type="text"],
+.input-group input[type="date"] {
+    width: 100%;
+    padding: 10px 0;
+    border: none;
+    border-bottom: 2px solid #eee;
+    outline: none;
+    font-size: 16px;
+    color: #333;
+    transition: border-color 0.3s;
+    background-color: transparent;
+    font-family: inherit;
+}
+
+.input-group input:focus,
+.input-group textarea:focus {
+    border-color: #FFD166;
+}
+
+.input-group input::placeholder,
+.input-group textarea::placeholder {
+    color: #ccc;
+    font-size: 14px;
+}
+
+.gender-selector {
+    display: flex;
+    gap: 15px;
+}
+
+.gender-selector input[type="radio"] {
+    display: none;
+}
+
+.gender-option {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #888;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #fff;
+}
+
+.gender-option:hover {
+    background-color: #fafafa;
+}
+
+.gender-selector input[type="radio"]:checked + .gender-option {
+    background-color: #FFD166;
+    border-color: #FFD166;
+    color: #333;
+    box-shadow: 0 4px 10px rgba(255, 209, 102, 0.3);
+}
+
+.input-group textarea {
+    width: 100%;
+    padding: 10px 10px;
+    border-radius: 20px;
+    border: 2px solid #eee;
+    outline: none;
+    font-size: 15px;
+    color: #333;
+    resize: none;
+    background-color: transparent;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.btn-register {
+    width: 100%;
+    padding: 16px;
+    background-color: #FFD166;
+    color: #333;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+    box-shadow: 0 4px 10px rgba(255, 209, 102, 0.3);
+}
+
+.btn-register:hover {
+    background-color: #E0B34A;
+}
+
+.skip-box {
+    margin-top: 20px;
+}
+
+.link-skip {
+    font-size: 13px;
+    color: #999;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.link-skip:hover {
+    color: #333;
+    border-bottom-color: #333;
+}
+
+@media (max-width: 480px) {
+    .add-child-card {
+        padding: 0 10px 50px 10px;
+    }
+}
