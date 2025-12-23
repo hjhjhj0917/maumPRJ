@@ -16,4 +16,13 @@ public class HomeController {
 
         return "index";
     }
+
+    @GetMapping(value = "/main")
+    public String main() {
+
+        log.info("{}.main Start!", this.getClass().getName());
+        log.info("{}.main End!", this.getClass().getName());
+
+        return "main";
+    }
 }
