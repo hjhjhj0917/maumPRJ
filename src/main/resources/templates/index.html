@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>우리AI - 아이 마음 연구소</title>
+    <title>마음 - 나를 위한 감정 기록</title>
 
     <link rel="stylesheet" th:href="@{/css/includes/header.css}">
     <link rel="stylesheet" th:href="@{/css/includes/footer.css}">
@@ -12,6 +12,7 @@
 
     <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
     <script th:src="@{/js/includes/header.js}"></script>
+    <script th:src="@{/js/index.js}"></script>
 </head>
 <body>
 
@@ -19,19 +20,20 @@
 
 <div class="main-content">
 
-    <section class="hero-section">
-        <div class="hero-bg" style="background-image: url('/images/main-hero-background.jpg');"></div>
+    <section class="hero-section full-page">
+        <div class="hero-bg" style="background-image: url('/images/main-background.png');"></div>
         <div class="hero-overlay"></div>
 
         <div class="hero-container">
-            <div class="hero-text-box">
+            <div class="hero-text-box scroll-target">
                 <h1 class="main-title">
-                    서툰 글씨, 속에 숨겨진<br>
-                    <span class="highlight">아이의 진짜 이야기</span>
+                    수많은 소음 속,<br>
+                    <span class="highlight">온전히 나에게 집중하는 시간</span>
                 </h1>
                 <p class="sub-title">
-                    엄마도 몰랐던 우리 아이의 마음 날씨, 오늘 맑음인가요?<br>
-                    AI가 분석하는 심리 리포트로 아이의 마음을 읽어보세요.
+                    오늘 하루, 당신의 마음은 안녕한가요?<br>
+                    누구에게도 말 못한 고민이 있다면 MAUM에 털어놓으세요.<br>
+                    AI가 당신의 하루를 듣고 따뜻한 위로와 분석을 건넵니다.
                 </p>
                 <div class="hero-buttons">
                     <a href="/diary/write" class="btn-primary">일기 쓰러 가기</a>
@@ -41,50 +43,52 @@
         </div>
     </section>
 
-    <section class="uri-intro-section">
-        <div class="container">
+    <section class="uri-intro-section full-page">
+        <div class="container scroll-target">
             <div class="section-header">
-                <h2>우리AI가 전하는 3가지 약속</h2>
-                <p>URI는 아이를 이해하고, 기록하며, 새로운 감동을 선사한다는 의미를 담고 있습니다.</p>
+                <h2>마음(MAUM)이 드리는 3가지 가치</h2>
+                <p>MAUM은 당신의 기억을 담고, 일상을 기록하며, 감정의 흐름을 읽어드립니다.</p>
             </div>
 
             <div class="uri-card-wrapper">
                 <div class="uri-card">
-                    <div class="icon-circle">U</div>
-                    <h3>Understanding</h3>
+                    <div class="icon-circle">M</div>
+                    <h3>Memory</h3>
                     <p class="card-desc">
-                        아이의 마음과 감정을<br>
-                        세심하게 <b>이해합니다.</b><br>
-                        <span>일상의 작은 생각까지 놓치지 않고 살펴봐요.</span>
+                        흘러가면 잊혀질 오늘의 순간을<br>
+                        소중하게 <b>기억합니다.</b><br>
+                        <span>빛나는 청춘의 한 페이지를 이곳에 남겨두세요.</span>
                     </p>
                 </div>
 
                 <div class="uri-card">
-                    <div class="icon-circle">R</div>
-                    <h3>Recording</h3>
+                    <div class="icon-circle">J</div>
+                    <h3>Journal</h3>
                     <p class="card-desc">
-                        아이의 일기와 소중한 순간들을<br>
-                        <b>기록합니다.</b><br>
-                        <span>매일의 생각과 감정을 편리하게 남길 수 있어요.</span>
+                        복잡한 머릿속 생각들을<br>
+                        차분하게 <b>기록합니다.</b><br>
+                        <span>나만의 속도로 써 내려가는 글이 마음의 쉼표가 됩니다.</span>
                     </p>
                 </div>
 
                 <div class="uri-card">
-                    <div class="icon-circle">I</div>
-                    <h3>Impressions</h3>
+                    <div class="icon-circle">M</div>
+                    <h3>Mood</h3>
                     <p class="card-desc">
-                        의미 있는 인사이트로<br>
-                        <b>감동을 전합니다.</b><br>
-                        <span>작은 이야기 속에도 마음의 변화가 담겨 있어요.</span>
+                        글 속에 담긴 내면의 소리와<br>
+                        감정 상태를 <b>분석합니다.</b><br>
+                        <span>스스로도 몰랐던 나의 진짜 마음을 마주해보세요.</span>
                     </p>
                 </div>
             </div>
         </div>
     </section>
 
-</div>
+    <div class="footer-wrapper full-page">
+        <div th:replace="includes/footer :: footer"></div>
+    </div>
 
-<div th:replace="includes/footer :: footer"></div>
+</div>
 
 </body>
 </html>
