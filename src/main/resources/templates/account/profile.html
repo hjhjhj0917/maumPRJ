@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>프로필 생성 - 마음이야</title>
+
+  <link rel="stylesheet" th:href="@{/css/includes/header.css}">
+  <link rel="stylesheet" th:href="@{/css/includes/footer.css}">
+  <link rel="stylesheet" th:href="@{/css/account/profile.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
+  <script th:src="@{/js/includes/header.js}"></script>
+</head>
+<body>
+
+<div th:replace="includes/header :: header"></div>
+
+<div class="profile-container fade-in">
+  <div class="profile-content">
+    <h1 class="page-title">프로필 만들기</h1>
+    <p class="page-subtitle">나를 표현할 12간지 캐릭터를 선택해주세요.</p>
+
+    <form action="/profile/create" method="POST" class="profile-form">
+
+      <input type="hidden" id="selectedProfileImage" name="profileImage" value="mouse.png">
+
+      <div class="profile-img-wrapper" id="openProfileModal">
+        <img id="profilePreview" src="/images/profile/mouse.png" alt="프로필 이미지">
+
+        <div class="img-overlay">
+          <i class="fas fa-pen"></i>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <input type="text" id="nickname" name="nickname" placeholder="닉네임을 입력하세요" required autocomplete="off">
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn-save">저장</button>
+        <a href="/" class="btn-cancel">취소</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="zodiacModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>캐릭터 선택</h3>
+      <button type="button" class="close-modal"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="zodiac-grid">
+      <div class="zodiac-item" data-img="mouse.png"><img src="/images/account/profile1.png" alt="쥐"><span>쥐</span></div>
+      <div class="zodiac-item" data-img="cow.png"><img src="/images/account/profile2.png" alt="소"><span>소</span></div>
+      <div class="zodiac-item" data-img="tiger.png"><img src="/images/account/profile3.png" alt="호랑이"><span>호랑이</span></div>
+      <div class="zodiac-item" data-img="rabbit.png"><img src="/images/account/profile4.png" alt="토끼"><span>토끼</span></div>
+      <div class="zodiac-item" data-img="dragon.png"><img src="/images/account/profile5.png" alt="용"><span>용</span></div>
+      <div class="zodiac-item" data-img="snake.png"><img src="/images/account/profile6.png" alt="뱀"><span>뱀</span></div>
+      <div class="zodiac-item" data-img="horse.png"><img src="/images/account/profile7.png" alt="말"><span>말</span></div>
+      <div class="zodiac-item" data-img="sheep.png"><img src="/images/account/profile8.png" alt="양"><span>양</span></div>
+      <div class="zodiac-item" data-img="monkey.png"><img src="/images/account/profile9.png" alt="원숭이"><span>원숭이</span></div>
+      <div class="zodiac-item" data-img="chicken.png"><img src="/images/account/profile10.png" alt="닭"><span>닭</span></div>
+      <div class="zodiac-item" data-img="dog.png"><img src="/images/account/profile11.png" alt="개"><span>개</span></div>
+      <div class="zodiac-item" data-img="pig.png"><img src="/images/account/profile12.png" alt="돼지"><span>돼지</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    const modal = $('#zodiacModal');
+    const preview = $('#profilePreview');
+    const hiddenInput = $('#selectedProfileImage');
+
+    // 모달 열기
+    $('#openProfileModal').click(function() {
+      modal.addClass('active');
+    });
+
+    // 모달 닫기 (X 버튼)
+    $('.close-modal').click(function() {
+      modal.removeClass('active');
+    });
+
+    // 모달 닫기 (배경 클릭)
+    modal.click(function(e) {
+      if ($(e.target).hasClass('modal-overlay')) {
+        modal.removeClass('active');
+      }
+    });
+
+    // 캐릭터 선택 로직
+    $('.zodiac-item').click(function() {
+      const imgName = $(this).data('img');
+      const imgSrc = $(this).find('img').attr('src');
+
+      // 1. 미리보기 이미지 변경
+      preview.attr('src', imgSrc);
+
+      // 2. 히든 인풋 값 변경 (서버 전송용)
+      hiddenInput.val(imgName);
+
+      // 3. 모달 닫기
+      modal.removeClass('active');
+
+      // 4. 선택 효과 (선택된 아이템 강조 로직 추가 가능)
+      $('.zodiac-item').removeClass('selected');
+      $(this).addClass('selected');
+    });
+  });
+</script>
+
+</body>
+</html>

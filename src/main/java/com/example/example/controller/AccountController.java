@@ -48,12 +48,12 @@ public class AccountController {
         return "account/find-pw";
     }
 
-    @GetMapping(value = "addChild")
-    public String addChild() {
+    @GetMapping(value = "profile")
+    public String profile() {
 
-        log.info("{}.addChild Start!", this.getClass().getName());
-        log.info("{}.addChild End!", this.getClass().getName());
+        log.info("{}.profile Start!", this.getClass().getName());
+        log.info("{}.profile End!", this.getClass().getName());
 
-        return "account/add-child";
+        return "account/profile";
     }
 }
