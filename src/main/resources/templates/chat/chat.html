@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>마음 상담소 - 마음이야</title>
+
+  <link rel="stylesheet" th:href="@{/css/includes/header.css}">
+  <link rel="stylesheet" th:href="@{/css/chat/chat.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
+  <script th:src="@{/js/includes/header.js}"></script>
+  <script th:src="@{/js/chat/chat.js}"></script>
+</head>
+<body>
+
+<div th:replace="includes/header :: header"></div>
+
+<div class="main-container">
+  <div class="chat-wrapper">
+    <div class="chat-window" id="chatWindow">
+      <div class="message-row received">
+        <div class="profile-img">
+          <img src="/images/chat/counselor.png" alt="AI" onerror="this.src='https://via.placeholder.com/50?text=AI'">
+        </div>
+        <div class="message-content">
+          <span class="sender-name">마음지킴이 AI</span>
+          <div class="bubble">
+            안녕하세요. 당신의 마음을 듣기 위해 기다리고 있었어요. 무거운 고민부터 사소한 이야기까지, 무엇이든 편하게 말씀해주세요.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="input-wrapper">
+        <input type="text" id="chatInput" placeholder="이곳에 당신의 이야기를 들려주세요..." autocomplete="off">
+        <button type="button" id="sendBtn">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
