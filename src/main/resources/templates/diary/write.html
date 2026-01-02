@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일기 작성 - 마음이야</title>
+    <link rel="stylesheet" th:href="@{/css/includes/header.css}">
+    <link rel="stylesheet" th:href="@{/css/includes/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/diary/write.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+    <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
+    <script th:src="@{/js/includes/header.js}"></script>
+    <script th:src="@{/js/diary/write.js}"></script>
+</head>
+<body>
+<div th:replace="includes/header :: header"></div>
+<div class="main-container">
+    <div class="write-wrapper fade-in">
+        <div class="write-header">
+            <h2>오늘의 마음 기록</h2>
+            <p>당신의 하루를 진솔하게 담아보세요.</p>
+        </div>
+        <form action="/diary/write" method="POST" enctype="multipart/form-data" class="write-form">
+            <div class="form-section text-section">
+                <div class="input-group title-group">
+                    <input type="text" id="diaryTitle" name="title" placeholder="제목을 입력하세요" required autocomplete="off">
+                </div>
+                <div class="input-group date-group">
+                    <i class="far fa-calendar-alt"></i>
+                    <input type="date" id="diaryDate" name="weatherDate" required>
+                </div>
+                <div class="input-group content-group">
+                    <textarea id="diaryContent" name="content" placeholder="여기에 당신의 이야기를 들려주세요..." required></textarea>
+                </div>
+            </div>
+            <div class="form-section image-section">
+                <div class="image-upload-container">
+                    <div class="image-preview-area" id="imagePreviewArea">
+                        <img src="" alt="미리보기" id="previewImg" style="display: none;">
+                        <div class="upload-placeholder" id="uploadPlaceholder">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>소중한 순간의 사진을 업로드하세요 (선택)</span>
+                        </div>
+                        <button type="button" class="btn-remove-img" id="btnRemoveImg" style="display: none;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <input type="file" id="diaryImage" name="imageFile" accept="image/*" style="display: none;">
+                    <button type="button" class="btn-upload-trigger" onclick="document.getElementById('diaryImage').click();">
+                        <i class="fas fa-camera"></i> 사진 선택하기
+                    </button>
+                </div>
+            </div>
+            <div class="form-footer">
+                <a href="/" class="btn-cancel">취소</a>
+                <button type="submit" class="btn-submit">마음 저장하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
