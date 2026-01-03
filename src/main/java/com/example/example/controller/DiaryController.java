@@ -20,4 +20,13 @@ public class DiaryController {
 
         return "diary/write";
     }
+
+    @GetMapping(value = "list")
+    public String list() {
+
+        log.info("{}.list Start!", this.getClass().getName());
+        log.info("{}.list End!", this.getClass().getName());
+
+        return "diary/list";
+    }
 }

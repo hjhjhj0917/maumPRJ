@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나의 기록 - 마음이야</title>
+  <link rel="stylesheet" th:href="@{/css/includes/header.css}">
+  <link rel="stylesheet" th:href="@{/css/includes/footer.css}">
+  <link rel="stylesheet" th:href="@{/css/diary/list.css}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
+  <script th:src="@{/js/includes/header.js}"></script>
+  <script th:src="@{/js/diary/list.js}"></script>
+</head>
+<body>
+
+<div th:replace="includes/header :: header"></div>
+
+<div class="list-container">
+
+  <div class="list-header-section fade-in">
+    <div class="title-area">
+      <h2>Memory Log</h2>
+      <p>차곡차곡 쌓인 당신의 이야기들</p>
+    </div>
+    <div class="action-area">
+      <div class="search-box">
+        <input type="text" placeholder="제목이나 내용 검색...">
+        <button><i class="fas fa-search"></i></button>
+      </div>
+      <a href="/diary/write" class="btn-write">
+        <i class="fas fa-pen"></i> 일기 쓰기
+      </a>
+    </div>
+  </div>
+
+  <div class="diary-grid">
+
+    <div class="diary-card" onclick="location.href='/diary/detail/1'">
+      <div class="card-img" style="background-image: url('/images/sample1.jpg');">
+        <div class="mood-badge happy"><i class="fas fa-smile"></i> 행복</div>
+      </div>
+      <div class="card-body">
+        <span class="diary-date">2025. 12. 26</span>
+        <h3 class="diary-title">오랜만에 친구들을 만난 날</h3>
+        <p class="diary-preview">
+          오늘은 정말 오랜만에 고등학교 동창들을 만났다.
+          각자 사는게 바빠서 연락도 잘 못했었는데, 막상 얼굴을 보니 어제 만난 것처럼 편안했다.
+          웃고 떠드느라 시간 가는 줄 몰랐던 하루.
+        </p>
+      </div>
+    </div>
+
+    <div class="diary-card" onclick="location.href='/diary/detail/2'">
+      <div class="card-img no-img">
+        <i class="fas fa-book-open"></i>
+        <div class="mood-badge calm"><i class="fas fa-coffee"></i> 평온</div>
+      </div>
+      <div class="card-body">
+        <span class="diary-date">2025. 12. 25</span>
+        <h3 class="diary-title">혼자만의 크리스마스</h3>
+        <p class="diary-preview">
+          올해 크리스마스는 집에서 조용히 보내기로 했다.
+          좋아하는 영화를 틀어놓고 따뜻한 코코아를 마시니 이보다 더 좋을 수 없다.
+          가끔은 이런 고요함이 필요하다.
+        </p>
+      </div>
+    </div>
+
+    <div class="diary-card" onclick="location.href='/diary/detail/3'">
+      <div class="card-img" style="background-image: url('/images/sample2.jpg');">
+        <div class="mood-badge sad"><i class="fas fa-cloud-rain"></i> 우울</div>
+      </div>
+      <div class="card-body">
+        <span class="diary-date">2025. 12. 24</span>
+        <h3 class="diary-title">조금 지치는 하루</h3>
+        <p class="diary-preview">
+          업무 실수가 잦아서 상사에게 꾸지람을 들었다.
+          내 딴에는 열심히 한다고 했는데 결과가 좋지 않아 속상하다.
+          오늘은 일찍 자고 털어버려야지.
+        </p>
+      </div>
+    </div>
+
+    <div class="diary-card" onclick="location.href='/diary/detail/4'">
+      <div class="card-img" style="background-image: url('/images/sample3.jpg');">
+        <div class="mood-badge excited"><i class="fas fa-bolt"></i> 설렘</div>
+      </div>
+      <div class="card-body">
+        <span class="diary-date">2025. 12. 20</span>
+        <h3 class="diary-title">새로운 프로젝트 시작!</h3>
+        <p class="diary-preview">
+          드디어 기다리던 프로젝트에 참여하게 되었다.
+          긴장도 되지만 그보다는 기대감이 더 크다.
+          팀원들과 함께 멋진 결과를 만들어내고 싶다.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="pagination">
+    <a href="#" class="page-btn prev"><i class="fas fa-chevron-left"></i></a>
+    <a href="#" class="page-btn active">1</a>
+    <a href="#" class="page-btn">2</a>
+    <a href="#" class="page-btn">3</a>
+    <a href="#" class="page-btn next"><i class="fas fa-chevron-right"></i></a>
+  </div>
+
+</div>
+
+</body>
+</html>
