@@ -29,4 +29,13 @@ public class DiaryController {
 
         return "diary/list";
     }
+
+    @GetMapping(value = "analysis")
+    public String analysis() {
+
+        log.info("{}.analysis Start!", this.getClass().getName());
+        log.info("{}.analysis End!", this.getClass().getName());
+
+        return "diary/analysis";
+    }
 }
