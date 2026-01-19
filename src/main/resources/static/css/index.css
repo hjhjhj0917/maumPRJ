@@ -238,10 +238,46 @@ header {
 }
 
 .footer-wrapper {
-    background-color: #f9f9f9;
+    background-color: #FFFDF5;
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: space-between;
+}
+
+.stats-section {
+    flex: 1;
+    display: flex;
     justify-content: center;
+    align-items: center;
+    gap: 60px;
+    width: 100%;
+}
+
+.stat-item {
+    text-align: center;
+    animation: fadeIn 1s ease-out;
+}
+
+.stat-number {
+    display: block;
+    font-size: 4rem;
+    font-weight: 800;
+    color: #FFD166;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+}
+
+.stat-label {
+    font-size: 1.3rem;
+    color: #555;
+    font-weight: 600;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 70px;
+    background-color: #e0e0e0;
 }
 
 .scroll-target {
@@ -253,6 +289,11 @@ header {
 .active .scroll-target {
     opacity: 1;
     transform: translateY(0);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 768px) {
@@ -284,5 +325,20 @@ header {
         height: auto;
         min-height: 100vh;
         padding: 100px 0;
+    }
+
+    .stats-section {
+        flex-direction: column;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .stat-number {
+        font-size: 3rem;
+    }
+
+    .stat-divider {
+        width: 80px;
+        height: 1px;
     }
 }

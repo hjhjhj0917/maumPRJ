@@ -36,7 +36,7 @@
                     AI가 당신의 하루를 듣고 따뜻한 위로와 분석을 건넵니다.
                 </p>
                 <div class="hero-buttons">
-                    <a href="/main" class="btn-primary">일기 쓰러 가기</a>
+                    <a href="/diary/write" class="btn-primary">일기 쓰러 가기</a>
                     <a href="/analysis/intro" class="btn-secondary">자세히 알아보기</a>
                 </div>
             </div>
@@ -85,7 +85,23 @@
     </section>
 
     <div class="footer-wrapper full-page">
-        <div th:replace="includes/footer :: footer"></div>
+        <div class="stats-section">
+            <div class="stat-item">
+                <span class="stat-number">1,204</span>
+                <span class="stat-label">기록된 마음</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-number">582</span>
+                <span class="stat-label">위로받은 사람</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-number">365</span>
+                <span class="stat-label">함께한 시간</span>
+            </div>
+        </div>
+        <div style="width: 100%;" th:replace="includes/footer :: footer"></div>
     </div>
 
 </div>
