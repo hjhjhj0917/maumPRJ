@@ -9,6 +9,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
     sections[0].classList.add("active");
 
+    const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = entry.target;
+                animateValue(target);
+                statsObserver.unobserve(target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach(stat => statsObserver.observe(stat));
+
     function isMobile() {
         return window.innerWidth <= mobileBreakpoint;
     }
@@ -70,4 +83,29 @@ document.addEventListener("DOMContentLoaded", function() {
             sections[currentSectionIndex].classList.add("active");
         }
     });
+
+    function animateValue(obj) {
+        const targetText = obj.innerText;
+        const target = parseInt(targetText.replace(/,/g, ""), 10);
+        let startTimestamp = null;
+        const duration = 2000;
+
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+
+            const currentVal = Math.floor(easeOutQuart * target);
+            obj.innerHTML = currentVal.toLocaleString();
+
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                obj.innerHTML = target.toLocaleString();
+            }
+        };
+
+        window.requestAnimationFrame(step);
+    }
 });
