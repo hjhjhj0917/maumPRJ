@@ -7,6 +7,7 @@ import lombok.Setter;
 @Setter
 public class DiaryDTO {
 
+    private String userId;
     private String title;
     private String content;
     private String date;
