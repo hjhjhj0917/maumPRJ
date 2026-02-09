@@ -7,4 +7,6 @@ import lombok.Setter;
 @Setter
 public class TalkChatbotDTO {
     private String userId;
+    private String content;
+    private String answer;
 }
