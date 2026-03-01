@@ -56,6 +56,4 @@ public class AccountController {
 
         return "account/profile";
     }
-
-
 }
