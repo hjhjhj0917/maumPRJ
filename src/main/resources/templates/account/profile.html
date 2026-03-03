@@ -21,27 +21,26 @@
 <div class="profile-container fade-in">
   <div class="profile-content">
     <h1 class="page-title">프로필 만들기</h1>
-    <p class="page-subtitle">나를 표현할 12간지 캐릭터를 선택해주세요.</p>
+    <p class="page-subtitle">나를 표현할 캐릭터를 선택해주세요.</p>
 
     <form action="/profile/create" method="POST" class="profile-form">
 
       <input type="hidden" id="selectedProfileImage" name="profileImage" value="mouse.png">
 
       <div class="profile-img-wrapper" id="openProfileModal">
-        <img id="profilePreview" src="/images/profile/mouse.png" alt="프로필 이미지">
+        <img id="profilePreview" src="/images/account/base-profile.png" alt="프로필 이미지">
 
         <div class="img-overlay">
           <i class="fas fa-pen"></i>
         </div>
       </div>
 
-      <div class="input-group">
-        <input type="text" id="nickname" name="nickname" placeholder="닉네임을 입력하세요" required autocomplete="off">
-      </div>
+<!--      <div class="input-group">-->
+<!--        <input type="text" id="nickname" name="nickname" placeholder="닉네임을 입력하세요" required autocomplete="off">-->
+<!--      </div>-->
 
       <div class="button-group">
-        <button type="submit" class="btn-save">저장</button>
-        <a href="/" class="btn-cancel">취소</a>
+        <button type="submit" class="btn-save">완료</button>
       </div>
     </form>
   </div>

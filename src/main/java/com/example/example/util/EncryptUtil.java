@@ -1,6 +1,6 @@
 package com.example.example.util;
 
-import org.apache.tomcat.util.codec.binary.Base64;
+import java.util.Base64;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -18,37 +18,24 @@ import java.security.spec.AlgorithmParameterSpec;
 public class EncryptUtil {
 
     final static String addMessage = "PolyDataAnalysis";
-
-    final static byte[] ivBytes = {0x00, 0x000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
+    final static byte[] ivBytes = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     final static String key = "PolyTechnic12345";
 
     public static String encHashSHA256(String str) {
-
         String res;
         String planText = addMessage + str;
-
         try {
-
             MessageDigest sh = MessageDigest.getInstance("SHA-256");
-
             sh.update(planText.getBytes());
-
             byte[] byteData = sh.digest();
-
             StringBuilder sb = new StringBuilder();
-
             for (byte byteDatum : byteData) {
                 sb.append(Integer.toString((byteDatum & 0xff) + 0x100, 16).substring(1));
             }
-
             res = sb.toString();
-
-            // 자바에서 제공하는 알고리즘이 아닌경우, 에러 발생
         } catch (Exception e) {
             res = "";
         }
-
         return res;
     }
 
@@ -58,16 +45,17 @@ public class EncryptUtil {
         byte[] textBytes = str.getBytes(StandardCharsets.UTF_8);
         AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
         SecretKeySpec newKey = new SecretKeySpec((key.getBytes(StandardCharsets.UTF_8)), "AES");
-        Cipher cipher;
-        cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, newKey, ivSpec);
-        return Base64.encodeBase64String(cipher.doFinal(textBytes));
+
+        return Base64.getEncoder().encodeToString(cipher.doFinal(textBytes));
     }
 
     public static String decAES128BCBC(String str) throws NoSuchAlgorithmException, NoSuchPaddingException,
             InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 
-        byte[] textBytes = Base64.decodeBase64(str);
+        byte[] textBytes = Base64.getDecoder().decode(str);
+
         AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
         SecretKeySpec newKey = new SecretKeySpec((key.getBytes(StandardCharsets.UTF_8)), "AES");
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
