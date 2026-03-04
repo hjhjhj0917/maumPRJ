@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function() {
-
     let currentSectionIndex = 0;
     const sections = document.querySelectorAll(".full-page");
     const mainContent = document.querySelector(".main-content");
@@ -32,9 +31,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     window.addEventListener("wheel", function(e) {
         if (isMobile()) return;
-
         e.preventDefault();
-
         if (isScrolling) return;
 
         if (e.deltaY > 0) {
@@ -95,8 +92,8 @@ document.addEventListener("DOMContentLoaded", function() {
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
 
             const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-
             const currentVal = Math.floor(easeOutQuart * target);
+
             obj.innerHTML = currentVal.toLocaleString();
 
             if (progress < 1) {

@@ -4,6 +4,7 @@ html, body {
     width: 100%;
     height: 100%;
     overflow: hidden;
+    font-family: 'Noto Sans KR', sans-serif;
 }
 
 header {
@@ -51,12 +52,8 @@ header {
 }
 
 @keyframes zoomEffect {
-    from {
-        transform: scale(1);
-    }
-    to {
-        transform: scale(1.05);
-    }
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
 }
 
 .hero-overlay {
@@ -109,7 +106,7 @@ header {
 }
 
 .btn-primary {
-    padding: 15px 30px;
+    padding: 15px 65px;
     background-color: #FFD166;
     color: #333;
     font-weight: bold;
@@ -142,99 +139,80 @@ header {
     transform: translateY(-3px);
 }
 
-.uri-intro-section {
-    background-color: #ffffff;
-    flex-direction: column;
-}
-
-.container {
+.split-container {
+    position: relative;
+    z-index: 2;
+    display: flex;
     width: 100%;
-    max-width: 1200px;
-    padding: 0 20px;
+    height: 100%;
 }
 
-.section-header {
-    text-align: center;
-    margin-bottom: 60px;
-}
-
-.section-header h2 {
-    font-size: 2.2rem;
-    color: #333;
-    margin-bottom: 15px;
-    font-weight: 800;
-}
-
-.section-header p {
-    font-size: 1.1rem;
-    color: #666;
-    line-height: 1.6;
-}
-
-.uri-card-wrapper {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    flex-wrap: wrap;
-}
-
-.uri-card {
+.split-panel {
     flex: 1;
-    min-width: 280px;
-    background-color: #fff;
-    padding: 50px 30px;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid #f0f0f0;
-    text-align: center;
-}
-
-.uri-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(255, 209, 102, 0.2);
-    border-color: #FFD166;
-}
-
-.icon-circle {
-    width: 80px;
-    height: 80px;
-    background-color: #FFFDF5;
-    color: #FFD166;
-    font-size: 2.5rem;
-    font-weight: 900;
-    border-radius: 50%;
+    position: relative;
     display: flex;
     justify-content: center;
-    align-items: center;
-    margin: 0 auto 30px;
-    box-shadow: 0 5px 15px rgba(255, 209, 102, 0.2);
+    align-items: flex-end;
+    padding-bottom: 15%;
+    text-decoration: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    transition: flex 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
 }
 
-.uri-card h3 {
-    font-size: 1.5rem;
-    color: #333;
-    margin-bottom: 20px;
-    font-weight: 700;
-    letter-spacing: 1px;
+.split-panel:last-child {
+    border-right: none;
 }
 
-.card-desc {
-    font-size: 1.05rem;
-    color: #555;
-    line-height: 1.8;
+.panel-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    transition: background-color 0.5s ease;
+    z-index: 1;
 }
 
-.card-desc b {
-    color: #333;
-    background: linear-gradient(to top, #FFD166 20%, transparent 20%);
+.split-panel:hover {
+    flex: 1.4;
 }
 
-.card-desc span {
-    display: block;
-    margin-top: 15px;
-    font-size: 0.95rem;
-    color: #888;
+.split-panel:hover .panel-overlay {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.split-panel:hover::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.panel-content {
+    position: relative;
+    z-index: 2;
+    color: #ffffff;
+    text-align: center;
+    transform: translateY(20px);
+    transition: transform 0.5s ease;
+}
+
+.split-panel:hover .panel-content {
+    transform: translateY(0);
+}
+
+.panel-content h4 {
+    font-size: 1.2rem;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.8);
+    margin: 0;
 }
 
 .footer-wrapper {
@@ -297,18 +275,24 @@ header {
 }
 
 @media (max-width: 768px) {
-    .main-title {
-        font-size: 2rem;
-    }
-
-    .uri-card-wrapper {
+    .split-container {
         flex-direction: column;
-        align-items: center;
     }
 
-    .uri-card {
-        width: 100%;
-        margin-bottom: 20px;
+    .split-panel {
+        flex: 1;
+        padding-bottom: 0;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .split-panel:last-child {
+        border-bottom: none;
+    }
+
+    .panel-content {
+        transform: translateY(0);
     }
 
     html, body {
