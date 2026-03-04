@@ -6,12 +6,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +25,6 @@ public class ClovaService implements IClovaServiece {
     @Value("${secure.clova.studio.api-key}")
     private String apiKey;
 
-    // RestTemplate은 Bean으로 등록하여 주입받는 것이 좋으나, 빠른 테스트를 위해 필드 생성 방식을 유지합니다.
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
@@ -34,62 +32,81 @@ public class ClovaService implements IClovaServiece {
 
         log.info("{}.analyzeWithThinking Start!", this.getClass().getName());
 
-        // 1. 헤더 설정 (Request ID 제외)
+        // 1. 헤더 설정 (v3 규격 맞춤)
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-NCP-CLOVASTUDIO-API-KEY", apiKey);
+        // v3는 기본적으로 스트림 응답을 선호하므로 Accept를 명시적으로 설정합니다.
+        headers.set("Accept", "application/json");
+        headers.set("Authorization", "Bearer " + apiKey);
 
-        // 2. 메시지 구성 (HCX-007 Thinking 모델 최적화)
-        List<ClovaDTO.Message> messages = List.of(
-                new ClovaDTO.Message("system",
+        // 2. 메시지 구성 (v3 HCX-007 규격)
+        // role과 content 구조를 명확히 합니다.
+        List<Map<String, String>> messages = List.of(
+                Map.of("role", "system", "content",
                         "너는 심리 분석 전문가야. 사용자의 일기를 깊이 있게 추론(Thinking)한 뒤, " +
                                 "최종 결과는 반드시 다음 JSON 형식으로만 응답해: " +
                                 "{\"emotion_summary\": \"...\", \"stress_level\": 0~100, \"advice\": \"...\"}"),
-                new ClovaDTO.Message("user", diaryContent)
+                Map.of("role", "user", "content", diaryContent)
         );
 
-        ClovaDTO requestBody = new ClovaDTO();
-        requestBody.setMessages(messages);
-        requestBody.setIncludeThinking(true); // HCX-007의 추론 과정 포함
+        // 3. 요청 바디 구성 (Thinking 객체 포함)
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("messages", messages);
 
-        HttpEntity<ClovaDTO> entity = new HttpEntity<>(requestBody, headers);
+        // HCX-007 전용: includeThinking 대신 객체 형태의 thinking 설정을 사용합니다.
+        requestBody.put("thinking", Map.of("effort", "low"));
+
+        // 추가 파라미터 (가이드 권장값)
+        requestBody.put("maxCompletionTokens", 5120);
+        requestBody.put("temperature", 0.5);
+        requestBody.put("topP", 0.8);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
         try {
             log.info("{}.api 호출 시작 Start!", this.getClass().getName());
 
-            // 3. API 호출
+            // API 호출
             ResponseEntity<Map> response = restTemplate.postForEntity(clovaUrl, entity, Map.class);
-
-            // 4. 결과 추출 로직
             Map<String, Object> body = response.getBody();
             log.info("{}.api 응답 수신 성공 Start!", this.getClass().getName());
 
-            if (body != null && "0000".equals(String.valueOf(body.get("status")))) { // 가이드상 성공 코드가 0000인 경우 확인
+            if (body != null && body.get("result") != null) {
                 Map<String, Object> result = (Map<String, Object>) body.get("result");
                 Map<String, Object> message = (Map<String, Object>) result.get("message");
 
-                String content = (String) message.get("content");
-                Object thinking = result.get("thinking");
+                if (message != null) {
+                    String content = (String) message.get("content");
+                    // 로그를 보니 키 이름이 'thinkingContent'입니다.
+                    Object thinking = result.get("thinkingContent");
 
-                log.info("분석 내용(content): {}", content);
-                log.debug("추론 과정(thinking): {}", thinking);
+                    log.info("분석 내용(content): {}", content);
+                    log.debug("추론 과정(thinking): {}", thinking);
 
-                log.info("분석 완료 및 성공 반환");
-                return Map.of(
-                        "status", "success",
-                        "analysis", content,
-                        "thinking", thinking != null ? thinking : "No thinking data"
-                );
+                    log.info("분석 완료 및 성공 반환");
+                    return Map.of(
+                            "status", "success",
+                            "analysis", content,
+                            "thinking", thinking != null ? thinking : "No thinking data"
+                    );
+                }
             }
-            log.warn("API 응답 코드 미일치(실패): status={}", body != null ? body.get("status") : "null");
-            return Map.of("status", "error", "message", "API 응답이 실패했습니다. body를 확인하세요.");
+
+            log.warn("API 응답 성공했으나 데이터 구조가 예상과 다름: body={}", body);
+            return Map.of("status", "error", "message", "응답 구조 분석 실패: " + body);
+
+        } catch (HttpClientErrorException.Unauthorized e) {
+            log.error("인증 오류 401 키 값 또는 권한을 확인하세요.");
+            log.error("네이버 응답 메시지: {}", e.getResponseBodyAsString());
+            return Map.of("status", "error", "message", "인증 오류가 발생했습니다.");
+
+        } catch (HttpClientErrorException e) {
+            log.error("HTTP 에러 상태코드: {}, 상세내용: {} ####", e.getStatusCode(), e.getResponseBodyAsString());
+            return Map.of("status", "error", "message", "API 통신 오류: " + e.getResponseBodyAsString());
 
         } catch (Exception e) {
             log.error("API 호출 중 예외 발생!", e);
-            return Map.of(
-                    "status", "error",
-                    "message", "분석 중 오류 발생: " + e.getMessage()
-            );
+            return Map.of("status", "error", "message", "분석 중 오류 발생: " + e.getMessage());
         } finally {
             log.info("{}.analyzeWithThinking End!", this.getClass().getName());
         }
