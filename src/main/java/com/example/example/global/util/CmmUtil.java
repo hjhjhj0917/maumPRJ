@@ -1,4 +1,4 @@
-package com.example.example.util;
+package com.example.example.global.util;
 
 public class CmmUtil {
 	public static String nvl(String str, String chg_str) {

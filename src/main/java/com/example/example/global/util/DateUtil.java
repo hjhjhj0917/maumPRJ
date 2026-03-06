@@ -1,4 +1,4 @@
-package com.example.example.util;
+package com.example.example.global.util;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
