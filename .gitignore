@@ -46,14 +46,6 @@ application.yml
 # 빌드 결과물
 /build/
 target/
-out/
-
-# IntelliJ
-.idea/
-*.iml
-
-# VSCode (혹시 팀원이 vscode 쓴다면)
-.vscode/
 
 # OS별 숨김 파일
 .DS_Store
@@ -64,29 +56,6 @@ Thumbs.db
 
 # 테스트 결과
 /test-output/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-*.iws
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
 ### 제외 규칙 확인
 !src/main/resources/application.properties
