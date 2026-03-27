@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>회원가입 - 우리AI</title>
+    <title>회원가입 - 마음(MAUM)</title>
 
     <link rel="stylesheet" th:href="@{/css/account/register.css}">
     <link rel="stylesheet" th:href="@{/css/includes/header.css}">
@@ -23,27 +23,44 @@
 
         <div class="stepper-wrapper">
             <div class="stepper-item active" id="stepper1">
-                <div class="step-label">계정정보</div>
+                <div class="step-label">인증</div>
                 <div class="step-circle"><i class="fa-solid fa-check"></i></div>
             </div>
             <div class="step-line"></div>
             <div class="stepper-item" id="stepper2">
-                <div class="step-label">개인정보</div>
+                <div class="step-label">계정정보</div>
                 <div class="step-circle"><i class="fa-solid fa-check"></i></div>
             </div>
             <div class="step-line"></div>
             <div class="stepper-item" id="stepper3">
-                <div class="step-label">인증</div>
+                <div class="step-label">개인정보</div>
                 <div class="step-circle"><i class="fa-solid fa-check"></i></div>
             </div>
         </div>
 
         <form action="/account/register" method="POST" id="registerForm">
-
             <div class="slide-viewport">
                 <div class="slide-track" id="slideTrack">
-
                     <div class="form-step active-slide" id="step1">
+                        <div class="auth-inputs">
+                            <div class="input-group">
+                                <label for="email">E-mail</label>
+                                <div class="flex-row">
+                                    <input type="email" id="email" name="email" placeholder="이메일을 입력하세요.">
+                                    <button type="button" class="btn-check">인증번호 발송</button>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="code">Code</label>
+                                <div class="flex-row">
+                                    <input type="text" id="code" placeholder="인증번호를 입력하세요.">
+                                    <button type="button" class="btn-check">인증 확인</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-step" id="step2">
                         <div class="input-group">
                             <label for="userId">User ID</label>
                             <div class="flex-row">
@@ -61,7 +78,7 @@
                         </div>
                     </div>
 
-                    <div class="form-step" id="step2">
+                    <div class="form-step" id="step3">
                         <div class="input-group">
                             <label for="userName">Name</label>
                             <input type="text" id="userName" name="userName" placeholder="이름을 입력하세요.">
@@ -75,73 +92,37 @@
                         </div>
                         <div class="input-group">
                             <label for="addressDetail">Apartment, etc ...</label>
-                            <input type="text" id="addressDetail" name="addressDetail" placeholder="상세주소를 입력하세요">
+                            <input type="text" id="addressDetail" name="addressDetail" placeholder="상세주소를 입력하세요.">
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="form-step" id="step3">
-                        <div class="input-group">
-                            <label for="email">E-mail</label>
-                            <div class="flex-row">
-                                <input type="email" id="email" name="email" placeholder="이메일을 입력하세요.">
-                                <button type="button" class="btn-check">인증번호</button>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="code">Code</label>
-                            <div class="flex-row">
-                                <input type="text" id="code" placeholder="인증번호를 입력하세요.">
-                                <button type="button" class="btn-check">확인</button>
-                            </div>
-                        </div>
-
-                        <div class="terms-group">
-                            <div class="term-item all-check">
-                                <input type="checkbox" id="checkAll">
-                                <label for="checkAll">전체동의</label>
-                            </div>
-                            <hr>
-                            <div class="term-item">
-                                <input type="checkbox" id="term1">
-                                <label for="term1">(필수) 서비스 이용 약관 <a href="#">보기</a></label>
-                            </div>
-                            <div class="term-item">
-                                <input type="checkbox" id="term2">
-                                <label for="term2">(필수) 개인정보 수집·이용 동의 <a href="#">보기</a></label>
-                            </div>
-                            <div class="term-item">
-                                <input type="checkbox" id="term3">
-                                <label for="term3">(필수) 아동 정보 처리 및 보호자 동의 <a href="#">보기</a></label>
-                            </div>
-                        </div>
+            <div class="action-buttons">
+                <div class="btn-step-group active" id="btns1">
+                    <div class="btn-row right">
+                        <button type="button" class="btn-next" onclick="nextStep(2)">다음</button>
                     </div>
+                </div>
 
-                </div> </div> <div class="action-buttons">
-            <div class="btn-step-group active" id="btns1">
-                <div class="btn-row right">
-                    <button type="button" class="btn-next" onclick="nextStep(2)">다음</button>
+                <div class="btn-step-group" id="btns2">
+                    <div class="btn-row split">
+                        <button type="button" class="btn-prev" onclick="prevStep(1)">이전</button>
+                        <button type="button" class="btn-next" onclick="nextStep(3)">다음</button>
+                    </div>
+                </div>
+
+                <div class="btn-step-group" id="btns3">
+                    <div class="btn-row split">
+                        <button type="button" class="btn-prev" onclick="prevStep(2)">이전</button>
+                        <button type="submit" class="btn-submit">가입하기</button>
+                    </div>
                 </div>
             </div>
-
-            <div class="btn-step-group" id="btns2">
-                <div class="btn-row split">
-                    <button type="button" class="btn-prev" onclick="prevStep(1)">이전</button>
-                    <button type="button" class="btn-next" onclick="nextStep(3)">다음</button>
-                </div>
-            </div>
-
-            <div class="btn-step-group" id="btns3">
-                <div class="btn-row split">
-                    <button type="button" class="btn-prev" onclick="prevStep(2)">이전</button>
-                    <button type="submit" class="btn-submit">가입하기</button>
-                </div>
-            </div>
-        </div>
-
         </form>
 
         <div class="login-box">
-            이미 우리AI 회원이신가요? <a href="/account/login" class="link-login">로그인</a>
+            이미 마음(MAUM) 회원이신가요? <a href="/account/login" class="link-login">로그인</a>
         </div>
     </div>
 </div>

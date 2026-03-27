@@ -23,7 +23,6 @@ function showStep(step) {
     $('#step' + step).addClass('active-slide');
 
     updateButtons(step);
-
     updateStepper(step);
 }
 

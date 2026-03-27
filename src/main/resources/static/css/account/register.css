@@ -121,6 +121,11 @@ body {
     opacity: 1;
 }
 
+.auth-inputs {
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
 .input-group {
     margin-bottom: 30px;
     text-align: left;
@@ -177,46 +182,6 @@ body {
 
 .btn-check:hover {
     background-color: #E0B34A;
-}
-
-.terms-group {
-    margin-bottom: 40px;
-    padding: 10px 0;
-}
-
-.term-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    font-size: 13px;
-    color: #555;
-}
-
-.term-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    cursor: pointer;
-    accent-color: #FFD166;
-}
-
-.term-item a {
-    margin-left: auto;
-    color: #FFD166;
-    text-decoration: none;
-    font-size: 11px;
-}
-
-.all-check {
-    font-weight: bold;
-    color: #333;
-}
-
-hr {
-    border: 0;
-    border-top: 1px solid #eee;
-    margin: 15px 0;
 }
 
 .action-buttons {
