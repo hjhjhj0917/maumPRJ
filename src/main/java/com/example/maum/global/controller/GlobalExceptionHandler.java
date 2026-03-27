@@ -1,6 +1,6 @@
-package com.example.maum.global.Controller;
+package com.example.maum.global.controller;
 
-import com.example.maum.global.Controller.response.CommonResponse;
+import com.example.maum.global.controller.response.CommonResponse;
 import com.example.maum.global.dto.MsgDTO;
 import jakarta.persistence.OptimisticLockException;
 import org.springframework.http.HttpStatus;

@@ -1,4 +1,4 @@
-package com.example.maum.global.Controller.response;
+package com.example.maum.global.controller.response;
 
 import lombok.Builder;
 import lombok.Getter;

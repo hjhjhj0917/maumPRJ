@@ -12,6 +12,7 @@
     <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
     <script th:src="@{/js/includes/header.js}"></script>
     <script th:src="@{/js/account/register.js}"></script>
+    <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
 
@@ -41,17 +42,25 @@
         <form action="/account/register" method="POST" id="registerForm">
             <div class="slide-viewport">
                 <div class="slide-track" id="slideTrack">
+
                     <div class="form-step active-slide" id="step1">
                         <div class="auth-inputs">
                             <div class="input-group">
-                                <label for="email">E-mail</label>
+                                <div class="label-row">
+                                    <label for="email">E-mail</label>
+                                    <span class="field-message" id="emailMsg"></span>
+                                </div>
                                 <div class="flex-row">
                                     <input type="email" id="email" name="email" placeholder="이메일을 입력하세요.">
-                                    <button type="button" class="btn-check">인증번호 발송</button>
+                                    <button type="button" id="btnEmail" class="btn-check">인증번호 발송</button>
                                 </div>
                             </div>
+
                             <div class="input-group">
-                                <label for="code">Code</label>
+                                <div class="label-row">
+                                    <label for="code">Code</label>
+                                    <span class="field-message" id="codeMsg"></span>
+                                </div>
                                 <div class="flex-row">
                                     <input type="text" id="code" placeholder="인증번호를 입력하세요.">
                                     <button type="button" class="btn-check">인증 확인</button>
@@ -61,40 +70,67 @@
                     </div>
 
                     <div class="form-step" id="step2">
-                        <div class="input-group">
-                            <label for="userId">User ID</label>
-                            <div class="flex-row">
-                                <input type="text" id="userId" name="userId" placeholder="아이디를 입력하세요.">
-                                <button type="button" class="btn-check">중복확인</button>
+                        <div class="auth-inputs">
+                            <div class="input-group">
+                                <div class="label-row">
+                                    <label for="userId">User ID</label>
+                                    <span class="field-message" id="userIdMsg"></span>
+                                </div>
+                                <div class="flex-row">
+                                    <input type="text" id="userId" name="userId" placeholder="아이디를 입력하세요.">
+                                    <button type="button" class="btn-check">중복확인</button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="input-group">
-                            <label for="password">Password</label>
-                            <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요.">
-                        </div>
-                        <div class="input-group">
-                            <label for="passwordConfirm">Confirm Password</label>
-                            <input type="password" id="passwordConfirm" placeholder="비밀번호를 다시 입력하세요.">
+
+                            <div class="input-group">
+                                <div class="label-row">
+                                    <label for="password">Password</label>
+                                    <span class="field-message" id="passwordMsg"></span>
+                                </div>
+                                <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요.">
+                            </div>
+
+                            <div class="input-group">
+                                <div class="label-row">
+                                    <label for="passwordConfirm">Confirm Password</label>
+                                    <span class="field-message" id="passwordConfirmMsg"></span>
+                                </div>
+                                <input type="password" id="passwordConfirm" placeholder="비밀번호를 다시 입력하세요.">
+                            </div>
                         </div>
                     </div>
 
                     <div class="form-step" id="step3">
-                        <div class="input-group">
-                            <label for="userName">Name</label>
-                            <input type="text" id="userName" name="userName" placeholder="이름을 입력하세요.">
-                        </div>
-                        <div class="input-group">
-                            <label for="address">Address</label>
-                            <div class="flex-row">
-                                <input type="text" id="address" name="address" placeholder="주소를 입력하세요.">
-                                <button type="button" class="btn-check">우편번호</button>
+                        <div class="auth-inputs">
+                            <div class="input-group">
+                                <div class="label-row">
+                                    <label for="userName">Name</label>
+                                    <span class="field-message" id="userNameMsg"></span>
+                                </div>
+                                <input type="text" id="userName" name="userName" placeholder="이름을 입력하세요.">
+                            </div>
+
+                            <div class="input-group">
+                                <div class="label-row">
+                                    <label for="address">Address</label>
+                                    <span class="field-message" id="addrMsg"></span>
+                                </div>
+                                <div class="flex-row">
+                                    <input type="text" id="address" name="addr" placeholder="주소를 입력하세요." readonly>
+                                    <button type="button" class="btn-check">우편번호</button>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <div class="label-row">
+                                    <label for="detailAddr">Apartment, etc ...</label>
+                                    <span class="field-message" id="detailAddrMsg"></span>
+                                </div>
+                                <input type="text" id="detailAddr" name="detailAddr" placeholder="상세주소를 입력하세요.">
                             </div>
                         </div>
-                        <div class="input-group">
-                            <label for="addressDetail">Apartment, etc ...</label>
-                            <input type="text" id="addressDetail" name="addressDetail" placeholder="상세주소를 입력하세요.">
-                        </div>
                     </div>
+
                 </div>
             </div>
 
@@ -122,7 +158,8 @@
         </form>
 
         <div class="login-box">
-            이미 마음(MAUM) 회원이신가요? <a href="/account/login" class="link-login">로그인</a>
+            이미 마음(MAUM) 회원이신가요?
+            <a href="/account/login" class="link-login">로그인</a>
         </div>
     </div>
 </div>

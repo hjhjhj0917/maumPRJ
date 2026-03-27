@@ -19,6 +19,7 @@ body {
     align-items: center;
     width: 100%;
     padding: 40px 20px;
+    box-sizing: border-box;
 }
 
 .register-card {
@@ -76,13 +77,15 @@ body {
     transition: all 0.3s ease;
 }
 
-.stepper-item.active .step-circle {
+.stepper-item.active .step-circle,
+.stepper-item.completed .step-circle {
     background-color: #FFD166;
     border-color: #FFD166;
     color: #fff;
 }
 
-.stepper-item.active .step-label {
+.stepper-item.active .step-label,
+.stepper-item.completed .step-label {
     color: #333;
     font-weight: bold;
 }
@@ -131,12 +134,41 @@ body {
     text-align: left;
 }
 
-.input-group label {
-    display: block;
+/* 🔥 핵심 수정 부분 */
+.label-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 10px;
+}
+
+.input-group label {
     font-size: 14px;
     font-weight: 600;
     color: #666;
+    min-width: 70px;
+}
+
+.field-message {
+    flex: 1;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.field-message.show {
+    opacity: 1;
+}
+
+.field-message.error {
+    color: #ef4444;
+}
+
+.field-message.success {
+    color: #22c55e;
 }
 
 .flex-row {
@@ -155,6 +187,7 @@ body {
     transition: border-color 0.3s;
     background-color: transparent;
     flex: 1;
+    box-sizing: border-box;
 }
 
 .input-group input:focus {
@@ -177,7 +210,7 @@ body {
     cursor: pointer;
     white-space: nowrap;
     height: 35px;
-    align-self: center;
+    flex-shrink: 0;
 }
 
 .btn-check:hover {
@@ -199,8 +232,14 @@ body {
 }
 
 @keyframes fadeInBtn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .btn-row {
@@ -230,7 +269,8 @@ body {
     background-color: #f9f9f9;
 }
 
-.btn-next, .btn-submit {
+.btn-next,
+.btn-submit {
     padding: 12px 40px;
     background-color: #fff;
     border: 1px solid #FFD166;
@@ -241,7 +281,8 @@ body {
     font-weight: 600;
 }
 
-.btn-next:hover, .btn-submit:hover {
+.btn-next:hover,
+.btn-submit:hover {
     background-color: #FFD166;
 }
 
@@ -260,6 +301,7 @@ body {
     margin-top: 40px;
     font-size: 13px;
     color: #999;
+    text-align: left;
 }
 
 .link-login {
@@ -267,4 +309,40 @@ body {
     text-decoration: none;
     font-weight: 700;
     margin-left: 5px;
+}
+
+@media (max-width: 560px) {
+    .register-card {
+        max-width: 100%;
+    }
+
+    .label-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .field-message {
+        width: 100%;
+        text-align: left;
+        white-space: normal;
+    }
+
+    .flex-row {
+        flex-direction: column;
+    }
+
+    .btn-check {
+        width: 100%;
+    }
+
+    .btn-row.split {
+        gap: 10px;
+    }
+
+    .btn-prev,
+    .btn-next,
+    .btn-submit {
+        flex: 1;
+        padding: 12px 20px;
+    }
 }

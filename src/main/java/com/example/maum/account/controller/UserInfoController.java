@@ -1,16 +1,27 @@
 package com.example.maum.account.controller;
 
+import com.example.maum.account.dto.ExistsDTO;
+import com.example.maum.account.dto.UserInfoDTO;
+import com.example.maum.account.service.IUserInfoService;
+import com.example.maum.global.dto.MsgDTO;
+import com.example.maum.global.util.CmmUtil;
+import com.example.maum.global.util.EncryptUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @Controller
 @Slf4j
 @RequestMapping(value = "/account")
 @RequiredArgsConstructor
 public class UserInfoController {
+
+    private final IUserInfoService userInfoService;
 
     @GetMapping(value = "login")
     public String login() {
@@ -55,5 +66,159 @@ public class UserInfoController {
         log.info("{}.profile End!", this.getClass().getName());
 
         return "account/profile";
+    }
+
+    @ResponseBody
+    @PostMapping(value = "getUserIdExists")
+    public ExistsDTO getUserExists(HttpServletRequest request) throws Exception {
+
+        log.info("{}.getUserExists Start!", this.getClass().getName());
+
+        String userId = CmmUtil.nvl(request.getParameter("userId"));
+
+        log.info("userId: {}", userId);
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .userId(userId)
+                .build();
+
+        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
+                .orElseGet(() -> ExistsDTO.builder().exists(false).build());
+
+        log.info("{}.getUserExists End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+    @ResponseBody
+    @PostMapping(value = "getEmailExists")
+    public UserInfoDTO getEmailExists(HttpServletRequest request) throws Exception {
+
+        log.info(this.getClass().getName() + ".getEmailExists Start!");
+
+        String email = CmmUtil.nvl(request.getParameter("email"));
+
+        log.info("email : " + email);
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .email(EncryptUtil.encAES128BCBC(email))
+                .build();
+
+        UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getEmailExists(pDTO)).orElseGet(UserInfoDTO::new);
+
+        log.info(this.getClass().getName() + ".getUserIdExists End!");
+
+        return rDTO;
+    }
+
+    @ResponseBody
+    @PostMapping(value = "insertUserInfo")
+    public MsgDTO insertUserInfo(HttpServletRequest request) throws Exception {
+
+        log.info("{}.insertUserInfo Start!", this.getClass().getName());
+
+        String msg;
+
+        String userId = CmmUtil.nvl(request.getParameter("userId"));
+        String userName = CmmUtil.nvl(request.getParameter("userName"));
+        String password = CmmUtil.nvl(request.getParameter("password"));
+        String email = CmmUtil.nvl(request.getParameter("email"));
+        String birthDate = CmmUtil.nvl(request.getParameter("birthDate"));
+        String addr = CmmUtil.nvl(request.getParameter("addr"));
+        String detailAddr = CmmUtil.nvl(request.getParameter("detailAddr"));
+        String profileImgUrl = CmmUtil.nvl(request.getParameter("profileImgUrl"));
+
+        log.info("userId: {}, userName: {}, password: {}, email: {}, birthDate: {}, addr: {}, detailAddr: {}, profileImgUrl: {}",
+                userId, userName, password, email, birthDate, addr, detailAddr, profileImgUrl);
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .userId(userId)
+                .userName(userName)
+                .password(EncryptUtil.encHashSHA256(password))
+                .email(EncryptUtil.encAES128BCBC(email))
+                .birthDate(birthDate)
+                .addr(addr)
+                .detailAddr(detailAddr)
+                .profileImgUrl(profileImgUrl)
+                .build();
+
+        int res = userInfoService.insertUserInfo(pDTO);
+
+        log.info("회원가입 결과(res): {}", res);
+
+        if (res == 1) {
+            msg = "회원가입이 완료되었습니다.";
+        } else if (res == 2) {
+            msg = "이미 가입된 아이디입니다.";
+        } else {
+            msg = "오류로 인해 회원가입이 실패하였습니다.";
+        }
+
+        MsgDTO dto = MsgDTO.builder()
+                .result(res)
+                .msg(msg)
+                .build();
+
+        log.info("{}.insertUserInfo End!", this.getClass().getName());
+
+        return dto;
+    }
+
+    @ResponseBody
+    @PostMapping(value = "loginProc")
+    public MsgDTO loginProc(HttpServletRequest request, HttpSession session) throws Exception {
+
+        log.info("{}.loginProc Start!", this.getClass().getName());
+
+        String msg;
+
+        String userId = CmmUtil.nvl(request.getParameter("userId"));
+        String password = CmmUtil.nvl(request.getParameter("password"));
+
+        log.info("userId: {}, password: {}", userId, password);
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .userId(userId)
+                .password(EncryptUtil.encHashSHA256(password))
+                .build();
+
+        int res = userInfoService.getUserLogin(pDTO);
+
+        log.info("res: {}", res);
+
+        if (res == 1) {
+            msg = "로그인이 성공했습니다.";
+            session.setAttribute("SS_USER_ID", userId);
+        } else {
+            msg = "아이디와 비밀번호가 일치하지 않습니다.";
+        }
+
+        MsgDTO dto = MsgDTO.builder()
+                .result(res)
+                .msg(msg)
+                .build();
+
+        log.info("{}.loginProc End!", this.getClass().getName());
+
+        return dto;
+    }
+
+    @ResponseBody
+    @PostMapping(value = "logout")
+    public MsgDTO logout(HttpSession session) {
+
+        log.info("{}.logout Start!", this.getClass().getName());
+
+        session.setAttribute("SS_USER_ID", "");
+        session.removeAttribute("SS_USER_ID");
+
+        MsgDTO dto = MsgDTO.builder()
+                .result(1)
+                .msg("로그아웃하였습니다.")
+                .build();
+
+        log.info("{}.logout End!", this.getClass().getName());
+
+        return dto;
     }
 }

@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Builder
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record DiaryDTO(
@@ -16,7 +18,7 @@ public record DiaryDTO(
         String mainEmotion,
         String emotionColor,
         Integer depLvl,
-        Double depScore,
+        BigDecimal depScore,
         Integer symptomYn,
         String createdAt
 ) {

@@ -1,0 +1,142 @@
+package com.example.maum.account.service.impl;
+
+import com.example.maum.account.dto.ExistsDTO;
+import com.example.maum.account.dto.MailDTO;
+import com.example.maum.account.dto.UserInfoDTO;
+import com.example.maum.account.repository.UserInfoRepository;
+import com.example.maum.account.repository.entity.UserInfoEntity;
+import com.example.maum.account.service.IUserInfoService;
+import com.example.maum.global.util.CmmUtil;
+import com.example.maum.global.util.EncryptUtil;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class UserInfoService implements IUserInfoService {
+
+    private final UserInfoRepository userInfoRepository;
+    private final MailService mailService;
+
+    @Override
+    public ExistsDTO getUserIdExists(@NonNull UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.getUserIdExists Start!", this.getClass().getName());
+
+        log.info("pDTO: {}", pDTO);
+
+        String userId = CmmUtil.nvl(pDTO.userId());
+
+        boolean exists = userInfoRepository.findByUserId(userId).isPresent();
+
+        ExistsDTO rDTO = ExistsDTO.builder()
+                .exists(exists)
+                .build();
+
+        log.info("{}.getUserIdExists End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+    @Override
+    public ExistsDTO getEmailExists(UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.getEmailExists Start!", this.getClass().getName());
+
+        boolean exists = userInfoRepository.findByEmail(pDTO.email()).isPresent();
+        int authNumber = 0;
+
+        log.info("exists : {}", exists);
+
+        if (!exists) {
+            authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
+            log.info("authNumber : {}", authNumber);
+
+            MailDTO mailDTO = new MailDTO();
+            mailDTO.setTitle("이메일 중복 확인 인증번호 발송 메일");
+            mailDTO.setContent("인증번호는 " + authNumber + " 입니다. ");
+            mailDTO.setReceiver(EncryptUtil.decAES128BCBC(CmmUtil.nvl(pDTO.email())));
+
+            mailService.doSendMail(mailDTO);
+        }
+
+        ExistsDTO rDTO = ExistsDTO.builder()
+                .exists(exists)
+                .authNumber(authNumber)
+                .build();
+
+        log.info("rDTO : {}", rDTO);
+
+        log.info("{}.getEmailExists End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+    @Override
+    public int insertUserInfo(@NonNull UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.insertUserInfo Start!", this.getClass().getName());
+
+        log.info("pDTO: {}", pDTO);
+
+        int res;
+
+        String userId = CmmUtil.nvl(pDTO.userId());
+        String password = CmmUtil.nvl(pDTO.password());
+        String userName = CmmUtil.nvl(pDTO.userName());
+        String email = CmmUtil.nvl(pDTO.email());
+        String birthDate = CmmUtil.nvl(pDTO.birthDate());
+        String addr = CmmUtil.nvl(pDTO.addr());
+        String detailAddr = CmmUtil.nvl(pDTO.detailAddr());
+        String profileImgUrl = CmmUtil.nvl(pDTO.profileImgUrl());
+
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
+
+        if (rEntity.isPresent()) {
+            res = 2;
+        } else {
+            UserInfoEntity pEntity = UserInfoEntity.builder()
+                    .userId(userId)
+                    .password(password)
+                    .userName(userName)
+                    .email(email)
+                    .birthDate(LocalDate.parse(birthDate))
+                    .addr(addr)
+                    .detailAddr(detailAddr)
+                    .profileImgUrl(profileImgUrl)
+                    .build();
+
+            userInfoRepository.save(pEntity);
+
+            res = userInfoRepository.findByUserId(userId).isPresent() ? 1 : 0;
+        }
+
+        log.info("{}.insertUserInfo End!", this.getClass().getName());
+
+        return res;
+    }
+
+    @Override
+    public int getUserLogin(@NonNull UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.getUserLogin Start!", this.getClass().getName());
+
+        String userId = CmmUtil.nvl(pDTO.userId());
+        String password = CmmUtil.nvl(pDTO.password());
+
+        log.info("userId: {}, password: {}", userId, password);
+
+        boolean res = userInfoRepository.findByUserIdAndPassword(userId, password).isPresent();
+
+        log.info("{}.getUserLogin End!", this.getClass().getName());
+
+        return res ? 1 : 0;
+    }
+}
