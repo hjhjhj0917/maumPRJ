@@ -53,20 +53,26 @@
 
     <div class="login-section">
         <div class="login-card">
-            <h3>마음에 오신 것을 환영합니다</h3>
+            <img th:src="@{/images/includes/logo.png}" alt="마음 로고" class="login-logo-title">
 
-            <form action="#" method="POST">
+            <form id="loginForm" onsubmit="return false;">
                 <div class="input-group">
-                    <label for="userId">User ID</label>
-                    <input type="text" id="userId" name="userId" placeholder="아이디를 입력하세요" required>
+                    <div class="label-row">
+                        <label for="userId">User ID</label>
+                        <span class="field-message" id="userIdMsg"></span>
+                    </div>
+                    <input type="text" id="userId" name="userId" placeholder="아이디를 입력하세요" required autocomplete="off">
                 </div>
 
                 <div class="input-group">
-                    <label for="password">Password</label>
+                    <div class="label-row">
+                        <label for="password">Password</label>
+                        <span class="field-message" id="passwordMsg"></span>
+                    </div>
                     <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
                 </div>
 
-                <button type="submit" class="btn-login">로그인</button>
+                <button type="button" class="btn-login" onclick="doLogin()">로그인</button>
             </form>
 
             <div class="find-links">

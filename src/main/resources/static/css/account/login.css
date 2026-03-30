@@ -156,23 +156,52 @@ body {
 
 .input-group {
     margin-bottom: 30px;
+    text-align: left;
+}
+
+.label-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 5px;
 }
 
 .input-group label {
-    display: block;
-    margin-bottom: 10px;
-    color: #555;
-    font-size: 0.9rem;
+    font-size: 14px;
     font-weight: 600;
+    color: #666;
+    min-width: 70px;
+}
+
+.field-message {
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+
+.field-message.show {
+    opacity: 1 !important;
+}
+
+.field-message.error {
+    color: #ef4444;
+}
+
+.field-message.success {
+    color: #22c55e;
 }
 
 .input-group input {
     width: 100%;
-    padding: 10px 5px;
+    padding: 10px 0;
     border: none;
-    border-bottom: 2px solid #ddd;
+    border-bottom: 2px solid #eee;
     outline: none;
-    font-size: 1rem;
+    font-size: 15px;
+    background-color: transparent;
     transition: border-color 0.3s;
 }
 
@@ -270,6 +299,13 @@ body {
     text-decoration: underline;
 }
 
+.login-card .login-logo-title {
+    display: block;
+    margin: 0 auto 50px;
+    max-width: 170px;
+    height: auto;
+}
+
 @media (max-width: 768px) {
     body {
         height: auto;
@@ -327,5 +363,16 @@ body {
 
     .login-card {
         padding-bottom: 40px;
+    }
+
+    .label-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .field-message {
+        width: 100%;
+        text-align: left;
+        white-space: normal;
     }
 }
