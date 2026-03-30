@@ -56,4 +56,8 @@ public class UserInfoEntity implements Serializable {
 
     @Column(name = "UPDATED_AT", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
+
+    public void updateProfileImg(String profileImgUrl) {
+        this.profileImgUrl = profileImgUrl;
+    }
 }

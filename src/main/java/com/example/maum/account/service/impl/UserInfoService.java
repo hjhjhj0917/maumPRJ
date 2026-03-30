@@ -12,6 +12,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -136,6 +137,38 @@ public class UserInfoService implements IUserInfoService {
         }
 
         log.info("{}.insertUserInfo End!", this.getClass().getName());
+
+        return res;
+    }
+
+    @Transactional
+    @Override
+    public int updateProfileImg(@NonNull UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.updateProfileImg Start!", this.getClass().getName());
+
+        int res = 0;
+
+        String userId = CmmUtil.nvl(pDTO.userId());
+        String profileImage = CmmUtil.nvl(pDTO.profileImgUrl());
+
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
+
+        if (rEntity.isPresent()) {
+            UserInfoEntity pEntity = rEntity.get();
+
+            String profileImgUrl = "/images/account/base-profile.png";
+
+            if (profileImage != null && profileImage.startsWith("profile") && profileImage.endsWith(".png")) {
+                profileImgUrl = "/images/account/" + profileImage;
+            }
+
+            pEntity.updateProfileImg(profileImgUrl);
+
+            res = 1;
+        }
+
+        log.info("{}.updateProfileImg End!", this.getClass().getName());
 
         return res;
     }
