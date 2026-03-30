@@ -1,5 +1,6 @@
-$(document).ready(function() {
+const messageTimers = {};
 
+$(document).ready(function() {
     let slideIndex = 0;
     const $slides = $(".slide");
     const $bgSlides = $(".bg-slide");
@@ -35,4 +36,86 @@ $(document).ready(function() {
         startAutoSlide();
     });
 
+    $("#userId").on("input", function() {
+        clearMessage("userIdMsg");
+    });
+
+    $("#password").on("input", function() {
+        clearMessage("passwordMsg");
+    });
+
+    $("#loginForm input").on("keyup", function(e) {
+        if (e.key === "Enter") {
+            doLogin();
+        }
+    });
 });
+
+function setMessage(id, message, type) {
+    const $target = $("#" + id);
+
+    if (messageTimers[id]) {
+        clearTimeout(messageTimers[id]);
+    }
+
+    $target.removeClass("error success show");
+
+    if (!message) {
+        $target.text("");
+        return;
+    }
+
+    $target.text(message).addClass(type).addClass("show");
+
+    messageTimers[id] = setTimeout(function() {
+        clearMessage(id);
+    }, 3000);
+}
+
+function clearMessage(id) {
+    const $target = $("#" + id);
+    if (messageTimers[id]) {
+        clearTimeout(messageTimers[id]);
+        delete messageTimers[id];
+    }
+    $target.removeClass("error success show").text("");
+}
+
+function doLogin() {
+    const userId = $("#userId").val().trim();
+    const password = $("#password").val().trim();
+
+    if (userId === "") {
+        setMessage("userIdMsg", "아이디를 입력해주세요.", "error");
+        $("#userId").focus();
+        return;
+    }
+
+    if (password === "") {
+        setMessage("passwordMsg", "비밀번호를 입력해주세요.", "error");
+        $("#password").focus();
+        return;
+    }
+
+    $.ajax({
+        url: "/account/loginProc",
+        type: "post",
+        dataType: "JSON",
+        data: {
+            userId: userId,
+            password: password
+        },
+        success: function(json) {
+            if (json.result === 1) {
+                location.href = "/main";
+            } else {
+                setMessage("userIdMsg", "아이디 또는 비밀번호가 일치하지 않습니다.", "error");
+                $("#password").val("");
+                $("#userId").focus();
+            }
+        },
+        error: function() {
+            alert("서버 통신 중 오류가 발생했습니다.");
+        }
+    });
+}

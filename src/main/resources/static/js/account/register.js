@@ -13,7 +13,7 @@ $(document).ready(function () {
     const $step2 = $("#step2");
     const $step3 = $("#step3");
 
-    const $emailSendBtn = $step1.find(".btn-check").eq(0);
+    const $emailSendBtn = $("#btnEmail");
     const $emailVerifyBtn = $step1.find(".btn-check").eq(1);
     const $userIdCheckBtn = $step2.find(".btn-check").eq(0);
     const $addrBtn = $step3.find(".btn-check").eq(0);
@@ -55,7 +55,7 @@ $(document).ready(function () {
         clearMessage("passwordConfirmMsg");
     });
 
-    $("#userName, #address, #detailAddr").on("input", function () {
+    $("#userName, #birthDate, #address, #detailAddr").on("input", function () {
         const msgId = $(this).attr("id") === "address" ? "addrMsg" : $(this).attr("id") + "Msg";
         clearMessage(msgId);
     });
@@ -104,14 +104,15 @@ function emailExists(f) {
         url: "/account/getEmailExists",
         type: "post",
         dataType: "JSON",
-        data: { email: f.email.value },
+        data: {email: f.email.value},
         success: function (json) {
-            if (json.existsYn === "Y") {
+            if (json.exists === true) {
                 setMessage("emailMsg", "이미 가입된 이메일 주소가 존재합니다.", "error");
                 f.email.focus();
             } else {
                 setMessage("emailMsg", "이메일로 인증번호가 발송되었습니다.", "success");
                 emailAuthNumber = json.authNumber;
+                f.email.readOnly = true;
             }
         },
         error: function () {
@@ -139,11 +140,16 @@ function doAuthCheck(f) {
         f.email.readOnly = true;
         codeInput.readOnly = true;
 
-        const btnEmail = $("#step1").find(".btn-check").get(0);
-        const btnAuthCheck = $("#step1").find(".btn-check").get(1);
-
-        if (btnEmail) btnEmail.disabled = true;
-        if (btnAuthCheck) btnAuthCheck.disabled = true;
+        $("#btnEmail").prop("disabled", true).css({
+            backgroundColor: "#eee",
+            color: "#999",
+            cursor: "not-allowed"
+        });
+        $("#step1").find(".btn-check").eq(1).prop("disabled", true).css({
+            backgroundColor: "#eee",
+            color: "#999",
+            cursor: "not-allowed"
+        });
     }
 }
 
@@ -158,17 +164,20 @@ function userIdExists(f) {
         url: "/account/getUserIdExists",
         type: "post",
         dataType: "JSON",
-        data: { userId: f.userId.value },
+        data: {userId: f.userId.value},
         success: function (json) {
-            if (json.existsYn === "Y") {
+            if (json.exists === true) {
                 setMessage("userIdMsg", "이미 가입된 아이디가 존재합니다.", "error");
                 f.userId.focus();
             } else {
-                setMessage("userIdMsg", "가입 가능한 아이디입니다.", "success");
+                setMessage("userIdMsg", "사용 가능한 아이디입니다.", "success");
 
                 f.userId.readOnly = true;
-                const btnUserId = $("#step2").find(".btn-check").get(0);
-                if (btnUserId) btnUserId.disabled = true;
+                $("#step2").find(".btn-check").eq(0).prop("disabled", true).css({
+                    backgroundColor: "#eee",
+                    color: "#999",
+                    cursor: "not-allowed"
+                });
 
                 userIdCheck = "N";
             }
@@ -181,13 +190,15 @@ function userIdExists(f) {
 
 function kakaoPost(f) {
     new daum.Postcode({
+        autoClose: true,
         oncomplete: function (data) {
             let address = data.address;
             let zonecode = data.zonecode;
 
-            f.address.value = "(" + zonecode + ") " + address;
+            f.addr.value = "(" + zonecode + ") " + address;
             clearMessage("addrMsg");
-            f.addressDetail.focus();
+
+            f.detailAddr.focus();
         }
     }).open();
 }
@@ -248,12 +259,17 @@ function validateStep3(f) {
         isValid = false;
     }
 
-    if (f.address.value.trim() === "") {
+    if (f.birthDate && f.birthDate.value.trim() === "") {
+        setMessage("birthDateMsg", "생년월일을 입력하세요.", "error");
+        isValid = false;
+    }
+
+    if (f.addr.value.trim() === "") {
         setMessage("addrMsg", "주소를 입력하세요.", "error");
         isValid = false;
     }
 
-    if (f.addressDetail.value.trim() === "") {
+    if (f.detailAddr.value.trim() === "") {
         setMessage("detailAddrMsg", "상세주소를 입력하세요.", "error");
         isValid = false;
     }
@@ -262,9 +278,18 @@ function validateStep3(f) {
 }
 
 function doSubmit(f) {
-    if (!validateStep1(f)) { showStep(1); return; }
-    if (!validateStep2(f)) { showStep(2); return; }
-    if (!validateStep3(f)) { showStep(3); return; }
+    if (!validateStep1(f)) {
+        showStep(1);
+        return;
+    }
+    if (!validateStep2(f)) {
+        showStep(2);
+        return;
+    }
+    if (!validateStep3(f)) {
+        showStep(3);
+        return;
+    }
 
     $.ajax({
         url: "/account/insertUserInfo",
@@ -274,7 +299,7 @@ function doSubmit(f) {
         success: function (json) {
             if (json.result === 1) {
                 alert(json.msg || "회원가입이 완료되었습니다.");
-                location.href = "/account/login";
+                location.href = "/account/profile";
             } else {
                 alert(json.msg || "회원가입 중 문제가 발생했습니다.");
             }

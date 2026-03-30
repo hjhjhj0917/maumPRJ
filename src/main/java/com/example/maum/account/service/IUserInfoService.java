@@ -12,4 +12,6 @@ public interface IUserInfoService {
     int insertUserInfo(UserInfoDTO pDTO) throws Exception;
 
     int getUserLogin(UserInfoDTO pDTO) throws Exception;
+
+    int updateProfileImg(UserInfoDTO pDTO) throws Exception;
 }

@@ -190,6 +190,16 @@ body {
     box-sizing: border-box;
 }
 
+/* 크롬, 사파리, 엣지 등의 자동완성 배경색 제거 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-text-fill-color: #333;
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
 .input-group input:focus {
     border-bottom-color: #FFD166;
 }

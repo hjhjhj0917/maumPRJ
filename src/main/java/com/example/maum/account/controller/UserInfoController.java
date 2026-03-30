@@ -11,7 +11,10 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Optional;
 
@@ -105,9 +108,9 @@ public class UserInfoController {
                 .build();
 
         ExistsDTO rDTO = Optional.ofNullable(userInfoService.getEmailExists(pDTO))
-                .orElseGet(() -> new ExistsDTO(false, 0));
+                .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
 
-        log.info(this.getClass().getName() + ".getEmailExists End!");
+        log.info(this.getClass().getName() + ".getUserIdExists End!");
 
         return rDTO;
     }
@@ -127,10 +130,9 @@ public class UserInfoController {
         String birthDate = CmmUtil.nvl(request.getParameter("birthDate"));
         String addr = CmmUtil.nvl(request.getParameter("addr"));
         String detailAddr = CmmUtil.nvl(request.getParameter("detailAddr"));
-        String profileImgUrl = CmmUtil.nvl(request.getParameter("profileImgUrl"));
 
-        log.info("userId: {}, userName: {}, password: {}, email: {}, birthDate: {}, addr: {}, detailAddr: {}, profileImgUrl: {}",
-                userId, userName, password, email, birthDate, addr, detailAddr, profileImgUrl);
+        log.info("userId: {}, userName: {}, email: {}, birthDate: {}, addr: {}, detailAddr: {}",
+                userId, userName, email, birthDate, addr, detailAddr);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .userId(userId)
@@ -140,7 +142,6 @@ public class UserInfoController {
                 .birthDate(birthDate)
                 .addr(addr)
                 .detailAddr(detailAddr)
-                .profileImgUrl(profileImgUrl)
                 .build();
 
         int res = userInfoService.insertUserInfo(pDTO);
@@ -149,6 +150,7 @@ public class UserInfoController {
 
         if (res == 1) {
             msg = "회원가입이 완료되었습니다.";
+            request.getSession().setAttribute("SS_USER_ID", userId);
         } else if (res == 2) {
             msg = "이미 가입된 아이디입니다.";
         } else {
@@ -164,6 +166,49 @@ public class UserInfoController {
 
         return dto;
     }
+
+    @ResponseBody
+    @PostMapping(value = "updateProfileImg")
+    public MsgDTO updateProfileImg(HttpServletRequest request, HttpSession session) throws Exception {
+
+        log.info("{}.updateProfileImg Start!", this.getClass().getName());
+
+        String msg;
+        int res = 0;
+
+        String userId = CmmUtil.nvl((String) session.getAttribute("SS_USER_ID"));
+        String profileImage = CmmUtil.nvl(request.getParameter("profileImage"));
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .userId(userId)
+                .profileImgUrl(profileImage)
+                .build();
+
+        log.info("userId : {}, fileName : {}", userId, profileImage);
+
+        if (userId.isEmpty()) {
+            msg = "인증 정보가 만료되었습니다. 다시 시도해주세요.";
+        } else {
+            res = userInfoService.updateProfileImg(pDTO);
+
+            if (res == 1) {
+                msg = "프로필 설정이 완료되었습니다.";
+                request.getSession().removeAttribute("SS_USER_ID");
+            } else {
+                msg = "프로필 변경에 실패했습니다.";
+            }
+        }
+
+        MsgDTO dto = MsgDTO.builder()
+                .result(res)
+                .msg(msg)
+                .build();
+
+        log.info("{}.updateProfileImg End!", this.getClass().getName());
+
+        return dto;
+    }
+
 
     @ResponseBody
     @PostMapping(value = "loginProc")
