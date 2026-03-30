@@ -193,7 +193,7 @@ public class UserInfoController {
 
             if (res == 1) {
                 msg = "프로필 설정이 완료되었습니다.";
-                request.getSession().removeAttribute("SESSION_USER_ID");
+                request.getSession().removeAttribute("SS_USER_ID");
             } else {
                 msg = "프로필 변경에 실패했습니다.";
             }
