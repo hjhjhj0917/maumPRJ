@@ -92,7 +92,7 @@ public class UserInfoController {
 
     @ResponseBody
     @PostMapping(value = "getEmailExists")
-    public UserInfoDTO getEmailExists(HttpServletRequest request) throws Exception {
+    public ExistsDTO getEmailExists(HttpServletRequest request) throws Exception {
 
         log.info(this.getClass().getName() + ".getEmailExists Start!");
 
@@ -104,9 +104,10 @@ public class UserInfoController {
                 .email(EncryptUtil.encAES128BCBC(email))
                 .build();
 
-        UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getEmailExists(pDTO)).orElseGet(UserInfoDTO::new);
+        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getEmailExists(pDTO))
+                .orElseGet(() -> new ExistsDTO(false, 0));
 
-        log.info(this.getClass().getName() + ".getUserIdExists End!");
+        log.info(this.getClass().getName() + ".getEmailExists End!");
 
         return rDTO;
     }
