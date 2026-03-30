@@ -127,10 +127,9 @@ public class UserInfoController {
         String birthDate = CmmUtil.nvl(request.getParameter("birthDate"));
         String addr = CmmUtil.nvl(request.getParameter("addr"));
         String detailAddr = CmmUtil.nvl(request.getParameter("detailAddr"));
-        String profileImgUrl = CmmUtil.nvl(request.getParameter("profileImgUrl"));
 
-        log.info("userId: {}, userName: {}, password: {}, email: {}, birthDate: {}, addr: {}, detailAddr: {}, profileImgUrl: {}",
-                userId, userName, password, email, birthDate, addr, detailAddr, profileImgUrl);
+        log.info("userId: {}, userName: {}, email: {}, birthDate: {}, addr: {}, detailAddr: {}",
+                userId, userName, email, birthDate, addr, detailAddr);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .userId(userId)
@@ -140,7 +139,6 @@ public class UserInfoController {
                 .birthDate(birthDate)
                 .addr(addr)
                 .detailAddr(detailAddr)
-                .profileImgUrl(profileImgUrl)
                 .build();
 
         int res = userInfoService.insertUserInfo(pDTO);
