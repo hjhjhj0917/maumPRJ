@@ -5,18 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>프로필 생성 - 마음이야</title>
 
-  <link rel="stylesheet" th:href="@{/css/includes/header.css}">
-  <link rel="stylesheet" th:href="@{/css/includes/footer.css}">
   <link rel="stylesheet" th:href="@{/css/account/profile.css}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
   <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
-  <script th:src="@{/js/includes/header.js}"></script>
   <script th:src="@{/js/account/profile.js}"></script>
 </head>
 <body>
 
 <div th:replace="includes/header :: header"></div>
+<div th:replace="includes/customModal :: customModal"></div>
 
 <div class="profile-container fade-in">
   <div class="profile-content">

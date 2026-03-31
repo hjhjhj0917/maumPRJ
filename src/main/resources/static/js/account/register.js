@@ -52,7 +52,6 @@ $(document).ready(function () {
     });
 
     $("#passwordConfirm").on("input", function () {
-        const f = document.getElementById("registerForm");
         const pass = f.password.value;
         const confirm = $(this).val();
 
@@ -66,7 +65,7 @@ $(document).ready(function () {
 
             setMessage("passwordConfirmMsg", "비밀번호가 일치합니다.", "success");
 
-            setTimeout(function() {
+            setTimeout(function () {
                 nextStep(3);
             }, 1000);
         }
@@ -82,10 +81,9 @@ $(document).ready(function () {
         doSubmit(f);
     });
 
-    $('.toggle-password').on('click', function() {
+    $('.toggle-password').on('click', function () {
         const icon = $(this);
         const passwordInput = icon.siblings('input');
-
         const currentType = passwordInput.attr('type');
 
         if (currentType === 'password') {
@@ -94,6 +92,74 @@ $(document).ready(function () {
         } else {
             passwordInput.attr('type', 'password');
             icon.removeClass('fa-eye-slash active').addClass('fa-eye');
+        }
+    });
+
+    function populateRoller(id, start, end) {
+        const $col = $('#' + id);
+        $col.empty();
+        for (let i = start; i <= end; i++) {
+            let val = i < 10 ? '0' + i : i;
+            $col.append('<div class="roller-item" data-val="' + val + '">' + val + '</div>');
+        }
+    }
+
+    const currentYear = new Date().getFullYear();
+    populateRoller('col-year', 1900, currentYear);
+    populateRoller('col-month', 1, 12);
+    populateRoller('col-day', 1, 31);
+
+    $('.roller-col').on('scroll', function () {
+        const $col = $(this);
+        const scrollTop = $col.scrollTop();
+        const index = Math.round(scrollTop / 30);
+
+        $col.find('.roller-item').removeClass('active');
+        $col.find('.roller-item').eq(index).addClass('active');
+
+        const y = $('#col-year .roller-item.active').data('val');
+        const m = $('#col-month .roller-item.active').data('val');
+        const d = $('#col-day .roller-item.active').data('val');
+
+        if (y && m && d) {
+            $('#btnPickerConfirm').text(y + '-' + m + '-' + d + ' 확인');
+        }
+    });
+
+    $(document).on('click', '.roller-item', function () {
+        const $col = $(this).parent();
+        const index = $(this).index();
+
+        $col.animate({ scrollTop: index * 30 }, 150);
+    });
+
+    $('#birthDate').on('click', function () {
+        $('#customRollerPicker').fadeIn(150);
+
+        $('.roller-col').trigger('scroll');
+
+        if ($('#birthDate').val() === "") {
+            $('#col-year').scrollTop((2000 - 1900) * 30);
+            $('#col-month').scrollTop(0);
+            $('#col-day').scrollTop(0);
+        }
+    });
+
+    $('#btnPickerConfirm').on('click', function () {
+        const y = $('#col-year .roller-item.active').data('val');
+        const m = $('#col-month .roller-item.active').data('val');
+        const d = $('#col-day .roller-item.active').data('val');
+
+        $('#birthDate').val(y + '-' + m + '-' + d);
+        $('#customRollerPicker').fadeOut(150);
+        clearMessage('birthDateMsg');
+    });
+
+    $(document).on('mouseup', function (e) {
+        const container = $("#customRollerPicker");
+        const input = $("#birthDate");
+        if (!container.is(e.target) && container.has(e.target).length === 0 && !input.is(e.target)) {
+            container.fadeOut(150);
         }
     });
 });
@@ -126,16 +192,15 @@ function clearMessage(id) {
 }
 
 function emailExists(f) {
-
     const emailValue = f.email.value.trim();
 
-    if (f.email.value.trim() === "") {
+    if (emailValue === "") {
         setMessage("emailMsg", "이메일을 입력하세요.", "error");
         f.email.focus();
         return;
     }
 
-    if (!validator.isEmail(emailValue)) {
+    if (!validator.isAscii(emailValue) || !validator.isEmail(emailValue)) {
         setMessage("emailMsg", "유효한 이메일 형식이 아닙니다.", "error");
         f.email.focus();
         return;
@@ -151,13 +216,13 @@ function emailExists(f) {
                 setMessage("emailMsg", "이미 가입된 이메일 주소가 존재합니다.", "error");
                 f.email.focus();
             } else {
-                setMessage("emailMsg", "이메일로 인증번호가 발송되었습니다.", "success");
+                showCustomAlert("인증번호 발송", "이메일로 인증번호가 발송되었습니다.")
                 emailAuthNumber = json.authNumber;
                 f.email.readOnly = true;
             }
         },
         error: function () {
-            setMessage("emailMsg", "서버 통신 중 오류가 발생했습니다.", "error");
+            showCustomAlert("서버 오류", "서버 통신 중 오류가 발생했습니다.")
         }
     });
 }
@@ -191,7 +256,7 @@ function doAuthCheck(f) {
             color: "#999",
             cursor: "not-allowed"
         });
-        setTimeout(function() {
+        setTimeout(function () {
             nextStep(2);
         }, 800);
     }
@@ -249,14 +314,13 @@ function kakaoPost(f) {
 
 function validateStep1(f) {
     const codeInput = document.getElementById("code");
+    const emailValue = f.email.value.trim();
     let isValid = true;
 
-    if (f.email.value.trim() === "") {
+    if (emailValue === "") {
         setMessage("emailMsg", "이메일을 입력하세요.", "error");
         isValid = false;
-    }
-
-    if (!validator.isEmail(f.email.value)) {
+    } else if (!validator.isAscii(emailValue) || !validator.isEmail(emailValue)) {
         setMessage("emailMsg", "유효한 이메일 형식이 아닙니다.", "error");
         isValid = false;
     }
@@ -318,11 +382,6 @@ function validateStep3(f) {
         isValid = false;
     }
 
-    if (f.detailAddr.value.trim() === "") {
-        setMessage("detailAddrMsg", "상세주소를 입력하세요.", "error");
-        isValid = false;
-    }
-
     return isValid;
 }
 
@@ -347,14 +406,15 @@ function doSubmit(f) {
         data: $("#registerForm").serialize(),
         success: function (json) {
             if (json.result === 1) {
-                alert(json.msg || "회원가입이 완료되었습니다.");
-                location.href = "/account/profile";
+                showCustomAlert("회원가입 성공", json.msg, function () {
+                    location.href = "/account/profile";
+                })
             } else {
-                alert(json.msg || "회원가입 중 문제가 발생했습니다.");
+                showCustomAlert("회원가입 실패", json.msg)
             }
         },
         error: function () {
-            alert("서버 통신 중 오류가 발생했습니다.");
+            showCustomAlert("서버 오류", "서버 통신 중 오류가 발생했습니다.\n잠시 후 다시 시도해 주세요.");
         }
     });
 }

@@ -44,8 +44,9 @@ $(document).ready(function() {
             },
             success: function(json) {
                 if(json.result === 1) {
-                    alert(json.msg || "프로필 설정이 완료되었습니다.");
-                    location.href = "/account/login";
+                    showCustomAlert("프로필 설정 완료", "프로필 설정이 완료되었습니다.", function () {
+                        location.href = "/account/login";
+                    })
                 } else {
                     alert(json.msg || "프로필 설정 중 오류가 발생했습니다.");
                 }

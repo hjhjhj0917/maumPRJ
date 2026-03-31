@@ -6,11 +6,9 @@
     <title>회원가입 - 마음(MAUM)</title>
 
     <link rel="stylesheet" th:href="@{/css/account/register.css}">
-    <link rel="stylesheet" th:href="@{/css/includes/header.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
     <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
-    <script th:src="@{/js/includes/header.js}"></script>
     <script th:src="@{/js/account/register.js}"></script>
     <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <script src="https://unpkg.com/validator@latest/validator.min.js"></script>
@@ -18,10 +16,10 @@
 <body>
 
 <div th:replace="includes/header :: header"></div>
+<div th:replace="includes/customModal :: customModal"></div>
 
 <div class="container">
     <div class="register-card">
-<!--        <h3>회원가입</h3>-->
 
         <div class="stepper-wrapper">
             <div class="stepper-item active" id="stepper1">
@@ -117,12 +115,24 @@
                                 <input type="text" id="userName" name="userName" placeholder="이름을 입력하세요.">
                             </div>
 
-                            <div class="input-group">
+                            <div class="input-group" style="position: relative;">
                                 <div class="label-row">
                                     <label for="birthDate">Birth Date</label>
                                     <span class="field-message" id="birthDateMsg"></span>
                                 </div>
-                                <input type="date" id="birthDate" name="birthDate">
+                                <input type="text" id="birthDate" name="birthDate" placeholder="YYYY-MM-DD" readonly style="cursor: pointer; background-color: #fff;">
+
+                                <div id="customRollerPicker" class="roller-picker-container" style="display: none;">
+                                    <div class="roller-picker-body">
+                                        <div class="roller-highlight"></div>
+                                        <div class="roller-col" id="col-year"></div>
+                                        <div class="roller-col" id="col-month"></div>
+                                        <div class="roller-col" id="col-day"></div>
+                                    </div>
+                                    <div class="roller-picker-footer">
+                                        <button type="button" id="btnPickerConfirm">확인</button>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="input-group">
