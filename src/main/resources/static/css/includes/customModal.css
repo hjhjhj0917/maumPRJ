@@ -28,16 +28,6 @@
     transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.custom-modal-bg-icon {
-    position: absolute;
-    left: -20px;
-    bottom: -30px;
-    font-size: 250px;
-    color: #f6f6f6;
-    z-index: 0;
-    pointer-events: none;
-}
-
 .custom-modal-close {
     position: absolute;
     top: 15px;
