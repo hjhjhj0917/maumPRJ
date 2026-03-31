@@ -25,7 +25,7 @@ body {
 .register-card {
     width: 100%;
     max-width: 475px;
-    padding-bottom: 50px;
+    padding-top: 40px;
 }
 
 .register-card h3 {

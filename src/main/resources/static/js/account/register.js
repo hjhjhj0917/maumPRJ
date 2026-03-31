@@ -111,8 +111,17 @@ function clearMessage(id) {
 }
 
 function emailExists(f) {
+
+    const emailValue = f.email.value.trim();
+
     if (f.email.value.trim() === "") {
         setMessage("emailMsg", "이메일을 입력하세요.", "error");
+        f.email.focus();
+        return;
+    }
+
+    if (!validator.isEmail(emailValue)) {
+        setMessage("emailMsg", "유효한 이메일 형식이 아닙니다.", "error");
         f.email.focus();
         return;
     }
@@ -121,7 +130,7 @@ function emailExists(f) {
         url: "/account/getEmailExists",
         type: "post",
         dataType: "JSON",
-        data: {email: f.email.value},
+        data: {email: emailValue},
         success: function (json) {
             if (json.exists === true) {
                 setMessage("emailMsg", "이미 가입된 이메일 주소가 존재합니다.", "error");
@@ -229,6 +238,11 @@ function validateStep1(f) {
 
     if (f.email.value.trim() === "") {
         setMessage("emailMsg", "이메일을 입력하세요.", "error");
+        isValid = false;
+    }
+
+    if (!validator.isEmail(f.email.value)) {
+        setMessage("emailMsg", "유효한 이메일 형식이 아닙니다.", "error");
         isValid = false;
     }
 
