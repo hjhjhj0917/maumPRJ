@@ -101,15 +101,12 @@ function doLogin() {
         url: "/account/loginProc",
         type: "post",
         dataType: "JSON",
-        data: {
-            userId: userId,
-            password: password
-        },
+        data: $("#loginForm").serialize(),
         success: function(json) {
             if (json.result === 1) {
                 location.href = "/main";
             } else {
-                setMessage("userIdMsg", "아이디 또는 비밀번호가 일치하지 않습니다.", "error");
+                setMessage("userIdMsg", json.msg, "error");
                 $("#password").val("");
                 $("#userId").focus();
             }

@@ -52,7 +52,24 @@ $(document).ready(function () {
     });
 
     $("#passwordConfirm").on("input", function () {
+        const f = document.getElementById("registerForm");
+        const pass = f.password.value;
+        const confirm = $(this).val();
+
         clearMessage("passwordConfirmMsg");
+
+        if (pass.length > 0 && pass === confirm) {
+            if (userIdCheck !== "N") {
+                setMessage("userIdMsg", "아이디 중복 체크를 완료해 주세요.", "error");
+                return;
+            }
+
+            setMessage("passwordConfirmMsg", "비밀번호가 일치합니다.", "success");
+
+            setTimeout(function() {
+                nextStep(3);
+            }, 1000);
+        }
     });
 
     $("#userName, #birthDate, #address, #detailAddr").on("input", function () {
@@ -150,6 +167,9 @@ function doAuthCheck(f) {
             color: "#999",
             cursor: "not-allowed"
         });
+        setTimeout(function() {
+            nextStep(2);
+        }, 800);
     }
 }
 

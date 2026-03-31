@@ -234,7 +234,12 @@ public class UserInfoController {
 
         if (res == 1) {
             msg = "로그인이 성공했습니다.";
+
+            UserInfoDTO rDTO = userInfoService.getUserInfo(pDTO);
+
             session.setAttribute("SS_USER_ID", userId);
+            session.setAttribute("SS_USER_NO", rDTO.userNo());
+            session.setAttribute("SS_USER_PROFILE_IMG", rDTO.profileImgUrl());
         } else {
             msg = "아이디와 비밀번호가 일치하지 않습니다.";
         }

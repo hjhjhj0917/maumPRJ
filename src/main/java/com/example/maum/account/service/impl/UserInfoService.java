@@ -189,4 +189,37 @@ public class UserInfoService implements IUserInfoService {
 
         return res ? 1 : 0;
     }
+
+    @Override
+    public UserInfoDTO getUserInfo(@NonNull UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.getUserInfo Start!", this.getClass().getName());
+
+        String userId = CmmUtil.nvl(pDTO.userId());
+
+        log.info("userId: {}", userId);
+
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
+
+        UserInfoDTO rDTO = null;
+
+        if (rEntity.isPresent()) {
+            UserInfoEntity entity = rEntity.get();
+
+            rDTO = UserInfoDTO.builder()
+                    .userNo(entity.getUserNo())
+                    .userId(entity.getUserId())
+                    .userName(entity.getUserName())
+                    .profileImgUrl(entity.getProfileImgUrl())
+                    .build();
+
+            log.info("회원 정보 조회 성공: {}", userId);
+        } else {
+            log.info("회원 정보를 찾을 수 없음: {}", userId);
+        }
+
+        log.info("{}.getUserInfo End!", this.getClass().getName());
+
+        return rDTO;
+    }
 }
