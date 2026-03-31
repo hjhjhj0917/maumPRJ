@@ -49,6 +49,23 @@ $(document).ready(function() {
             doLogin();
         }
     });
+
+    $('#togglePassword').on('click', function() {
+        const passwordInput = $('#password');
+        const icon = $(this);
+
+        const currentType = passwordInput.attr('type');
+
+        if (currentType === 'password') {
+            passwordInput.attr('type', 'text');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            icon.addClass('active');
+        } else {
+            passwordInput.attr('type', 'password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            icon.removeClass('active');
+        }
+    });
 });
 
 function setMessage(id, message, type) {

@@ -81,6 +81,21 @@ $(document).ready(function () {
         e.preventDefault();
         doSubmit(f);
     });
+
+    $('.toggle-password').on('click', function() {
+        const icon = $(this);
+        const passwordInput = icon.siblings('input');
+
+        const currentType = passwordInput.attr('type');
+
+        if (currentType === 'password') {
+            passwordInput.attr('type', 'text');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash active');
+        } else {
+            passwordInput.attr('type', 'password');
+            icon.removeClass('fa-eye-slash active').addClass('fa-eye');
+        }
+    });
 });
 
 function setMessage(id, message, type) {
