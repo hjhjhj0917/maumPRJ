@@ -6,12 +6,10 @@
     <title>로그인 - 마음</title>
 
     <link rel="stylesheet" th:href="@{/css/account/login.css}">
-    <link rel="stylesheet" th:href="@{/css/includes/header.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
     <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
     <script th:src="@{/js/account/login.js}"></script>
-    <script th:src="@{/js/includes/header.js}"></script>
 </head>
 <body>
 
@@ -69,7 +67,10 @@
                         <label for="password">Password</label>
                         <span class="field-message" id="passwordMsg"></span>
                     </div>
-                    <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" placeholder="비밀번호를 입력하세요" required>
+                        <i class="fa-regular fa-eye toggle-password" id="togglePassword"></i>
+                    </div>
                 </div>
 
                 <button type="button" class="btn-login" onclick="doLogin()">로그인</button>

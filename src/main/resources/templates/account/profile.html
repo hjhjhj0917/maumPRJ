@@ -5,68 +5,88 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>프로필 생성 - 마음이야</title>
 
-  <link rel="stylesheet" th:href="@{/css/includes/header.css}">
-  <link rel="stylesheet" th:href="@{/css/includes/footer.css}">
   <link rel="stylesheet" th:href="@{/css/account/profile.css}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
   <script th:src="@{/js/jquery-3.6.0.min.js}"></script>
-  <script th:src="@{/js/includes/header.js}"></script>
   <script th:src="@{/js/account/profile.js}"></script>
 </head>
 <body>
 
 <div th:replace="includes/header :: header"></div>
+<div th:replace="includes/customModal :: customModal"></div>
 
 <div class="profile-container fade-in">
-  <div class="profile-content">
-    <h1 class="page-title">프로필 만들기</h1>
-    <p class="page-subtitle">나를 표현할 캐릭터를 선택해주세요.</p>
+  <form action="/profile/create" method="POST" class="profile-form">
 
-    <form action="/profile/create" method="POST" class="profile-form">
+    <input type="hidden" id="selectedProfileImage" name="profileImage" value="horse.png">
 
-      <input type="hidden" id="selectedProfileImage" name="profileImage" value="mouse.png">
-
-      <div class="profile-img-wrapper" id="openProfileModal">
-        <img id="profilePreview" src="/images/account/base-profile.png" alt="프로필 이미지">
-
-        <div class="img-overlay">
-          <i class="fas fa-pen"></i>
+    <div class="profile-layout">
+      <div class="profile-preview-area">
+        <div class="preview-circle">
+          <img id="profilePreview" src="/images/account/profile7.png" alt="프로필 이미지">
         </div>
       </div>
 
-<!--      <div class="input-group">-->
-<!--        <input type="text" id="nickname" name="nickname" placeholder="닉네임을 입력하세요" required autocomplete="off">-->
-<!--      </div>-->
-
-      <div class="button-group">
-        <button type="submit" class="btn-save">완료</button>
+      <div class="profile-selection-area">
+        <div class="zodiac-grid">
+          <div class="zodiac-item" data-img="mouse.png">
+            <img src="/images/account/profile1.png" alt="쥐">
+            <span>쥐</span>
+          </div>
+          <div class="zodiac-item" data-img="cow.png">
+            <img src="/images/account/profile2.png" alt="소">
+            <span>소</span>
+          </div>
+          <div class="zodiac-item" data-img="tiger.png">
+            <img src="/images/account/profile3.png" alt="호랑이">
+            <span>호랑이</span>
+          </div>
+          <div class="zodiac-item" data-img="rabbit.png">
+            <img src="/images/account/profile4.png" alt="토끼">
+            <span>토끼</span>
+          </div>
+          <div class="zodiac-item" data-img="dragon.png">
+            <img src="/images/account/profile5.png" alt="용">
+            <span>용</span>
+          </div>
+          <div class="zodiac-item" data-img="snake.png">
+            <img src="/images/account/profile6.png" alt="뱀">
+            <span>뱀</span>
+          </div>
+          <div class="zodiac-item selected" data-img="horse.png">
+            <img src="/images/account/profile7.png" alt="말">
+            <span>말</span>
+          </div>
+          <div class="zodiac-item" data-img="sheep.png">
+            <img src="/images/account/profile8.png" alt="양">
+            <span>양</span>
+          </div>
+          <div class="zodiac-item" data-img="monkey.png">
+            <img src="/images/account/profile9.png" alt="원숭이">
+            <span>원숭이</span>
+          </div>
+          <div class="zodiac-item" data-img="chicken.png">
+            <img src="/images/account/profile10.png" alt="닭">
+            <span>닭</span>
+          </div>
+          <div class="zodiac-item" data-img="dog.png">
+            <img src="/images/account/profile11.png" alt="개">
+            <span>개</span>
+          </div>
+          <div class="zodiac-item" data-img="pig.png">
+            <img src="/images/account/profile12.png" alt="돼지">
+            <span>돼지</span>
+          </div>
+        </div>
       </div>
-    </form>
-  </div>
-</div>
+    </div>
 
-<div id="zodiacModal" class="modal-overlay">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3>캐릭터 선택</h3>
-      <button type="button" class="close-modal"><i class="fas fa-times"></i></button>
+    <div class="button-area">
+      <button type="submit" class="btn-save">완료</button>
     </div>
-    <div class="zodiac-grid">
-      <div class="zodiac-item" data-img="mouse.png"><img src="/images/account/profile1.png" alt="쥐"><span>쥐</span></div>
-      <div class="zodiac-item" data-img="cow.png"><img src="/images/account/profile2.png" alt="소"><span>소</span></div>
-      <div class="zodiac-item" data-img="tiger.png"><img src="/images/account/profile3.png" alt="호랑이"><span>호랑이</span></div>
-      <div class="zodiac-item" data-img="rabbit.png"><img src="/images/account/profile4.png" alt="토끼"><span>토끼</span></div>
-      <div class="zodiac-item" data-img="dragon.png"><img src="/images/account/profile5.png" alt="용"><span>용</span></div>
-      <div class="zodiac-item" data-img="snake.png"><img src="/images/account/profile6.png" alt="뱀"><span>뱀</span></div>
-      <div class="zodiac-item" data-img="horse.png"><img src="/images/account/profile7.png" alt="말"><span>말</span></div>
-      <div class="zodiac-item" data-img="sheep.png"><img src="/images/account/profile8.png" alt="양"><span>양</span></div>
-      <div class="zodiac-item" data-img="monkey.png"><img src="/images/account/profile9.png" alt="원숭이"><span>원숭이</span></div>
-      <div class="zodiac-item" data-img="chicken.png"><img src="/images/account/profile10.png" alt="닭"><span>닭</span></div>
-      <div class="zodiac-item" data-img="dog.png"><img src="/images/account/profile11.png" alt="개"><span>개</span></div>
-      <div class="zodiac-item" data-img="pig.png"><img src="/images/account/profile12.png" alt="돼지"><span>돼지</span></div>
-    </div>
-  </div>
+
+  </form>
 </div>
 
 </body>

@@ -26,6 +26,9 @@ public class UserInfoController {
 
     private final IUserInfoService userInfoService;
 
+    /*
+    로그인 페이지
+    */
     @GetMapping(value = "login")
     public String login() {
 
@@ -35,6 +38,9 @@ public class UserInfoController {
         return "account/login";
     }
 
+    /*
+    회원가입 페이지
+    */
     @GetMapping(value = "register")
     public String register() {
 
@@ -44,6 +50,9 @@ public class UserInfoController {
         return "account/register";
     }
 
+    /*
+    아이디 찾기 페이지
+    */
     @GetMapping(value = "find-id")
     public String findId() {
 
@@ -53,6 +62,9 @@ public class UserInfoController {
         return "account/find-id";
     }
 
+    /*
+    비밀번호 찾기 페이지
+    */
     @GetMapping(value = "find-pw")
     public String findPw() {
 
@@ -62,6 +74,9 @@ public class UserInfoController {
         return "account/find-pw";
     }
 
+    /*
+    프로필 페이지
+    */
     @GetMapping(value = "profile")
     public String profile() {
 
@@ -71,6 +86,9 @@ public class UserInfoController {
         return "account/profile";
     }
 
+    /*
+    아이디 중복 확인
+    */
     @ResponseBody
     @PostMapping(value = "getUserIdExists")
     public ExistsDTO getUserExists(HttpServletRequest request) throws Exception {
@@ -93,6 +111,9 @@ public class UserInfoController {
         return rDTO;
     }
 
+    /*
+    이메일 중복 확인
+    */
     @ResponseBody
     @PostMapping(value = "getEmailExists")
     public ExistsDTO getEmailExists(HttpServletRequest request) throws Exception {
@@ -115,6 +136,9 @@ public class UserInfoController {
         return rDTO;
     }
 
+    /*
+    회원가입
+    */
     @ResponseBody
     @PostMapping(value = "insertUserInfo")
     public MsgDTO insertUserInfo(HttpServletRequest request) throws Exception {
@@ -167,6 +191,9 @@ public class UserInfoController {
         return dto;
     }
 
+    /*
+    프로필 이미지 수정
+    */
     @ResponseBody
     @PostMapping(value = "updateProfileImg")
     public MsgDTO updateProfileImg(HttpServletRequest request, HttpSession session) throws Exception {
@@ -209,7 +236,9 @@ public class UserInfoController {
         return dto;
     }
 
-
+    /*
+    로그인
+    */
     @ResponseBody
     @PostMapping(value = "loginProc")
     public MsgDTO loginProc(HttpServletRequest request, HttpSession session) throws Exception {
@@ -234,7 +263,13 @@ public class UserInfoController {
 
         if (res == 1) {
             msg = "로그인이 성공했습니다.";
+
+            UserInfoDTO rDTO = userInfoService.getUserInfo(pDTO);
+
             session.setAttribute("SS_USER_ID", userId);
+            session.setAttribute("SS_USER_NO", rDTO.userNo());
+            session.setAttribute("SS_USER_NAME", rDTO.userName());
+            session.setAttribute("SS_USER_PROFILE_IMG", rDTO.profileImgUrl());
         } else {
             msg = "아이디와 비밀번호가 일치하지 않습니다.";
         }
@@ -249,6 +284,36 @@ public class UserInfoController {
         return dto;
     }
 
+    /*
+    아이디 찾기
+    */
+    @ResponseBody
+    @PostMapping(value = "findIdProc")
+    public ExistsDTO findIdProc(HttpServletRequest request) throws Exception {
+
+        log.info("{}.findIdProc Start!", this.getClass().getName());
+
+        String email = CmmUtil.nvl(request.getParameter("email"));
+        String userName = CmmUtil.nvl(request.getParameter("userName"));
+
+        log.info("email : {}, userName : {}", email, userName);
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .email(EncryptUtil.encAES128BCBC(email))
+                .userName(userName)
+                .build();
+
+        ExistsDTO rDTO = Optional.ofNullable(userInfoService.findUserId(pDTO))
+                .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
+
+        log.info("{}.findIdProc End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+    /*
+    로그아웃
+    */
     @ResponseBody
     @PostMapping(value = "logout")
     public MsgDTO logout(HttpSession session) {

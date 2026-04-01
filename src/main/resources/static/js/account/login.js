@@ -49,6 +49,23 @@ $(document).ready(function() {
             doLogin();
         }
     });
+
+    $('#togglePassword').on('click', function() {
+        const passwordInput = $('#password');
+        const icon = $(this);
+
+        const currentType = passwordInput.attr('type');
+
+        if (currentType === 'password') {
+            passwordInput.attr('type', 'text');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            icon.addClass('active');
+        } else {
+            passwordInput.attr('type', 'password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            icon.removeClass('active');
+        }
+    });
 });
 
 function setMessage(id, message, type) {
@@ -101,15 +118,12 @@ function doLogin() {
         url: "/account/loginProc",
         type: "post",
         dataType: "JSON",
-        data: {
-            userId: userId,
-            password: password
-        },
+        data: $("#loginForm").serialize(),
         success: function(json) {
             if (json.result === 1) {
                 location.href = "/main";
             } else {
-                setMessage("userIdMsg", "아이디 또는 비밀번호가 일치하지 않습니다.", "error");
+                setMessage("userIdMsg", json.msg, "error");
                 $("#password").val("");
                 $("#userId").focus();
             }

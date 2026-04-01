@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="customModal">
+
+  <link rel="stylesheet" th:href="@{/css/includes/customModal.css}">
+  <script th:src="@{/js/includes/customModal.js}"></script>
+
+  <div id="customAlertOverlay" class="custom-modal-overlay">
+    <div class="custom-modal-box">
+
+      <span class="custom-modal-close" id="customAlertClose">
+                <i class="fa-solid fa-xmark"></i>
+            </span>
+
+      <div class="custom-modal-content">
+        <h2 id="customAlertTitle">알림</h2>
+        <p id="customAlertMessage">메시지 내용이 이곳에 표시됩니다.</p>
+      </div>
+
+      <div class="custom-modal-actions">
+        <button type="button" id="customAlertCancel" class="btn-modal-cancel">취소</button>
+        <button type="button" id="customAlertOk" class="btn-modal-ok">확인</button>
+      </div>
+    </div>
+  </div>
+</div>
+</html>
