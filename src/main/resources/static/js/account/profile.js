@@ -1,30 +1,13 @@
 $(document).ready(function() {
-    const modal = $('#zodiacModal');
     const preview = $('#profilePreview');
     const hiddenInput = $('#selectedProfileImage');
 
-    $('#openProfileModal').click(function() {
-        modal.addClass('active');
-    });
-
-    $('.close-modal').click(function() {
-        modal.removeClass('active');
-    });
-
-    modal.click(function(e) {
-        if ($(e.target).hasClass('modal-overlay')) {
-            modal.removeClass('active');
-        }
-    });
-
     $('.zodiac-item').click(function() {
         const imgSrc = $(this).find('img').attr('src');
-        const fileName = imgSrc.substring(imgSrc.lastIndexOf('/') + 1);
+        const fileName = $(this).data('img');
 
         preview.attr('src', imgSrc);
         hiddenInput.val(fileName);
-
-        modal.removeClass('active');
 
         $('.zodiac-item').removeClass('selected');
         $(this).addClass('selected');
@@ -44,15 +27,28 @@ $(document).ready(function() {
             },
             success: function(json) {
                 if(json.result === 1) {
-                    showCustomAlert("프로필 설정 완료", "프로필 설정이 완료되었습니다.", function () {
+                    if (typeof showCustomAlert === "function") {
+                        showCustomAlert("프로필 설정 완료", "프로필 설정이 완료되었습니다.", function () {
+                            location.href = "/account/login";
+                        });
+                    } else {
+                        alert("프로필 설정이 완료되었습니다.");
                         location.href = "/account/login";
-                    })
+                    }
                 } else {
-                    alert(json.msg || "프로필 설정 중 오류가 발생했습니다.");
+                    if (typeof showCustomAlert === "function") {
+                        showCustomAlert("오류", json.msg || "프로필 설정 중 오류가 발생했습니다.");
+                    } else {
+                        alert(json.msg || "프로필 설정 중 오류가 발생했습니다.");
+                    }
                 }
             },
             error: function() {
-                alert("서버 통신 중 오류가 발생했습니다.");
+                if (typeof showCustomAlert === "function") {
+                    showCustomAlert("시스템 오류", "서버 통신 중 오류가 발생했습니다.");
+                } else {
+                    alert("서버 통신 중 오류가 발생했습니다.");
+                }
             }
         });
     });

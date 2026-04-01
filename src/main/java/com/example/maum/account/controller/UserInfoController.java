@@ -26,7 +26,7 @@ public class UserInfoController {
 
     private final IUserInfoService userInfoService;
 
-    @GetMapping(value = "login")
+    @GetMapping(value = "login") // 로그인 페이지
     public String login() {
 
         log.info("{}.login Start!", this.getClass().getName());
@@ -35,7 +35,7 @@ public class UserInfoController {
         return "account/login";
     }
 
-    @GetMapping(value = "register")
+    @GetMapping(value = "register") // 회원가입 페이지
     public String register() {
 
         log.info("{}.register Start!", this.getClass().getName());
@@ -44,7 +44,7 @@ public class UserInfoController {
         return "account/register";
     }
 
-    @GetMapping(value = "find-id")
+    @GetMapping(value = "find-id") // 아이디 찾기 페이지
     public String findId() {
 
         log.info("{}.findId Start!", this.getClass().getName());
@@ -53,7 +53,7 @@ public class UserInfoController {
         return "account/find-id";
     }
 
-    @GetMapping(value = "find-pw")
+    @GetMapping(value = "find-pw") // 비밀번호 찾기 페이지
     public String findPw() {
 
         log.info("{}.findPw Start!", this.getClass().getName());
@@ -62,7 +62,7 @@ public class UserInfoController {
         return "account/find-pw";
     }
 
-    @GetMapping(value = "profile")
+    @GetMapping(value = "profile") // 프로필 페이지
     public String profile() {
 
         log.info("{}.profile Start!", this.getClass().getName());
@@ -72,7 +72,7 @@ public class UserInfoController {
     }
 
     @ResponseBody
-    @PostMapping(value = "getUserIdExists")
+    @PostMapping(value = "getUserIdExists") // 아이디 중복 확인
     public ExistsDTO getUserExists(HttpServletRequest request) throws Exception {
 
         log.info("{}.getUserExists Start!", this.getClass().getName());
@@ -94,7 +94,7 @@ public class UserInfoController {
     }
 
     @ResponseBody
-    @PostMapping(value = "getEmailExists")
+    @PostMapping(value = "getEmailExists") // 이메일 중복 확인
     public ExistsDTO getEmailExists(HttpServletRequest request) throws Exception {
 
         log.info(this.getClass().getName() + ".getEmailExists Start!");
@@ -116,7 +116,7 @@ public class UserInfoController {
     }
 
     @ResponseBody
-    @PostMapping(value = "insertUserInfo")
+    @PostMapping(value = "insertUserInfo") // 회원가입
     public MsgDTO insertUserInfo(HttpServletRequest request) throws Exception {
 
         log.info("{}.insertUserInfo Start!", this.getClass().getName());
@@ -168,7 +168,7 @@ public class UserInfoController {
     }
 
     @ResponseBody
-    @PostMapping(value = "updateProfileImg")
+    @PostMapping(value = "updateProfileImg") // 프로필 이미지 수정
     public MsgDTO updateProfileImg(HttpServletRequest request, HttpSession session) throws Exception {
 
         log.info("{}.updateProfileImg Start!", this.getClass().getName());
@@ -211,7 +211,7 @@ public class UserInfoController {
 
 
     @ResponseBody
-    @PostMapping(value = "loginProc")
+    @PostMapping(value = "loginProc") // 로그인
     public MsgDTO loginProc(HttpServletRequest request, HttpSession session) throws Exception {
 
         log.info("{}.loginProc Start!", this.getClass().getName());
@@ -255,7 +255,31 @@ public class UserInfoController {
     }
 
     @ResponseBody
-    @PostMapping(value = "logout")
+    @PostMapping(value = "findIdProc") // 아이디 찾기
+    public ExistsDTO findIdProc(HttpServletRequest request) throws Exception {
+
+        log.info("{}.findIdProc Start!", this.getClass().getName());
+
+        String email = CmmUtil.nvl(request.getParameter("email"));
+        String userName = CmmUtil.nvl(request.getParameter("userName"));
+
+        log.info("email : {}, userName : {}", email, userName);
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .email(EncryptUtil.encAES128BCBC(email))
+                .userName(userName)
+                .build();
+
+        ExistsDTO rDTO = Optional.ofNullable(userInfoService.findUserId(pDTO))
+                .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
+
+        log.info("{}.findIdProc End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+    @ResponseBody
+    @PostMapping(value = "logout") // 로그아웃
     public MsgDTO logout(HttpSession session) {
 
         log.info("{}.logout Start!", this.getClass().getName());

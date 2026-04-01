@@ -191,6 +191,40 @@ public class UserInfoService implements IUserInfoService {
     }
 
     @Override
+    public ExistsDTO findUserId(UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.findUserId Start!", this.getClass().getName());
+
+        boolean exists = userInfoRepository.findByEmailAndUserName(pDTO.email(), pDTO.userName()).isPresent();
+        int authNumber = 0;
+
+        log.info("exists : {}", exists);
+
+        if (!exists) {
+            authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
+            log.info("authNumber : {}", authNumber);
+
+            MailDTO mailDTO = new MailDTO();
+            mailDTO.setTitle("아이디 찾기 인증번호 발송 메일");
+            mailDTO.setContent("인증번호는 " + authNumber + " 입니다. ");
+            mailDTO.setReceiver(EncryptUtil.decAES128BCBC(CmmUtil.nvl(pDTO.email())));
+
+            mailService.doSendMail(mailDTO);
+        }
+
+        ExistsDTO rDTO = ExistsDTO.builder()
+                .exists(exists)
+                .authNumber(authNumber)
+                .build();
+
+        log.info("rDTO : {}", rDTO);
+
+        log.info("{}.findUserId End!", this.getClass().getName());
+
+        return null;
+    }
+
+    @Override
     public UserInfoDTO getUserInfo(@NonNull UserInfoDTO pDTO) throws Exception {
 
         log.info("{}.getUserInfo Start!", this.getClass().getName());

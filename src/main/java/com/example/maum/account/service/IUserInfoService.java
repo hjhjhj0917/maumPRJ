@@ -17,6 +17,9 @@ public interface IUserInfoService {
     // 로그인
     int getUserLogin(UserInfoDTO pDTO) throws Exception;
 
+    // 아이디 찾기
+    ExistsDTO findUserId(UserInfoDTO pDTO) throws Exception;
+
     // 모든 회원 정보를 조회
     UserInfoDTO getUserInfo(UserInfoDTO pDTO) throws Exception;
 
