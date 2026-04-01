@@ -3,11 +3,6 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    user-select: none;
-    pointer-events: auto;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
 }
 
 header {
@@ -44,6 +39,13 @@ header {
     gap: 30px;
 }
 
+.nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
 .nav-link {
     text-decoration: none;
     color: #555;
@@ -52,51 +54,11 @@ header {
     padding: 10px 0;
     transition: color 0.3s;
     display: block;
+    white-space: nowrap;
 }
 
 .nav-link:hover {
     color: #FFD166;
-}
-
-.nav-item {
-    position: relative;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #fff;
-    min-width: 160px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    border-radius: 4px;
-    padding: 10px 0;
-    z-index: 1;
-}
-
-.dropdown-content li {
-    list-style: none;
-}
-
-.dropdown-content a {
-    color: #333;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-    font-size: 13px;
-}
-
-.dropdown-content a:hover {
-    background-color: #f1f1f1;
-    color: #FFD166;
-}
-
-@media (min-width: 769px) {
-    .nav-item:hover .dropdown-content {
-        display: block;
-    }
 }
 
 .btn-signin {
@@ -109,6 +71,7 @@ header {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
+    white-space: nowrap;
 }
 
 .btn-signin:hover {
@@ -131,6 +94,103 @@ header {
     background-color: #333;
     border-radius: 3px;
     transition: 0.3s;
+}
+
+.profile-wrap {
+    position: relative;
+    width: 160px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.user-profile-container {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    border: 2px solid #FFD166;
+    border-radius: 40px;
+    height: 48px;
+    padding: 4px 15px 4px 4px;
+    position: absolute;
+    right: 0;
+    overflow: hidden;
+    transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    width: 160px;
+    z-index: 1000;
+}
+
+.user-profile-container.expanded {
+    width: 380px;
+}
+
+.profile-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid #ddd;
+    z-index: 2;
+}
+
+.user-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #000;
+    white-space: nowrap;
+    margin-left: 10px;
+    transition: opacity 0.2s;
+}
+
+.expanded-menus {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    white-space: nowrap;
+    opacity: 0;
+    position: absolute;
+    left: 55px;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.user-profile-container.expanded .user-name {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.user-profile-container.expanded .expanded-menus {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.expanded-menus a {
+    font-size: 16px;
+    font-weight: 700;
+    color: #000;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.expanded-menus a:hover {
+    color: #FFD166;
+}
+
+.btn-more {
+    background: none;
+    border: none;
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 0 5px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 @media (max-width: 768px) {
@@ -167,6 +227,7 @@ header {
     .nav-item {
         width: 100%;
         border-bottom: 1px solid #eee;
+        padding: 10px 0;
     }
 
     .nav-item:last-child {
@@ -179,22 +240,29 @@ header {
         width: 100%;
     }
 
-    .dropdown-content {
-        position: static;
-        transform: none;
-        box-shadow: none;
-        background-color: #f9f9f9;
-        width: 100%;
-        padding-left: 15px;
-        display: none;
-    }
-
-    .nav-item:hover .dropdown-content {
-        display: block;
-    }
-
     .btn-signin {
         width: 100%;
         text-align: center;
+    }
+
+    .profile-wrap {
+        width: 100%;
+    }
+
+    .user-profile-container {
+        width: 100%;
+        position: relative;
+    }
+
+    .user-profile-container.expanded {
+        width: 100%;
+    }
+
+    .expanded-menus {
+        gap: 12px;
+    }
+
+    .expanded-menus a {
+        font-size: 14px;
     }
 }

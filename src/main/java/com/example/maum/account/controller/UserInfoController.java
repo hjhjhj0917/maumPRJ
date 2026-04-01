@@ -26,7 +26,10 @@ public class UserInfoController {
 
     private final IUserInfoService userInfoService;
 
-    @GetMapping(value = "login") // 로그인 페이지
+    /*
+    로그인 페이지
+    */
+    @GetMapping(value = "login")
     public String login() {
 
         log.info("{}.login Start!", this.getClass().getName());
@@ -35,7 +38,10 @@ public class UserInfoController {
         return "account/login";
     }
 
-    @GetMapping(value = "register") // 회원가입 페이지
+    /*
+    회원가입 페이지
+    */
+    @GetMapping(value = "register")
     public String register() {
 
         log.info("{}.register Start!", this.getClass().getName());
@@ -44,7 +50,10 @@ public class UserInfoController {
         return "account/register";
     }
 
-    @GetMapping(value = "find-id") // 아이디 찾기 페이지
+    /*
+    아이디 찾기 페이지
+    */
+    @GetMapping(value = "find-id")
     public String findId() {
 
         log.info("{}.findId Start!", this.getClass().getName());
@@ -53,7 +62,10 @@ public class UserInfoController {
         return "account/find-id";
     }
 
-    @GetMapping(value = "find-pw") // 비밀번호 찾기 페이지
+    /*
+    비밀번호 찾기 페이지
+    */
+    @GetMapping(value = "find-pw")
     public String findPw() {
 
         log.info("{}.findPw Start!", this.getClass().getName());
@@ -62,7 +74,10 @@ public class UserInfoController {
         return "account/find-pw";
     }
 
-    @GetMapping(value = "profile") // 프로필 페이지
+    /*
+    프로필 페이지
+    */
+    @GetMapping(value = "profile")
     public String profile() {
 
         log.info("{}.profile Start!", this.getClass().getName());
@@ -71,8 +86,11 @@ public class UserInfoController {
         return "account/profile";
     }
 
+    /*
+    아이디 중복 확인
+    */
     @ResponseBody
-    @PostMapping(value = "getUserIdExists") // 아이디 중복 확인
+    @PostMapping(value = "getUserIdExists")
     public ExistsDTO getUserExists(HttpServletRequest request) throws Exception {
 
         log.info("{}.getUserExists Start!", this.getClass().getName());
@@ -93,8 +111,11 @@ public class UserInfoController {
         return rDTO;
     }
 
+    /*
+    이메일 중복 확인
+    */
     @ResponseBody
-    @PostMapping(value = "getEmailExists") // 이메일 중복 확인
+    @PostMapping(value = "getEmailExists")
     public ExistsDTO getEmailExists(HttpServletRequest request) throws Exception {
 
         log.info(this.getClass().getName() + ".getEmailExists Start!");
@@ -115,8 +136,11 @@ public class UserInfoController {
         return rDTO;
     }
 
+    /*
+    회원가입
+    */
     @ResponseBody
-    @PostMapping(value = "insertUserInfo") // 회원가입
+    @PostMapping(value = "insertUserInfo")
     public MsgDTO insertUserInfo(HttpServletRequest request) throws Exception {
 
         log.info("{}.insertUserInfo Start!", this.getClass().getName());
@@ -167,8 +191,11 @@ public class UserInfoController {
         return dto;
     }
 
+    /*
+    프로필 이미지 수정
+    */
     @ResponseBody
-    @PostMapping(value = "updateProfileImg") // 프로필 이미지 수정
+    @PostMapping(value = "updateProfileImg")
     public MsgDTO updateProfileImg(HttpServletRequest request, HttpSession session) throws Exception {
 
         log.info("{}.updateProfileImg Start!", this.getClass().getName());
@@ -209,9 +236,11 @@ public class UserInfoController {
         return dto;
     }
 
-
+    /*
+    로그인
+    */
     @ResponseBody
-    @PostMapping(value = "loginProc") // 로그인
+    @PostMapping(value = "loginProc")
     public MsgDTO loginProc(HttpServletRequest request, HttpSession session) throws Exception {
 
         log.info("{}.loginProc Start!", this.getClass().getName());
@@ -239,6 +268,7 @@ public class UserInfoController {
 
             session.setAttribute("SS_USER_ID", userId);
             session.setAttribute("SS_USER_NO", rDTO.userNo());
+            session.setAttribute("SS_USER_NAME", rDTO.userName());
             session.setAttribute("SS_USER_PROFILE_IMG", rDTO.profileImgUrl());
         } else {
             msg = "아이디와 비밀번호가 일치하지 않습니다.";
@@ -254,8 +284,11 @@ public class UserInfoController {
         return dto;
     }
 
+    /*
+    아이디 찾기
+    */
     @ResponseBody
-    @PostMapping(value = "findIdProc") // 아이디 찾기
+    @PostMapping(value = "findIdProc")
     public ExistsDTO findIdProc(HttpServletRequest request) throws Exception {
 
         log.info("{}.findIdProc Start!", this.getClass().getName());
@@ -278,8 +311,11 @@ public class UserInfoController {
         return rDTO;
     }
 
+    /*
+    로그아웃
+    */
     @ResponseBody
-    @PostMapping(value = "logout") // 로그아웃
+    @PostMapping(value = "logout")
     public MsgDTO logout(HttpSession session) {
 
         log.info("{}.logout Start!", this.getClass().getName());

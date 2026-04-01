@@ -2,34 +2,52 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <header th:fragment="header">
 
-  <link rel="stylesheet" th:href="@{/css/includes/header.css}">
-  <script th:src="@{/js/includes/header.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/includes/header.css}">
+    <script th:src="@{/js/includes/header.js}"></script>
 
-  <a href="/" class="logo-container">
-    <img th:src="@{/images/includes/logo.png}" alt="URI_Ai" class="logo-image">
-  </a>
+    <a href="/" class="logo-container">
+        <img th:src="@{/images/includes/logo.png}" alt="URI_Ai" class="logo-image">
+    </a>
 
-  <div class="menu-toggle" id="mobileMenu">
-    <span class="bar"></span>
-    <span class="bar"></span>
-    <span class="bar"></span>
-  </div>
+    <div class="menu-toggle" id="mobileMenu">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+    </div>
 
-  <ul class="nav-menu">
-    <li class="nav-item">
-      <a href="/map/centerMap" class="nav-link">주변 상담소</a>
-    </li>
+    <ul class="nav-menu">
+        <li class="nav-item">
+            <a href="/map/centerMap" class="nav-link">주변 상담소</a>
+        </li>
 
-    <li class="nav-item">
-      <a href="/chat/chat" class="nav-link">오늘의 대화</a>
-    </li>
+        <li class="nav-item">
+            <a href="/chat/chat" class="nav-link">오늘의 대화</a>
+        </li>
 
-    <li class="nav-item">
-      <a href="/diary/write" class="nav-link">일기 작성</a>
-    </li>
+        <li class="nav-item">
+            <a href="/diary/write" class="nav-link">일기 작성</a>
+        </li>
 
-    <li class="nav-item">
-      <button class="btn-signin">로그인</button>
-    </li>
-  </ul>
+        <li class="nav-item profile-wrap">
+            <button class="btn-signin" th:if="${session.SS_USER_NO == null}">로그인</button>
+
+            <div class="user-profile-container" id="userProfileContainer" th:if="${session.SS_USER_NO != null}">
+                <img th:src="${session.SS_USER_PROFILE_IMG_URL != null ? session.SS_USER_PROFILE_IMG_URL : '/images/account/profile7.png'}"
+                     alt="프로필" class="profile-img">
+
+                <span class="user-name" th:text="${session.SS_USER_NAME + '님'}"></span>
+
+                <div class="expanded-menus">
+                    <a href="/diary/list">일기 목록</a>
+                    <a href="/mypage/main">마이페이지</a>
+                    <a href="#" id="btnLogout">로그아웃</a>
+                </div>
+
+                <button class="btn-more" id="btnMoreMenu">
+                    &#8942;
+                </button>
+            </div>
+        </li>
+    </ul>
 </header>
+</html>
