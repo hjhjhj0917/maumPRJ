@@ -20,12 +20,15 @@ $(document).ready(function() {
     });
 });
 
-// 확인 모달
+
+/*
+확인 모달
+*/
 function showCustomAlert(title, message, callback) {
     $('#customAlertTitle').text(title || '알림');
     $('#customAlertMessage').text(message);
 
-    $('#customAlertCancel').hide(); // 취소 버튼 숨김
+    $('#customAlertCancel').hide();
     $('#customAlertOverlay').css('display', 'flex').hide().fadeIn(200);
 
     customAlertCallback = callback || null;
@@ -33,12 +36,14 @@ function showCustomAlert(title, message, callback) {
     customConfirmCancelCallback = null;
 }
 
-// 확인 취소 모달
+/*
+확인 취소 모달
+*/
 function showCustomConfirm(title, message, onConfirm, onCancel) {
     $('#customAlertTitle').text(title || '확인');
     $('#customAlertMessage').text(message);
 
-    $('#customAlertCancel').show(); // 취소 버튼 보임
+    $('#customAlertCancel').show();
     $('#customAlertOverlay').css('display', 'flex').hide().fadeIn(200);
 
     customConfirmOkCallback = onConfirm || null;

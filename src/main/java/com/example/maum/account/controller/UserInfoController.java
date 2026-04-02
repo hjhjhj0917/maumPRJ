@@ -321,7 +321,13 @@ public class UserInfoController {
         log.info("{}.logout Start!", this.getClass().getName());
 
         session.setAttribute("SS_USER_ID", "");
+        session.setAttribute("SS_USER_NO", "");
+        session.setAttribute("SS_USER_NAME", "");
+        session.setAttribute("SS_USER_PROFILE_IMG", "");
         session.removeAttribute("SS_USER_ID");
+        session.removeAttribute("SS_USER_NO");
+        session.removeAttribute("SS_USER_NAME");
+        session.removeAttribute("SS_USER_PROFILE_IMG");
 
         MsgDTO dto = MsgDTO.builder()
                 .result(1)

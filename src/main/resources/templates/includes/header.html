@@ -5,8 +5,8 @@
     <link rel="stylesheet" th:href="@{/css/includes/header.css}">
     <script th:src="@{/js/includes/header.js}"></script>
 
-    <a href="/" class="logo-container">
-        <img th:src="@{/images/includes/logo.png}" alt="URI_Ai" class="logo-image">
+    <a th:href="${session.SS_USER_NO != null ? '/main' : '/'}" class="logo-container">
+        <img th:src="@{/images/includes/logo.png}" alt="MAUM" class="logo-image">
     </a>
 
     <div class="menu-toggle" id="mobileMenu">
