@@ -84,6 +84,12 @@ const Login = () => {
         }
     };
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleLogin();
+        }
+    };
+
     return (
         <div className="login-page-wrapper">
             <Header/>
@@ -176,6 +182,7 @@ const Login = () => {
                                             setPassword(e.target.value);
                                             clearMessage('password');
                                         }}
+                                        onKeyDown={handleKeyDown}
                                     />
                                     <i
                                         className={`fa-regular ${showPassword ? 'fa-eye-slash active' : 'fa-eye'} toggle-password`}
