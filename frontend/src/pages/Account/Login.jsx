@@ -197,7 +197,7 @@ const Login = () => {
 
                         <div className="signup-box">
                             아직 회원이 아니시라면, 지금 바로 마음(MAUM)을 <br/>
-                            시작해 보세요. <Link to="/account/register" className="link-signup">회원가입</Link>
+                            시작해 보세요. <Link to="/account/register" className="link-signup">가입하기</Link>
                         </div>
                     </div>
                 </div>
