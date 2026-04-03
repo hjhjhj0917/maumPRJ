@@ -2,6 +2,7 @@ package com.example.maum.global.config;
 
 import com.example.maum.global.interceptor.AuthInterceptor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -10,17 +11,33 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("http://localhost:5173")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
+
+    @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new AuthInterceptor())
                 .addPathPatterns(
-                        "/여기에_경로_입력/**",
-                        "/추가_경로_입력/**"
+                        "/api/diary/**",
+                        "/api/chat/**",
+                        "/api/mypage/**",
+                        "/api/main/**"
                 )
                 .excludePathPatterns(
-                        "/여기에_제외할_경로_입력/**",
+                        "/api/account/login",
+                        "/api/account/loginProc",
+                        "/api/account/register",
+                        "/api/account/status",
                         "/css/**",
                         "/js/**",
-                        "/images/**"
+                        "/images/**",
+                        "/assets/**",
+                        "/favicon.ico"
                 );
     }
 
