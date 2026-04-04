@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Index from './pages/Index';
 import Main from './pages/Main';
 import Login from './pages/Account/Login';
+import Register from './pages/Account/Register';
+import Profile from './pages/Account/Profile';
 
 function App() {
     return (
@@ -13,6 +15,8 @@ function App() {
                 {/* 로그인 페이지 */}
                 <Route path="/main" element={<Main />} />
                 <Route path="/account/login" element={<Login />} />
+                <Route path="/account/register" element={<Register />} />
+                <Route path="/account/profile" element={<Profile />} />
 
                 {/* 추후 페이지가 추가될 때마다 아래에 Route를 작성하면 됩니다. */}
                 {/* <Route path="/diary/write" element={<DiaryWrite />} /> */}

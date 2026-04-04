@@ -157,10 +157,10 @@ public class UserInfoService implements IUserInfoService {
         if (rEntity.isPresent()) {
             UserInfoEntity pEntity = rEntity.get();
 
-            String profileImgUrl = "/images/account/base-profile.png";
+            String profileImgUrl = profileImage;
 
-            if (profileImage != null && profileImage.startsWith("profile") && profileImage.endsWith(".png")) {
-                profileImgUrl = "/images/account/" + profileImage;
+            if (profileImage != null && profileImage.startsWith("/images/account/profile") && profileImage.endsWith(".png")) {
+                profileImgUrl = profileImage;
             }
 
             pEntity.updateProfileImg(profileImgUrl);
