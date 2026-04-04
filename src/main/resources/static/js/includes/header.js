@@ -33,7 +33,7 @@ $(document).ready(function() {
     const hideElementsByPage = {
         index: [],
         login: [menu1, menu2, menu3],
-        register: [menu1, menu2, menu3, btnLogin],
+        register: [menu1, menu2, menu3],
         profile: [btnLogin],
         chat: [btnLogin],
         list: [btnLogin]
@@ -61,7 +61,7 @@ $(document).ready(function() {
         e.preventDefault();
 
         if (typeof showCustomConfirm === "function") {
-            showCustomConfirm("로그아웃 하시겠습니까?", function () {
+            showCustomConfirm("알림", "로그아웃 하시겠습니까?", function () {
                 executeLogout();
             });
         } else if (confirm("로그아웃 하시겠습니까?")) {

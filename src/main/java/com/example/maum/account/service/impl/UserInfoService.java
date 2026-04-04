@@ -102,7 +102,7 @@ public class UserInfoService implements IUserInfoService {
         if (rEntity.isPresent()) {
             res = 2;
         } else {
-            String profileImgUrl = "/images/account/base-profile.png";
+            String profileImgUrl = "/images/account/profile1.png";
 
             if (birthDate.length() >= 4) {
                 try {

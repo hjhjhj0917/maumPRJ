@@ -1,17 +1,24 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Header from './components/layout/Header.jsx'; // 기존에 만든 헤더
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Index from './pages/Index';
+import Main from './pages/Main';
+import Login from './pages/Account/Login';
 
 function App() {
-  return (
-      <Router>
-        <Header />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          {/* 다른 페이지들도 여기에 추가 */}
-        </Routes>
-      </Router>
-  );
+    return (
+        <BrowserRouter>
+            <Routes>
+                {/* 메인 랜딩 페이지 (index.html 역할) */}
+                <Route path="/" element={<Index />} />
+
+                {/* 로그인 페이지 */}
+                <Route path="/main" element={<Main />} />
+                <Route path="/account/login" element={<Login />} />
+
+                {/* 추후 페이지가 추가될 때마다 아래에 Route를 작성하면 됩니다. */}
+                {/* <Route path="/diary/write" element={<DiaryWrite />} /> */}
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;

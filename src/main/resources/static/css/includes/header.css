@@ -3,6 +3,12 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    user-select: none;
+    pointer-events: auto;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 header {
@@ -111,22 +117,22 @@ header {
     background-color: #fff;
     border: 2px solid #FFD166;
     border-radius: 40px;
-    height: 48px;
+    height: 44px;
     padding: 4px 15px 4px 4px;
     position: relative;
     overflow: hidden;
     transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    width: 170px;
+    width: 150px;
     z-index: 1000;
 }
 
 .user-profile-container.expanded {
-    width: 380px !important;
+    width: 329px !important;
 }
 
 .profile-img {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
@@ -135,8 +141,8 @@ header {
 }
 
 .user-name {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     color: #000;
     white-space: nowrap;
     margin-left: 10px;
@@ -166,8 +172,8 @@ header {
 }
 
 .expanded-menus a {
-    font-size: 16px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     color: #000;
     text-decoration: none;
     transition: color 0.2s;
@@ -180,7 +186,7 @@ header {
 .btn-more {
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
     color: #000;
     cursor: pointer;

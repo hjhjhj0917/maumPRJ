@@ -16,11 +16,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.swing.*;
 import java.util.Optional;
 
 @Controller
 @Slf4j
-@RequestMapping(value = "/account")
+@RequestMapping(value = "/api/account")
 @RequiredArgsConstructor
 public class UserInfoController {
 
@@ -285,6 +286,49 @@ public class UserInfoController {
     }
 
     /*
+   로그인 상태 확인
+   */
+    @ResponseBody
+    @GetMapping(value = "status")
+    public UserInfoDTO getLoginStatus(HttpSession session) {
+        Integer userNo = (Integer) session.getAttribute("SS_USER_NO");
+
+        if (userNo == null) return UserInfoDTO.builder().build();
+
+        String userId = CmmUtil.nvl((String) session.getAttribute("SS_USER_ID"));
+        String userName = CmmUtil.nvl((String) session.getAttribute("SS_USER_NAME"));
+        String profileImgUrl = CmmUtil.nvl((String) session.getAttribute("SS_USER_PROFILE_IMG"));
+
+        return UserInfoDTO.builder()
+                .userNo(userNo)
+                .userId(userId)
+                .userName(userName)
+                .profileImgUrl(profileImgUrl)
+                .build();
+    }
+
+    /*
+    로그아웃
+    */
+    @ResponseBody
+    @PostMapping(value = "logout")
+    public MsgDTO logout(HttpSession session) {
+
+        log.info("{}.logout Start!", this.getClass().getName());
+
+        session.invalidate();
+
+        MsgDTO dto = MsgDTO.builder()
+                .result(1)
+                .msg("로그아웃하였습니다.")
+                .build();
+
+        log.info("{}.logout End!", this.getClass().getName());
+
+        return dto;
+    }
+
+    /*
     아이디 찾기
     */
     @ResponseBody
@@ -309,27 +353,5 @@ public class UserInfoController {
         log.info("{}.findIdProc End!", this.getClass().getName());
 
         return rDTO;
-    }
-
-    /*
-    로그아웃
-    */
-    @ResponseBody
-    @PostMapping(value = "logout")
-    public MsgDTO logout(HttpSession session) {
-
-        log.info("{}.logout Start!", this.getClass().getName());
-
-        session.setAttribute("SS_USER_ID", "");
-        session.removeAttribute("SS_USER_ID");
-
-        MsgDTO dto = MsgDTO.builder()
-                .result(1)
-                .msg("로그아웃하였습니다.")
-                .build();
-
-        log.info("{}.logout End!", this.getClass().getName());
-
-        return dto;
     }
 }

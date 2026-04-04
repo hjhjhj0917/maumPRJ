@@ -1,0 +1,117 @@
+.main-page-container {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    width: 100%;
+}
+
+.full-page {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.hero-section {
+    background-color: #333;
+}
+
+.split-container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.split-panel {
+    flex: 1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 15%;
+    text-decoration: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    transition: flex 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+}
+
+.split-panel:last-child {
+    border-right: none;
+}
+
+.panel-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    transition: background-color 0.5s ease;
+    z-index: 1;
+}
+
+.split-panel:hover {
+    flex: 1.4;
+}
+
+.split-panel:hover .panel-overlay {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.panel-content {
+    position: relative;
+    z-index: 2;
+    color: #ffffff;
+    text-align: center;
+    transform: translateY(20px);
+    transition: transform 0.5s ease;
+}
+
+.split-panel:hover .panel-content {
+    transform: translateY(0);
+}
+
+.panel-content h4 {
+    font-size: 1.2rem;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.8);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .split-container {
+        flex-direction: column;
+    }
+
+    .split-panel {
+        flex: 1;
+        padding-bottom: 0;
+        align-items: center;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .split-panel:last-child {
+        border-bottom: none;
+    }
+
+    .panel-content {
+        transform: translateY(0);
+    }
+
+    .full-page {
+        height: auto;
+        min-height: 100vh;
+    }
+}
