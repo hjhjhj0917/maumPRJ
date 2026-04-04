@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../components/common/Header';
 import CustomModal from '../../components/common/CustomModal';
 import ZodiacItem from '../../components/account/ZodiacItem';
 import './Profile.css';
@@ -54,7 +53,6 @@ const Profile = () => {
 
     return (
         <div className="profile-wrapper">
-            <Header />
             <CustomModal
                 isOpen={modal.show}
                 title={modal.title}

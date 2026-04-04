@@ -1,6 +1,5 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
-import Header from '../../components/common/Header';
 import './Login.css';
 
 import bg1 from '../../assets/images/account/login-background1.jpg';
@@ -92,8 +91,6 @@ const Login = () => {
 
     return (
         <div className="login-page-wrapper">
-            <Header/>
-
             <div className="container">
                 <div className="slider-section">
                     <div className="bg-slider">
@@ -196,9 +193,9 @@ const Login = () => {
 
                         <div className="find-links">
                             <div className="find-row">
-                                <Link to="/account/find-id">아이디 찾기</Link>
+                                <Link to="/account/findId">아이디 찾기</Link>
                                 <span className="separator">|</span>
-                                <Link to="/account/find-pw">비밀번호 찾기</Link>
+                                <Link to="/account/findPw">비밀번호 찾기</Link>
                             </div>
                         </div>
 

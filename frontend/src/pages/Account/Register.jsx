@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Header from '../../components/common/Header';
 import CustomModal from '../../components/common/CustomModal';
 import InputField from '../../components/common/InputField';
 import RollerDatePicker from '../../components/common/RollerDatePicker';
@@ -206,7 +205,6 @@ const Register = () => {
 
     return (
         <div className="register-wrapper">
-            <Header />
             <CustomModal
                 isOpen={modal.show} title={modal.title} message={modal.message}
                 isConfirm={false} onCancel={() => setModal({ show: false, title: '', message: '', onConfirm: null })}

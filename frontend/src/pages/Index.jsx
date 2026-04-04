@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 import './Index.css';
 
@@ -118,7 +117,6 @@ const Main = () => {
 
     return (
         <>
-            <Header />
             <div className="main-content" style={{ transform: mainTransform }}>
 
                 <section className={`hero-section ${getSectionClass(0)}`}>
