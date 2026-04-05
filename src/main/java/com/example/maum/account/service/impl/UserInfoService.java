@@ -26,6 +26,9 @@ public class UserInfoService implements IUserInfoService {
     private final UserInfoRepository userInfoRepository;
     private final MailService mailService;
 
+    /*
+    아이디 중복 확인
+    */
     @Override
     public ExistsDTO getUserIdExists(@NonNull UserInfoDTO pDTO) throws Exception {
 
@@ -46,6 +49,9 @@ public class UserInfoService implements IUserInfoService {
         return rDTO;
     }
 
+    /*
+    이메일 중복 확인
+    */
     @Override
     public ExistsDTO getEmailExists(UserInfoDTO pDTO) throws Exception {
 
@@ -80,6 +86,9 @@ public class UserInfoService implements IUserInfoService {
         return rDTO;
     }
 
+    /*
+    회원가입
+    */
     @Override
     public int insertUserInfo(@NonNull UserInfoDTO pDTO) throws Exception {
 
@@ -141,6 +150,9 @@ public class UserInfoService implements IUserInfoService {
         return res;
     }
 
+    /*
+    회원 프로필 이미지 수정
+    */
     @Transactional
     @Override
     public int updateProfileImg(@NonNull UserInfoDTO pDTO) throws Exception {
@@ -173,6 +185,9 @@ public class UserInfoService implements IUserInfoService {
         return res;
     }
 
+    /*
+    로그인
+    */
     @Override
     public int getUserLogin(@NonNull UserInfoDTO pDTO) throws Exception {
 
@@ -190,6 +205,9 @@ public class UserInfoService implements IUserInfoService {
         return res ? 1 : 0;
     }
 
+    /*
+    아이디 찾기
+    */
     @Override
     public ExistsDTO findUserId(UserInfoDTO pDTO) throws Exception {
 
@@ -200,7 +218,7 @@ public class UserInfoService implements IUserInfoService {
 
         log.info("exists : {}", exists);
 
-        if (!exists) {
+        if (exists) {
             authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
             log.info("authNumber : {}", authNumber);
 
@@ -218,12 +236,38 @@ public class UserInfoService implements IUserInfoService {
                 .build();
 
         log.info("rDTO : {}", rDTO);
-
         log.info("{}.findUserId End!", this.getClass().getName());
 
-        return null;
+        return rDTO;
     }
 
+    /*
+    메일과 이름으로 아이디 조회
+    */
+    @Override
+    public UserInfoDTO getUserId(UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.getUserId Start!", this.getClass().getName());
+
+        String email = CmmUtil.nvl(pDTO.email());
+        String userName = CmmUtil.nvl(pDTO.userName());
+
+        Optional<UserInfoEntity> result = userInfoRepository.findByEmailAndUserName(email, userName);
+
+        UserInfoDTO rDTO = result
+                .map(entity -> UserInfoDTO.builder()
+                        .userId(entity.getUserId())
+                        .build())
+                .orElseGet(() -> UserInfoDTO.builder().build());
+
+        log.info("{}.getUserId End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+    /*
+    아이디로 모든 회원 정보를 조회
+    */
     @Override
     public UserInfoDTO getUserInfo(@NonNull UserInfoDTO pDTO) throws Exception {
 

@@ -332,15 +332,11 @@ public class UserInfoController {
     아이디 찾기
     */
     @ResponseBody
-    @PostMapping(value = "findIdProc")
-    public ExistsDTO findIdProc(HttpServletRequest request) throws Exception {
-
-        log.info("{}.findIdProc Start!", this.getClass().getName());
+    @PostMapping(value = "findUserId")
+    public ExistsDTO findUserId(HttpServletRequest request, HttpSession session) throws Exception {
 
         String email = CmmUtil.nvl(request.getParameter("email"));
         String userName = CmmUtil.nvl(request.getParameter("userName"));
-
-        log.info("email : {}, userName : {}", email, userName);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .email(EncryptUtil.encAES128BCBC(email))
@@ -350,8 +346,44 @@ public class UserInfoController {
         ExistsDTO rDTO = Optional.ofNullable(userInfoService.findUserId(pDTO))
                 .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
 
-        log.info("{}.findIdProc End!", this.getClass().getName());
+        if (rDTO.exists()) {
+            session.setAttribute("AUTH_" + email, rDTO.authNumber());
+            session.setMaxInactiveInterval(3 * 60);
+        }
 
-        return rDTO;
+        return ExistsDTO.builder()
+                .exists(rDTO.exists())
+                .authNumber(0)
+                .build();
+    }
+
+    /*
+    메일과 이름으로 아이디 조회
+    */
+    @ResponseBody
+    @PostMapping(value = "getUserId")
+    public UserInfoDTO getUserId(HttpServletRequest request, HttpSession session) throws Exception {
+
+        String email = CmmUtil.nvl(request.getParameter("email"));
+        String userName = CmmUtil.nvl(request.getParameter("userName"));
+        String code = CmmUtil.nvl(request.getParameter("code"));
+
+        Object storedAuthCode = session.getAttribute("AUTH_" + email);
+
+        if (storedAuthCode != null && storedAuthCode.toString().equals(code)) {
+            UserInfoDTO pDTO = UserInfoDTO.builder()
+                    .email(EncryptUtil.encAES128BCBC(email))
+                    .userName(userName)
+                    .build();
+
+            UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserId(pDTO))
+                    .orElseGet(() -> UserInfoDTO.builder().build());
+
+            session.removeAttribute("AUTH_" + email);
+
+            return rDTO;
+        }
+
+        return UserInfoDTO.builder().build();
     }
 }

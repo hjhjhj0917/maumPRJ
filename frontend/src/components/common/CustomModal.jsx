@@ -22,7 +22,7 @@ const CustomModal = ({ isOpen, title, message, isConfirm, onConfirm, onCancel })
                             취소
                         </button>
                     )}
-                    <button type="button" className="btn-modal-ok" onClick={onConfirm}>
+                    <button type="button" className="btn-modal-ok" onClick={onConfirm || onCancel}>
                         확인
                     </button>
                 </div>
