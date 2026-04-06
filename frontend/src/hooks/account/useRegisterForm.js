@@ -134,7 +134,7 @@ export const useRegisterForm = () => {
 
     const validateStep1 = () => {
         if (!flags.emailVerified) {
-            setMessage('codeMsg', '이메일 인증을 완료해 주세요.', 'error');
+            setMessage('emailMsg', '이메일 인증을 완료해 주세요.', 'error');
             return false;
         }
         return true;
