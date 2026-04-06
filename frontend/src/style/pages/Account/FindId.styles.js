@@ -19,40 +19,188 @@ export const Container = styled.div`
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 0 20px;
+    padding: 40px 20px;
 `;
 
 export const FindIdCard = styled.div`
     width: 100%;
-    max-width: 403px;
-    text-align: center;
-    padding-bottom: 50px;
-
-    @media (max-width: 480px) {
-        padding: 20px;
-    }
+    max-width: 475px;
 `;
 
-export const Title = styled.h3`
-    font-size: 24px;
-    font-weight: 700;
-    color: #000;
+export const StepperWrapper = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
     margin-bottom: 60px;
-
-    @media (max-width: 480px) {
-        margin-bottom: 40px;
-    }
+    padding: 0 20px;
+    position: relative;
+    height: 60px;
 `;
 
-export const StepContainer = styled.div`
-    min-height: 250px;
+export const StepperItem = styled.div`
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    z-index: 2;
+    position: relative;
+
+    .step-circle {
+        background-color: ${props => (props.$active || props.$completed ? '#FFD166' : '#fff')};
+        border-color: ${props => (props.$active || props.$completed ? '#FFD166' : '#ddd')};
+        color: ${props => (props.$active || props.$completed ? '#fff' : '#ddd')};
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 2px solid;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .step-label {
+        color: ${props => (props.$active || props.$completed ? '#333' : '#999')};
+        font-weight: ${props => (props.$active || props.$completed ? 'bold' : 'normal')};
+        font-size: 11px;
+        position: absolute;
+        top: -25px;
+        width: 60px;
+        text-align: center;
+    }
 `;
 
-export const FadeInForm = styled.form`
-    animation: ${fadeInStep} 0.4s ease-out forwards;
+export const StepLine = styled.div`
+    flex: 1;
+    height: 1px;
+    background-color: #eee;
+    margin-bottom: 16px;
+    margin-left: -5px;
+    margin-right: -5px;
+`;
+
+export const StepTitle = styled.h2`
+    font-size: 32px;
+    font-weight: 800;
+    color: #000;
+    margin-bottom: 12px;
+    text-align: left;
+`;
+
+export const StepSubTitle = styled.p`
+    font-size: 16px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 40px;
+    text-align: left;
+    min-height: 48px;
+
+    span {
+        color: #333;
+        font-weight: 600;
+    }
+`;
+
+export const SlideViewport = styled.div`
+    width: 100%;
+    overflow: hidden;
+`;
+
+export const SlideTrack = styled.div`
+    display: flex;
+    width: 100%;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+    transform: translateX(${props => (props.$step - 1) * -100}%);
+`;
+
+export const FormStep = styled.div`
+    min-width: 100%;
+    box-sizing: border-box;
+    transform: ${props => (props.$active ? 'scale(1)' : 'scale(0.95)')};
+    opacity: ${props => (props.$active ? '1' : '0')};
+    transition: all 0.6s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 350px;
+`;
+
+export const FormStepFieldWrapper = styled.div`
+    .input-group {
+        margin-bottom: 10px;
+    }
+
+    .field-message {
+        display: block;
+        min-height: 18px;
+        margin-top: 4px;
+        font-size: 12px;
+        visibility: ${props => props.$hasMessage ? 'visible' : 'hidden'};
+    }
+`;
+
+export const VerificationWrapper = styled.div`
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    input {
+        width: 60px;
+        height: 70px;
+        background-color: #f8f9fa;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        font-size: 24px;
+        font-weight: 700;
+        text-align: center;
+        transition: all 0.3s;
+
+        &:focus {
+            border-color: #FFD166;
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.1);
+            outline: none;
+        }
+
+        &::placeholder {
+            color: #eee;
+        }
+    }
+`;
+
+export const FieldMessage = styled.span`
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 15px;
+    text-align: left;
+    min-height: 18px;
+    color: ${props => (props.$type === 'error' ? '#ef4444' : '#22c55e')};
+    visibility: ${props => (props.$show ? 'visible' : 'hidden')};
+`;
+
+export const ResendText = styled.div`
+    text-align: left;
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 20px;
+
+    button {
+        background: none;
+        border: none;
+        color: #3b82f6;
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 500;
+        margin-left: 6px;
+        padding: 0;
+
+        &:hover {
+            color: #2563eb;
+        }
+    }
 `;
 
 export const FadeInResult = styled.div`
@@ -64,21 +212,20 @@ export const FadeInResult = styled.div`
 
 export const BtnConfirm = styled.button`
     width: 100%;
-    padding: 15px;
-    background-color: #FFD166;
-    color: #000;
+    padding: 16px;
+    background-color: #333;
+    color: #fff;
     border: none;
-    border-radius: 30px;
+    border-radius: 12px;
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
-    margin-top: 20px;
+    margin-top: 10px;
     margin-bottom: 40px;
     transition: background-color 0.3s;
-    box-shadow: 0 4px 10px rgba(255, 209, 102, 0.3);
 
     &:hover {
-        background-color: #E0B34A;
+        background-color: #000;
     }
 `;
 
@@ -91,7 +238,7 @@ export const CheckCircle = styled.div`
     justify-content: center;
     align-items: center;
     font-size: 32px;
-    color: #333;
+    color: #fff;
     margin-bottom: 30px;
 `;
 
@@ -101,25 +248,19 @@ export const ResultText = styled.p`
     color: #000;
     line-height: 1.6;
     margin-bottom: 40px;
-
-    @media (max-width: 480px) {
-        font-size: 20px;
-    }
+    text-align: center;
 `;
 
 export const HighlightId = styled.span`
     color: #FFD166;
     font-size: 32px;
-
-    @media (max-width: 480px) {
-        font-size: 28px;
-    }
 `;
 
 export const AuthLinks = styled.div`
     font-size: 13px;
     color: #888;
     margin-bottom: 40px;
+    text-align: center;
 
     a {
         color: #888;

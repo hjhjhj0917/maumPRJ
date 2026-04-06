@@ -10,9 +10,13 @@ const FindId = () => {
         step,
         formData,
         handleChange,
+        handleOtpChange,
+        handleKeyDown,
+        handlePaste,
         messages,
         foundId,
         modal,
+        inputRefs,
         handleModalConfirm,
         handleModalCancel,
         handleStep1Submit,
@@ -20,6 +24,12 @@ const FindId = () => {
         handleResend,
         navigate
     } = useFindIdForm();
+
+    const steps = [
+        { num: 1, label: '정보입력' },
+        { num: 2, label: '인증' },
+        { num: 3, label: '결과확인' }
+    ];
 
     return (
         <S.FindIdWrapper>
@@ -34,45 +44,84 @@ const FindId = () => {
 
             <S.Container>
                 <S.FindIdCard>
-                    <S.Title>아이디 찾기</S.Title>
+                    <S.StepperWrapper>
+                        {steps.map((s, idx) => (
+                            <React.Fragment key={s.num}>
+                                <S.StepperItem $active={step === s.num} $completed={step > s.num}>
+                                    <div className="step-label">{s.label}</div>
+                                    <div className="step-circle">
+                                        <i className="fa-solid fa-check"></i>
+                                    </div>
+                                </S.StepperItem>
+                                {idx < steps.length - 1 && <S.StepLine />}
+                            </React.Fragment>
+                        ))}
+                    </S.StepperWrapper>
 
-                    <S.StepContainer>
-                        {step === 1 && (
-                            <S.FadeInForm onSubmit={handleStep1Submit}>
-                                <InputField label="E-mail" name="userEmail" value={formData.userEmail}
-                                            onChange={handleChange} errorMsg={messages.userEmailMsg}
-                                            placeholder="이메일을 입력하세요." />
-                                <InputField label="Name" name="userName" value={formData.userName}
-                                            onChange={handleChange} errorMsg={messages.userNameMsg}
-                                            placeholder="이름을 입력하세요." />
-                                <S.BtnConfirm type="submit">확인</S.BtnConfirm>
-                            </S.FadeInForm>
-                        )}
+                    <S.SlideViewport>
+                        <S.SlideTrack $step={step}>
+                            <S.FormStep $active={step === 1}>
+                                <form onSubmit={handleStep1Submit}>
+                                    <S.FormStepFieldWrapper $hasMessage={!!messages.userEmailMsg || !!messages.userNameMsg}>
+                                        <InputField label="E-mail" name="userEmail" value={formData.userEmail}
+                                                    onChange={handleChange} errorMsg={messages.userEmailMsg}
+                                                    placeholder="이메일을 입력하세요." />
+                                        <InputField label="Name" name="userName" value={formData.userName}
+                                                    onChange={handleChange} errorMsg={messages.userNameMsg}
+                                                    placeholder="이름을 입력하세요." />
+                                    </S.FormStepFieldWrapper>
+                                    <S.BtnConfirm type="submit">확인</S.BtnConfirm>
+                                </form>
+                            </S.FormStep>
 
-                        {step === 2 && (
-                            <S.FadeInForm onSubmit={handleStep2Submit}>
-                                <InputField label="Code" name="code" value={formData.code} onChange={handleChange}
-                                            errorMsg={messages.codeMsg} placeholder="인증번호를 입력하세요."
-                                            actionBtn={{ text: '재전송', onClick: handleResend }} />
-                                <S.BtnConfirm type="submit">확인</S.BtnConfirm>
-                            </S.FadeInForm>
-                        )}
+                            <S.FormStep $active={step === 2}>
+                                <S.StepTitle>인증 코드가 전송되었습니다</S.StepTitle>
+                                <S.StepSubTitle>
+                                    아래 메일로 받은 인증 코드를 입력해 주세요.<br />
+                                    <span>{formData.userEmail}</span>
+                                </S.StepSubTitle>
+                                <form onSubmit={handleStep2Submit}>
+                                    <S.VerificationWrapper onPaste={handlePaste}>
+                                        {[0, 1, 2, 3, 4, 5].map((idx) => (
+                                            <input
+                                                key={idx}
+                                                type="text"
+                                                inputMode="numeric"
+                                                ref={(el) => (inputRefs.current[idx] = el)}
+                                                value={formData.code?.[idx] || ""}
+                                                onChange={(e) => handleOtpChange(e, idx)}
+                                                onKeyDown={(e) => handleKeyDown(e, idx)}
+                                                placeholder="0"
+                                            />
+                                        ))}
+                                    </S.VerificationWrapper>
+                                    <S.FieldMessage $show={!!messages.codeMsg} $type={messages.codeMsg?.type}>
+                                        {messages.codeMsg?.text}
+                                    </S.FieldMessage>
+                                    <S.ResendText>
+                                        혹시 이메일을 못 받으셨나요?
+                                        <button type="button" onClick={handleResend}>재전송</button>
+                                    </S.ResendText>
+                                    <S.BtnConfirm type="submit">확인</S.BtnConfirm>
+                                </form>
+                            </S.FormStep>
 
-                        {step === 3 && (
-                            <S.FadeInResult>
-                                <S.CheckCircle>
-                                    <i className="fa-solid fa-check"></i>
-                                </S.CheckCircle>
-                                <S.ResultText>
-                                    {formData.userName}님의 아이디는<br />
-                                    <S.HighlightId>{foundId}</S.HighlightId> 입니다.
-                                </S.ResultText>
-                                <S.BtnConfirm type="button" onClick={() => navigate('/account/login')}>
-                                    확인
-                                </S.BtnConfirm>
-                            </S.FadeInResult>
-                        )}
-                    </S.StepContainer>
+                            <S.FormStep $active={step === 3}>
+                                <S.FadeInResult>
+                                    <S.CheckCircle>
+                                        <i className="fa-solid fa-check"></i>
+                                    </S.CheckCircle>
+                                    <S.ResultText>
+                                        {formData.userName}님의 아이디는<br />
+                                        <S.HighlightId>{foundId}</S.HighlightId> 입니다.
+                                    </S.ResultText>
+                                    <S.BtnConfirm type="button" onClick={() => navigate('/account/login')}>
+                                        확인
+                                    </S.BtnConfirm>
+                                </S.FadeInResult>
+                            </S.FormStep>
+                        </S.SlideTrack>
+                    </S.SlideViewport>
 
                     <S.AuthLinks>
                         <Link to="/account/login">로그인</Link>
@@ -82,7 +131,7 @@ const FindId = () => {
 
                     <S.SignupBox>
                         아직 회원이 아니시라면, 지금 바로 마음을 시작해 보세요.
-                        <S.LinkSignup to="/account/register">회원가입</S.LinkSignup>
+                        <S.LinkSignup to="/account/register">가입하기</S.LinkSignup>
                     </S.SignupBox>
                 </S.FindIdCard>
             </S.Container>
