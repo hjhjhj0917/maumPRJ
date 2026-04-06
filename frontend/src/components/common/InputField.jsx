@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as S from '../../style/components/common/InputField.styles';
 
 const InputField = ({
                         label, name, type = "text", value, onChange, placeholder,
@@ -8,43 +9,43 @@ const InputField = ({
     const inputType = isPassword ? (showPw ? "text" : "password") : type;
 
     return (
-        <div className="input-group" style={{ position: 'relative' }}>
-            <div className="label-row">
+        <S.InputGroup>
+            <S.LabelRow>
                 <label>{label}</label>
-                <span className={`field-message ${errorMsg?.type || ''} ${errorMsg ? 'show' : ''}`}>
+                <S.FieldMessage $show={!!errorMsg} $type={errorMsg?.type}>
                     {errorMsg?.text}
-                </span>
-            </div>
-            <div className={isPassword || actionBtn ? "flex-row password-wrapper" : ""}>
-                <input
+                </S.FieldMessage>
+            </S.LabelRow>
+
+            <S.InputWrapper>
+                <S.StyledInput
                     type={inputType}
                     name={name}
                     value={value}
                     onChange={onChange}
                     placeholder={placeholder}
                     readOnly={readOnly}
-                    style={readOnly && !actionBtn ? { cursor: 'pointer', backgroundColor: '#fff' } : {}}
                     onClick={onClick}
                 />
                 {actionBtn && (
-                    <button
+                    <S.ActionButton
                         type="button"
-                        className="btn-check"
                         onClick={actionBtn.onClick}
                         disabled={actionBtn.disabled}
                     >
                         {actionBtn.text}
-                    </button>
+                    </S.ActionButton>
                 )}
                 {isPassword && (
-                    <i
-                        className={`fa-regular ${showPw ? 'fa-eye-slash active' : 'fa-eye'} toggle-password`}
+                    <S.ToggleIcon
+                        className={`fa-regular ${showPw ? 'fa-eye-slash' : 'fa-eye'}`}
+                        $active={showPw}
                         onClick={() => setShowPw(!showPw)}
-                    ></i>
+                    />
                 )}
-            </div>
+            </S.InputWrapper>
             {children}
-        </div>
+        </S.InputGroup>
     );
 };
 

@@ -117,12 +117,11 @@ public class UserInfoController {
     */
     @ResponseBody
     @PostMapping(value = "getEmailExists")
-    public ExistsDTO getEmailExists(HttpServletRequest request) throws Exception {
+    public ExistsDTO getEmailExists(HttpServletRequest request, HttpSession session) throws Exception {
 
         log.info(this.getClass().getName() + ".getEmailExists Start!");
 
         String email = CmmUtil.nvl(request.getParameter("email"));
-
         log.info("email : " + email);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
@@ -132,9 +131,40 @@ public class UserInfoController {
         ExistsDTO rDTO = Optional.ofNullable(userInfoService.getEmailExists(pDTO))
                 .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
 
-        log.info(this.getClass().getName() + ".getUserIdExists End!");
+        if (!rDTO.exists() && rDTO.authNumber() != 0) {
+            session.setAttribute("REG_AUTH_" + email, rDTO.authNumber());
+            session.setMaxInactiveInterval(3 * 60);
+        }
 
-        return rDTO;
+        log.info(this.getClass().getName() + ".getEmailExists End!");
+
+        return ExistsDTO.builder()
+                .exists(rDTO.exists())
+                .authNumber(0)
+                .build();
+    }
+
+    /*
+    이메일 인증번호 확인
+    */
+    @ResponseBody
+    @PostMapping(value = "verifyEmailCode")
+    public MsgDTO verifyEmailCode(HttpServletRequest request, HttpSession session) throws Exception {
+        log.info(this.getClass().getName() + ".verifyEmailCode Start!");
+
+        String email = CmmUtil.nvl(request.getParameter("email"));
+        String code = CmmUtil.nvl(request.getParameter("code"));
+
+        Object storedAuthCode = session.getAttribute("REG_AUTH_" + email);
+
+        log.info("email: {}, code: {}, storedAuthCode: {}", email, code, storedAuthCode);
+
+        if (storedAuthCode != null && storedAuthCode.toString().equals(code)) {
+            session.removeAttribute("REG_AUTH_" + email);
+            return MsgDTO.builder().result(1).msg("인증에 성공하였습니다.").build();
+        }
+
+        return MsgDTO.builder().result(0).msg("인증번호가 일치하지 않거나 만료되었습니다.").build();
     }
 
     /*
@@ -291,6 +321,9 @@ public class UserInfoController {
     @ResponseBody
     @GetMapping(value = "status")
     public UserInfoDTO getLoginStatus(HttpSession session) {
+
+        log.info("{}.getLoginStatus Start!", this.getClass().getName());
+
         Integer userNo = (Integer) session.getAttribute("SS_USER_NO");
 
         if (userNo == null) return UserInfoDTO.builder().build();
@@ -298,6 +331,8 @@ public class UserInfoController {
         String userId = CmmUtil.nvl((String) session.getAttribute("SS_USER_ID"));
         String userName = CmmUtil.nvl((String) session.getAttribute("SS_USER_NAME"));
         String profileImgUrl = CmmUtil.nvl((String) session.getAttribute("SS_USER_PROFILE_IMG"));
+
+        log.info("{}.getLoginStatus Start!", this.getClass().getName());
 
         return UserInfoDTO.builder()
                 .userNo(userNo)
@@ -335,8 +370,12 @@ public class UserInfoController {
     @PostMapping(value = "findUserId")
     public ExistsDTO findUserId(HttpServletRequest request, HttpSession session) throws Exception {
 
+        log.info("{}.findUserId Start!", this.getClass().getName());
+
         String email = CmmUtil.nvl(request.getParameter("email"));
         String userName = CmmUtil.nvl(request.getParameter("userName"));
+
+        log.info("email: {}, userName: {}", email, userName);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .email(EncryptUtil.encAES128BCBC(email))
@@ -351,6 +390,8 @@ public class UserInfoController {
             session.setMaxInactiveInterval(3 * 60);
         }
 
+        log.info("{}.findUserId End!", this.getClass().getName());
+
         return ExistsDTO.builder()
                 .exists(rDTO.exists())
                 .authNumber(0)
@@ -364,11 +405,15 @@ public class UserInfoController {
     @PostMapping(value = "getUserId")
     public UserInfoDTO getUserId(HttpServletRequest request, HttpSession session) throws Exception {
 
+        log.info("{}.getUserId Start!", this.getClass().getName());
+
         String email = CmmUtil.nvl(request.getParameter("email"));
         String userName = CmmUtil.nvl(request.getParameter("userName"));
         String code = CmmUtil.nvl(request.getParameter("code"));
 
         Object storedAuthCode = session.getAttribute("AUTH_" + email);
+
+        log.info("email: {}, userName: {}, code: {}, storedAuthCode: {}", email, userName, code, storedAuthCode);
 
         if (storedAuthCode != null && storedAuthCode.toString().equals(code)) {
             UserInfoDTO pDTO = UserInfoDTO.builder()
@@ -383,6 +428,8 @@ public class UserInfoController {
 
             return rDTO;
         }
+
+        log.info("{}.getUserId End!", this.getClass().getName());
 
         return UserInfoDTO.builder().build();
     }

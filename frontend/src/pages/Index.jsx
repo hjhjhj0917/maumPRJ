@@ -5,7 +5,7 @@ import './Index.css';
 
 import mainBg from '../assets/images/main-background.png';
 
-const Main = () => {
+const Index = () => {
     const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     const [stats, setStats] = useState({ records: 0, comforted: 0, hours: 0 });
@@ -193,4 +193,4 @@ const Main = () => {
     );
 };
 
-export default Main;
+export default Index;

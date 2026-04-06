@@ -2,11 +2,13 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/common/Layout';
 import Index from './pages/Index';
 import Main from './pages/Main';
+import { GlobalStyle } from './style/GlobalStyle';
 import AccountRoutes from './routes/AccountRoutes';
 
 function App() {
     return (
         <BrowserRouter>
+            <GlobalStyle />
             <Routes>
                 {/* 1. 헤더가 없는 단독 페이지 */}
 
