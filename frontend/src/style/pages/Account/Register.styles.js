@@ -100,7 +100,7 @@ export const RegisterWrapper = styled.div`
         &:disabled {
             background-color: #eee !important;
             color: #999 !important;
-            cursor: not-allowed;
+            cursor: default;
         }
 
         @media (max-width: 560px) {
@@ -165,7 +165,7 @@ export const RegisterWrapper = styled.div`
         left: 4%;
         width: 92%;
         height: 30px;
-        background-color: rgba(255, 209, 102, 0.1);
+
         border-top: 1px solid #FFD166;
         border-bottom: 1px solid #FFD166;
         pointer-events: none;
@@ -197,7 +197,7 @@ export const RegisterWrapper = styled.div`
 
         &.active {
             color: #333;
-            font-weight: 700;
+            font-weight: 500;
         }
     }
 
@@ -210,20 +210,18 @@ export const RegisterWrapper = styled.div`
 
     #btnPickerConfirm {
         flex: 1;
-        background-color: #FFD166;
-        color: #444;
-        border: 2px solid #FFD166;
+        background-color: #fff;
+        color: #333;
+        border: none;
         padding: 12px 0;
         font-size: 16px;
-        font-weight: 700;
+        font-weight: 500;
         cursor: pointer;
         border-radius: 16px;
-        box-shadow: 0 6px 0 #DDA02A, 0 8px 15px rgba(0, 0, 0, 0.1);
         transition: transform 0.1s, box-shadow 0.1s, background-color 0.1s;
 
         &:hover {
-            background-color: #FFC04D;
-            border-color: #FFC04D;
+            color: #000;
         }
 
         &:active {
@@ -269,6 +267,7 @@ export const StepperItem = styled.div`
     gap: 10px;
     z-index: 2;
     position: relative;
+    cursor: pointer;
 
     .step-circle {
         background-color: ${props => (props.$active || props.$completed ? '#FFD166' : '#fff')};
@@ -283,6 +282,10 @@ export const StepperItem = styled.div`
         align-items: center;
         font-size: 14px;
         transition: all 0.3s ease;
+
+        i {
+            color: ${props => (props.$active || props.$completed ? '#333' : '#ddd')};
+        }
     }
 
     .step-label {
@@ -331,78 +334,132 @@ export const AuthInputs = styled.div`
     margin-bottom: 50px;
 `;
 
+export const VerificationContainer = styled.div`
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    
+    label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #666;
+        min-width: 70px;
+    }
+`;
+
+export const VerificationWrapper = styled.div`
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+
+    input {
+        width: 60px;
+        height: 70px;
+        background-color: #f8f9fa;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        font-size: 24px;
+        font-weight: 700;
+        text-align: center;
+        transition: all 0.3s;
+
+        &:focus {
+            border-color: #FFD166;
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.1);
+            outline: none;
+        }
+
+        &::placeholder {
+            color: #eee;
+        }
+
+        &:disabled {
+            background-color: #eee;
+            color: #999;
+            cursor: default;
+        }
+    }
+
+    @media (max-width: 480px) {
+        gap: 5px;
+        input {
+            width: 45px;
+            height: 55px;
+            font-size: 20px;
+        }
+    }
+`;
+
+export const ResendText = styled.div`
+    text-align: left;
+    font-size: 14px;
+    color: #888;
+    margin-top: 17px;
+    margin-bottom: 15px;
+
+    button {
+        background: none;
+        border: none;
+        color: #FFD166;
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 500;
+        margin-left: 6px;
+        padding: 0;
+
+        &:hover {
+            color: #E0B34A;
+        }
+    }
+`;
+
+export const BtnVerify = styled.button`
+    width: 100%;
+    padding: 16px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    transition: background-color 0.3s;
+
+    &:hover {
+        background-color: #000;
+    }
+
+    &:disabled {
+        background-color: #eee;
+        color: #999;
+        cursor: default;
+    }
+`;
+
 export const ActionButtons = styled.div`
     width: 100%;
     margin-top: 30px;
-`;
-
-export const BtnStepGroup = styled.div`
-    display: ${props => (props.$active ? 'block' : 'none')};
-    animation: ${props => (props.$active ? fadeInBtn : 'none')} 0.3s ease-out;
-`;
-
-export const BtnRow = styled.div`
-    display: flex;
-    justify-content: ${props => (props.$split ? 'space-between' : 'flex-end')};
-
-    @media (max-width: 560px) {
-        gap: ${props => (props.$split ? '10px' : '0')};
-    }
-`;
-
-export const BtnPrev = styled.button`
-    padding: 12px 40px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 30px;
-    font-size: 14px;
-    color: #666;
-    cursor: pointer;
-    font-weight: 600;
-
-    &:hover { background-color: #f9f9f9; }
-
-    @media (max-width: 560px) {
-        flex: 1;
-        padding: 12px 20px;
-    }
-`;
-
-export const BtnNext = styled.button`
-    padding: 12px 40px;
-    background-color: #fff;
-    border: 1px solid #FFD166;
-    border-radius: 30px;
-    font-size: 14px;
-    color: #333;
-    cursor: pointer;
-    font-weight: 600;
-
-    &:hover { background-color: #FFD166; }
-
-    @media (max-width: 560px) {
-        flex: 1;
-        padding: 12px 20px;
-    }
+    animation: ${fadeInBtn} 0.3s ease-out;
 `;
 
 export const BtnSubmit = styled.button`
-    padding: 12px 40px;
-    background-color: #FFD166;
+    width: 100%;
+    padding: 16px;
+    background-color: #333;
     border: none;
-    border-radius: 30px;
-    font-size: 14px;
-    color: #333;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
     cursor: pointer;
-    font-weight: 600;
-    box-shadow: 0 4px 10px rgba(255, 209, 102, 0.3);
+    color: #fff;
+    margin-bottom: 40px;
+    transition: background-color 0.3s;
 
-    &:hover { background-color: #E0B34A; }
-
-    @media (max-width: 560px) {
-        flex: 1;
-        padding: 12px 20px;
-    }
+    &:hover { background-color: #000; }
 `;
 
 export const LoginBox = styled.div`

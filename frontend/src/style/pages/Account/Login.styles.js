@@ -212,8 +212,8 @@ export const Input = styled.input`
 export const BtnLogin = styled.button`
     width: 100%;
     padding: 15px;
-    background-color: #FFD166;
-    color: #333;
+    background-color: #333;
+    color: #fff;
     border: none;
     border-radius: 30px;
     font-size: 1rem;
@@ -221,10 +221,10 @@ export const BtnLogin = styled.button`
     cursor: pointer;
     margin-top: 10px;
     transition: background-color 0.3s, transform 0.1s;
-    box-shadow: 0 4px 15px rgba(255, 209, 102, 0.4);
+    box-shadow: 0 4px 15px rgba(51, 51, 51, 0.4);
 
     &:hover {
-        background-color: #E0B34A;
+            background-color: #000;
         transform: translateY(-2px);
     }
 `;

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import LoginSlider from '../../components/account/LoginSlider';
-import { useLoginForm } from '../../hooks/account/useLoginForm';
+import {useLoginForm} from '../../hooks/account/useLoginForm';
 import logoImg from '../../assets/images/includes/logo.png';
 import * as S from '../../style/pages/Account/Login.styles';
 
@@ -17,13 +17,11 @@ const Login = () => {
     return (
         <S.LoginPageWrapper>
             <S.Container>
-                <LoginSlider />
+                <LoginSlider/>
 
                 <S.LoginSection>
                     <S.LoginCard>
-                        <Link to="/">
-                            <S.LoginLogoTitle src={logoImg} alt="마음 로고" />
-                        </Link>
+                        <S.LoginLogoTitle src={logoImg} alt="마음 로고"/>
 
                         <form id="loginForm" onSubmit={handleLogin}>
                             <S.InputGroup>
@@ -89,7 +87,7 @@ const Login = () => {
                         </S.FindLinks>
 
                         <S.SignupBox>
-                            아직 회원이 아니시라면, 지금 바로 마음(MAUM)을 <br />
+                            아직 회원이 아니시라면, 지금 바로 마음(MAÜM)을 <br/>
                             시작해 보세요. <S.LinkSignup to="/account/register">가입하기</S.LinkSignup>
                         </S.SignupBox>
                     </S.LoginCard>

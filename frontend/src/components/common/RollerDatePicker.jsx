@@ -53,7 +53,7 @@ const RollerDatePicker = ({ onConfirm, onClose, initialDate }) => {
                 </div>
                 <div className="roller-picker-footer">
                     <button type="button" id="btnPickerConfirm" onClick={() => onConfirm(date)}>
-                        {`${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')} 확인`}
+                        {`${date.year}년 ${String(date.month).padStart(2, '0')}월 ${String(date.day).padStart(2, '0')}일 확인`}
                     </button>
                 </div>
             </div>

@@ -17,7 +17,7 @@ export const LabelRow = styled.div`
         font-size: 14px;
         font-weight: 600;
         color: #666;
-        min-width: 70px;
+        min-width: 50px;
     }
 `;
 
@@ -43,6 +43,7 @@ export const StyledInput = styled.input`
     border-bottom: 2px solid #eee;
     outline: none;
     font-size: 15px;
+    font-weight: 400;
     color: #333;
     transition: border-color 0.3s;
     background-color: transparent;
@@ -58,17 +59,17 @@ export const StyledInput = styled.input`
 
 export const ActionButton = styled.button`
     padding: 8px 20px;
-    background-color: #FFD166;
+    background-color: #333;
     border: none;
-    border-radius: 20px;
+    border-radius: 9px;
     font-size: 12px;
     font-weight: bold;
-    color: #333;
+    color: #fff;
     cursor: pointer;
     height: 35px;
     white-space: nowrap;
 
-    &:hover { background-color: #E0B34A; }
+    &:hover { background-color: #000; }
     &:disabled { background-color: #eee; color: #999; }
 `;
 

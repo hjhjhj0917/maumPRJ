@@ -1,19 +1,26 @@
 import React from 'react';
-import { useRegisterForm } from '../../hooks/account/useRegisterForm';
-import CustomModal from '../../components/common/CustomModal';
+import { Link } from 'react-router-dom';
 import InputField from '../../components/common/InputField';
+import CustomModal from '../../components/common/CustomModal';
+import { useRegisterForm } from '../../hooks/account/useRegisterForm';
 import RollerDatePicker from '../../components/common/RollerDatePicker';
 import * as S from '../../style/pages/Account/Register.styles';
 
 const Register = () => {
     const {
-        step, setStep, nextStep,
-        formData, setFormData, handleChange,
+        step, handleStepClick,
+        formData, setFormData, handleChange, handleOtpChange, handleKeyDown, handlePaste,
         messages, flags,
         showDatePicker, setShowDatePicker,
-        modal, setModal,
+        modal, setModal, inputRefs,
         handleEmailSend, handleCodeVerify, handleUserIdCheck, handleKakaoPost, handleSubmit
     } = useRegisterForm();
+
+    const steps = [
+        { num: 1, label: '인증' },
+        { num: 2, label: '계정정보' },
+        { num: 3, label: '개인정보' }
+    ];
 
     return (
         <S.RegisterWrapper>
@@ -29,13 +36,17 @@ const Register = () => {
             <S.Container>
                 <S.RegisterCard>
                     <S.StepperWrapper>
-                        {[1, 2, 3].map((num, idx) => (
-                            <React.Fragment key={num}>
-                                <S.StepperItem $active={step === num} $completed={step > num}>
-                                    <div className="step-label">{num === 1 ? '인증' : num === 2 ? '계정정보' : '개인정보'}</div>
+                        {steps.map((s, idx) => (
+                            <React.Fragment key={s.num}>
+                                <S.StepperItem
+                                    $active={step === s.num}
+                                    $completed={step > s.num}
+                                    onClick={() => handleStepClick(s.num)}
+                                >
+                                    <div className="step-label">{s.label}</div>
                                     <div className="step-circle"><i className="fa-solid fa-check"></i></div>
                                 </S.StepperItem>
-                                {idx < 2 && <S.StepLine />}
+                                {idx < steps.length - 1 && <S.StepLine />}
                             </React.Fragment>
                         ))}
                     </S.StepperWrapper>
@@ -53,13 +64,39 @@ const Register = () => {
                                             onClick: handleEmailSend,
                                             disabled: flags.emailVerified
                                         }} placeholder="이메일을 입력하세요." />
-                                        <InputField label="Code" name="code" value={formData.code}
-                                                    onChange={handleChange} errorMsg={messages.codeMsg}
-                                                    readOnly={flags.emailVerified} actionBtn={{
-                                            text: '인증 확인',
-                                            onClick: handleCodeVerify,
-                                            disabled: flags.emailVerified
-                                        }} placeholder="인증번호를 입력하세요." />
+
+                                        <S.VerificationContainer>
+                                            <div className="label-row">
+                                                <label>Code</label>
+                                                <span className={`field-message ${messages.codeMsg ? 'show' : ''} ${messages.codeMsg?.type === 'error' ? 'error' : 'success'}`}>
+                                                    {messages.codeMsg?.text}
+                                                </span>
+                                            </div>
+                                            <S.VerificationWrapper onPaste={handlePaste}>
+                                                {[0, 1, 2, 3, 4, 5].map((idx) => (
+                                                    <input
+                                                        key={idx}
+                                                        type="text"
+                                                        inputMode="numeric"
+                                                        ref={(el) => (inputRefs.current[idx] = el)}
+                                                        value={formData.code?.[idx] || ""}
+                                                        onChange={(e) => handleOtpChange(e, idx)}
+                                                        onKeyDown={(e) => handleKeyDown(e, idx)}
+                                                        placeholder="0"
+                                                        disabled={flags.emailVerified}
+                                                    />
+                                                ))}
+                                            </S.VerificationWrapper>
+
+                                            <S.ResendText>
+                                                혹시 이메일을 못 받으셨나요?
+                                                <button type="button" onClick={handleEmailSend} disabled={flags.emailVerified}>재전송</button>
+                                            </S.ResendText>
+
+                                            <S.BtnVerify type="button" onClick={handleCodeVerify} disabled={flags.emailVerified || (formData.code?.replace(/\s/g, '').length !== 6)}>
+                                                확인
+                                            </S.BtnVerify>
+                                        </S.VerificationContainer>
                                     </S.AuthInputs>
                                 </S.FormStep>
 
@@ -98,7 +135,7 @@ const Register = () => {
                                                     onConfirm={(date) => {
                                                         setFormData(prev => ({
                                                             ...prev,
-                                                            birthDate: `${date.year}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`
+                                                            birthDate: `${date.year}년 ${String(date.month).padStart(2, '0')}월 ${String(date.day).padStart(2, '0')}일`
                                                         }));
                                                         setShowDatePicker(false);
                                                     }}
@@ -119,31 +156,15 @@ const Register = () => {
                             </S.SlideTrack>
                         </S.SlideViewport>
 
-                        <S.ActionButtons>
-                            <S.BtnStepGroup $active={step === 1}>
-                                <S.BtnRow>
-                                    <S.BtnNext type="button" onClick={() => nextStep(2)}>다음</S.BtnNext>
-                                </S.BtnRow>
-                            </S.BtnStepGroup>
-
-                            <S.BtnStepGroup $active={step === 2}>
-                                <S.BtnRow $split={true}>
-                                    <S.BtnPrev type="button" onClick={() => setStep(1)}>이전</S.BtnPrev>
-                                    <S.BtnNext type="button" onClick={() => nextStep(3)}>다음</S.BtnNext>
-                                </S.BtnRow>
-                            </S.BtnStepGroup>
-
-                            <S.BtnStepGroup $active={step === 3}>
-                                <S.BtnRow $split={true}>
-                                    <S.BtnPrev type="button" onClick={() => setStep(2)}>이전</S.BtnPrev>
-                                    <S.BtnSubmit type="submit">가입하기</S.BtnSubmit>
-                                </S.BtnRow>
-                            </S.BtnStepGroup>
-                        </S.ActionButtons>
+                        {step === 3 && (
+                            <S.ActionButtons>
+                                <S.BtnSubmit type="submit">가입하기</S.BtnSubmit>
+                            </S.ActionButtons>
+                        )}
                     </form>
 
                     <S.LoginBox>
-                        이미 마음(MAUM) 회원이신가요?
+                        이미 마음(MAÜM) 회원이신가요?
                         <S.LinkLogin to="/account/login">로그인</S.LinkLogin>
                     </S.LoginBox>
                 </S.RegisterCard>

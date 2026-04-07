@@ -74,7 +74,11 @@ export const useFindIdForm = () => {
     };
 
     const showAlert = (title, message, onConfirmCallback = null) => {
-        setModal({ show: true, title, message, onConfirm: onConfirmCallback });
+        setModal({ show: true, title, message, isConfirm: false, onConfirm: onConfirmCallback, onCancel: null });
+    };
+
+    const showConfirm = (title, message, onConfirmCallback = null, onCancelCallback = null) => {
+        setModal({ show: true, title, message, isConfirm: true, onConfirm: onConfirmCallback, onCancel: onCancelCallback });
     };
 
     const handleModalConfirm = () => {
@@ -102,7 +106,7 @@ export const useFindIdForm = () => {
         try {
             const json = await findUserId(formData.userEmail, formData.userName);
             if (json.exists) {
-                showAlert("인증번호 발송", "이메일로 인증번호가 발송되었습니다.", () => {
+                showConfirm("인증번호 발송", "이메일로 인증번호가 발송되었습니다.", () => {
                     setStep(2);
                 });
             } else {

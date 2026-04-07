@@ -58,6 +58,10 @@ export const StepperItem = styled.div`
         align-items: center;
         font-size: 14px;
         transition: all 0.3s ease;
+
+        i {
+            color: ${props => (props.$active || props.$completed ? '#333' : '#ddd')};
+        }
     }
 
     .step-label {
@@ -133,7 +137,8 @@ export const FormStepFieldWrapper = styled.div`
 
     .field-message {
         display: block;
-        min-height: 18px;
+        height: 20px;
+        line-height: 20px;
         margin-top: 4px;
         font-size: 12px;
         visibility: ${props => props.$hasMessage ? 'visible' : 'hidden'};
@@ -176,7 +181,8 @@ export const FieldMessage = styled.span`
     font-weight: 500;
     margin-bottom: 15px;
     text-align: left;
-    min-height: 18px;
+    height: 20px;
+    line-height: 20px;
     color: ${props => (props.$type === 'error' ? '#ef4444' : '#22c55e')};
     visibility: ${props => (props.$show ? 'visible' : 'hidden')};
 `;
@@ -190,7 +196,7 @@ export const ResendText = styled.div`
     button {
         background: none;
         border: none;
-        color: #3b82f6;
+        color: #FFD166;
         text-decoration: underline;
         cursor: pointer;
         font-weight: 500;
@@ -198,16 +204,41 @@ export const ResendText = styled.div`
         padding: 0;
 
         &:hover {
-            color: #2563eb;
+            color: #E0B34A;
         }
     }
 `;
 
-export const FadeInResult = styled.div`
+export const ResultContainer = styled.div`
     display: flex;
     flex-direction: column;
-    align-items: center;
     animation: ${fadeInStep} 0.4s ease-out forwards;
+`;
+
+export const ResultHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+
+    h2 {
+        margin-bottom: 0;
+    }
+`;
+
+export const ResultCheck = styled.div`
+    width: 36px;
+    height: 36px;
+    background-color: #FFD166;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+
+    i {
+        color: #333;
+    }
 `;
 
 export const BtnConfirm = styled.button`
@@ -229,31 +260,17 @@ export const BtnConfirm = styled.button`
     }
 `;
 
-export const CheckCircle = styled.div`
-    width: 65px;
-    height: 65px;
-    background-color: #FFD166;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 32px;
-    color: #fff;
-    margin-bottom: 30px;
-`;
-
-export const ResultText = styled.p`
-    font-size: 24px;
+export const HighlightIdBox = styled.div`
+    width: 100%;
+    padding: 25px;
+    background-color: #f8f9fa;
+    border: 2px solid #eee;
+    border-radius: 12px;
+    font-size: 28px;
     font-weight: 700;
-    color: #000;
-    line-height: 1.6;
-    margin-bottom: 40px;
     text-align: center;
-`;
-
-export const HighlightId = styled.span`
-    color: #FFD166;
-    font-size: 32px;
+    color: #333;
+    margin-bottom: 20px;
 `;
 
 export const AuthLinks = styled.div`
@@ -285,7 +302,7 @@ export const SignupBox = styled.div`
     font-size: 14px;
     color: #999;
     line-height: 1.6;
-    text-align: center;
+    text-align: left;
     width: 100%;
     margin-top: 20px;
 `;

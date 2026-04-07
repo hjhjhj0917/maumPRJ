@@ -1,6 +1,6 @@
-import {useState, useEffect, useRef} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {checkEmailExists, checkUserIdExists, registerUser, verifyEmailCode} from '../../api/authApi';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { checkEmailExists, checkUserIdExists, registerUser, verifyEmailCode } from '../../api/authApi';
 
 export const useRegisterForm = () => {
     const navigate = useNavigate();
@@ -10,11 +10,12 @@ export const useRegisterForm = () => {
         userName: '', birthDate: '', addr: '', detailAddr: ''
     });
     const [messages, setMessages] = useState({});
-    const [flags, setFlags] = useState({emailVerified: false, userIdChecked: false});
+    const [flags, setFlags] = useState({ emailVerified: false, userIdChecked: false });
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [modal, setModal] = useState({show: false, title: '', message: '', onConfirm: null});
+    const [modal, setModal] = useState({ show: false, title: '', message: '', onConfirm: null });
 
     const messageTimers = useRef({});
+    const inputRefs = useRef([]);
 
     useEffect(() => {
         const script = document.createElement('script');
@@ -25,9 +26,48 @@ export const useRegisterForm = () => {
     }, []);
 
     const handleChange = (e) => {
-        const {name, value} = e.target;
-        setFormData(prev => ({...prev, [name]: value}));
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
         clearMessage(name + 'Msg');
+    };
+
+    const handleOtpChange = (e, index) => {
+        const value = e.target.value;
+        if (!/^[0-9]*$/.test(value)) return;
+
+        const currentCode = formData.code || "";
+        const codeArray = currentCode.split("");
+        while (codeArray.length < 6) codeArray.push("");
+
+        codeArray[index] = value.slice(-1);
+        const finalCode = codeArray.join("");
+
+        setFormData(prev => ({ ...prev, code: finalCode }));
+        clearMessage('codeMsg');
+
+        if (value !== "" && index < 5) {
+            inputRefs.current[index + 1].focus();
+        }
+    };
+
+    const handleKeyDown = (e, index) => {
+        if (e.key === "Backspace") {
+            if (!formData.code?.[index] && index > 0) {
+                inputRefs.current[index - 1].focus();
+            }
+        }
+    };
+
+    const handlePaste = (e) => {
+        e.preventDefault();
+        const pasteData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+        if (!pasteData) return;
+
+        setFormData(prev => ({ ...prev, code: pasteData }));
+        clearMessage('codeMsg');
+
+        const nextIndex = pasteData.length === 6 ? 5 : pasteData.length;
+        inputRefs.current[nextIndex]?.focus();
     };
 
     useEffect(() => {
@@ -48,7 +88,7 @@ export const useRegisterForm = () => {
 
     const setMessage = (id, message, type) => {
         if (messageTimers.current[id]) clearTimeout(messageTimers.current[id]);
-        setMessages(prev => ({...prev, [id]: {text: message, type}}));
+        setMessages(prev => ({ ...prev, [id]: { text: message, type } }));
         messageTimers.current[id] = setTimeout(() => {
             clearMessage(id);
         }, type === 'success' ? 2000 : 3000);
@@ -57,14 +97,14 @@ export const useRegisterForm = () => {
     const clearMessage = (id) => {
         if (messageTimers.current[id]) clearTimeout(messageTimers.current[id]);
         setMessages(prev => {
-            const newMsgs = {...prev};
+            const newMsgs = { ...prev };
             delete newMsgs[id];
             return newMsgs;
         });
     };
 
     const showAlert = (title, message, onConfirm = null) => {
-        setModal({show: true, title, message, onConfirm});
+        setModal({ show: true, title, message, onConfirm });
     };
 
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -86,15 +126,15 @@ export const useRegisterForm = () => {
     };
 
     const handleCodeVerify = async () => {
-        if (!formData.code.trim()) return setMessage('codeMsg', '인증번호를 입력하세요.', 'error');
+        const code = formData.code?.replace(/\s/g, '');
+        if (!code || code.length < 6) return setMessage('codeMsg', '인증번호 6자리를 모두 입력하세요.', 'error');
 
         try {
-            const json = await verifyEmailCode(formData.email, formData.code);
+            const json = await verifyEmailCode(formData.email, code);
 
             if (json.result === 1) {
                 setMessage('codeMsg', '인증번호가 확인되었습니다.', 'success');
-
-                setFlags(prev => ({...prev, emailVerified: true}));
+                setFlags(prev => ({ ...prev, emailVerified: true }));
 
                 setTimeout(() => {
                     setStep(2);
@@ -116,7 +156,7 @@ export const useRegisterForm = () => {
                 setMessage('userIdMsg', '이미 가입된 아이디가 존재합니다.', 'error');
             } else {
                 setMessage('userIdMsg', '사용 가능한 아이디입니다.', 'success');
-                setFlags(prev => ({...prev, userIdChecked: true}));
+                setFlags(prev => ({ ...prev, userIdChecked: true }));
             }
         } catch (e) {
             setMessage('userIdMsg', '서버 통신 중 오류가 발생했습니다.', 'error');
@@ -126,13 +166,17 @@ export const useRegisterForm = () => {
     const handleKakaoPost = () => {
         new window.daum.Postcode({
             oncomplete: (data) => {
-                setFormData(prev => ({...prev, addr: `(${data.zonecode}) ${data.address}`}));
+                setFormData(prev => ({ ...prev, addr: `(${data.zonecode}) ${data.address}` }));
                 clearMessage('addrMsg');
             }
         }).open();
     };
 
     const validateStep1 = () => {
+        if (!formData.email.trim()) {
+            setMessage('emailMsg', '이메일을 입력해 주세요.', 'error');
+            return false;
+        }
         if (!flags.emailVerified) {
             setMessage('emailMsg', '이메일 인증을 완료해 주세요.', 'error');
             return false;
@@ -180,10 +224,17 @@ export const useRegisterForm = () => {
         return isValid;
     };
 
-    const nextStep = (target) => {
-        if (target === 2 && !validateStep1()) return;
-        if (target === 3 && !validateStep2()) return;
-        setStep(target);
+    const handleStepClick = (target) => {
+        if (target === step) return;
+        if (target < step) {
+            setStep(target);
+        } else {
+            if (target === 2 && validateStep1()) {
+                setStep(2);
+            } else if (target === 3 && validateStep1() && validateStep2()) {
+                setStep(3);
+            }
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -203,11 +254,11 @@ export const useRegisterForm = () => {
     };
 
     return {
-        step, setStep, nextStep,
-        formData, setFormData, handleChange,
+        step, handleStepClick,
+        formData, setFormData, handleChange, handleOtpChange, handleKeyDown, handlePaste,
         messages, flags,
         showDatePicker, setShowDatePicker,
-        modal, setModal,
+        modal, setModal, inputRefs,
         handleEmailSend, handleCodeVerify, handleUserIdCheck, handleKakaoPost, handleSubmit
     };
 };

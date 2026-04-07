@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import InputField from '../../components/common/InputField';
 import CustomModal from '../../components/common/CustomModal';
@@ -107,18 +107,24 @@ const FindId = () => {
                             </S.FormStep>
 
                             <S.FormStep $active={step === 3}>
-                                <S.FadeInResult>
-                                    <S.CheckCircle>
-                                        <i className="fa-solid fa-check"></i>
-                                    </S.CheckCircle>
-                                    <S.ResultText>
-                                        {formData.userName}님의 아이디는<br />
-                                        <S.HighlightId>{foundId}</S.HighlightId> 입니다.
-                                    </S.ResultText>
+                                <S.ResultContainer>
+                                    <S.ResultHeader>
+                                        <S.StepTitle>아이디 찾기 결과</S.StepTitle>
+                                        <S.ResultCheck>
+                                            <i className="fa-solid fa-check"></i>
+                                        </S.ResultCheck>
+                                    </S.ResultHeader>
+                                    <S.StepSubTitle>
+                                        {formData.userName}님의 정보와 일치하는 <br />
+                                        <span>아이디</span>는 다음과 같습니다.
+                                    </S.StepSubTitle>
+                                    <S.HighlightIdBox>
+                                        {foundId}
+                                    </S.HighlightIdBox>
                                     <S.BtnConfirm type="button" onClick={() => navigate('/account/login')}>
                                         확인
                                     </S.BtnConfirm>
-                                </S.FadeInResult>
+                                </S.ResultContainer>
                             </S.FormStep>
                         </S.SlideTrack>
                     </S.SlideViewport>
