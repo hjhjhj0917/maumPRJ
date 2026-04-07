@@ -252,13 +252,20 @@ public class UserInfoService implements IUserInfoService {
         String email = CmmUtil.nvl(pDTO.email());
         String userName = CmmUtil.nvl(pDTO.userName());
 
-        Optional<UserInfoEntity> result = userInfoRepository.findByEmailAndUserName(email, userName);
+        UserInfoEntity rEntity = userInfoRepository.findByEmailAndUserName(email, userName)
+                .orElse(null);
 
-        UserInfoDTO rDTO = result
-                .map(entity -> UserInfoDTO.builder()
-                        .userId(entity.getUserId())
-                        .build())
-                .orElseGet(() -> UserInfoDTO.builder().build());
+        UserInfoDTO rDTO;
+
+        if (rEntity != null) {
+            String userId = rEntity.getUserId();
+
+            rDTO = UserInfoDTO.builder()
+                    .userId(userId)
+                    .build();
+        } else {
+            rDTO = UserInfoDTO.builder().build();
+        }
 
         log.info("{}.getUserId End!", this.getClass().getName());
 
