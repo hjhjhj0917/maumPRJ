@@ -55,7 +55,7 @@ export const PreviewCircle = styled.div`
     width: 480px;
     height: 480px;
     border-radius: 50%;
-    border: 10px solid #333;
+    border: 10px solid #FFD166;
     overflow: hidden;
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
 
@@ -114,7 +114,7 @@ export const BtnSave = styled.button`
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
-    border-radius: 16px;
+    border-radius: 9px;
     transition: transform 0.1s, box-shadow 0.1s;
     text-transform: uppercase;
 

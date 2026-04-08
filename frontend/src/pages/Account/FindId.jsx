@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import InputField from '../../components/common/InputField';
 import CustomModal from '../../components/common/CustomModal';
-import { useFindIdForm } from '../../hooks/account/useFindIdForm';
+import { useFindIdForm } from '../../hooks/pages/account/useFindIdForm';
 import * as S from '../../style/pages/Account/FindId.styles';
 
 const FindId = () => {

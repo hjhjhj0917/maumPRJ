@@ -1,4 +1,6 @@
-.custom-modal-overlay {
+import styled from 'styled-components';
+
+export const ModalOverlay = styled.div`
     position: fixed;
     top: 0;
     left: 0;
@@ -9,9 +11,9 @@
     display: flex;
     justify-content: center;
     align-items: center;
-}
+`;
 
-.custom-modal-box {
+export const ModalBox = styled.div`
     background-color: #ffffff;
     width: 90%;
     max-width: 410px;
@@ -22,9 +24,9 @@
     overflow: hidden;
     box-sizing: border-box;
     transition: transform 0.2s, box-shadow 0.2s;
-}
+`;
 
-.custom-modal-close {
+export const CloseButton = styled.span`
     position: absolute;
     top: 15px;
     right: 20px;
@@ -33,42 +35,42 @@
     cursor: pointer;
     z-index: 2;
     transition: color 0.2s;
-}
 
-.custom-modal-close:hover {
-    color: #888;
-}
+    &:hover {
+        color: #888;
+    }
+`;
 
-.custom-modal-content {
+export const ModalContent = styled.div`
     position: relative;
     z-index: 1;
-}
 
-.custom-modal-content h2 {
-    font-size: 17px;
-    font-weight: 700;
-    color: #444;
-    margin-top: 20px;
-    margin-bottom: 80px;
-}
+    h2 {
+        font-size: 17px;
+        font-weight: 700;
+        color: #444;
+        margin-top: 20px;
+        margin-bottom: 80px;
+    }
 
-.custom-modal-content p {
-    font-size: 14px;
-    color: #666;
-    line-height: 1.6;
-    margin-top: -51px;
-    margin-bottom: 12px;
-}
+    p {
+        font-size: 14px;
+        color: #666;
+        line-height: 1.6;
+        margin-top: -51px;
+        margin-bottom: 12px;
+    }
+`;
 
-.custom-modal-actions {
+export const ModalActions = styled.div`
     position: relative;
     z-index: 1;
     display: flex;
     justify-content: flex-end;
     gap: 15px;
-}
+`;
 
-.btn-modal-cancel {
+export const CancelButton = styled.button`
     background-color: #f1f1f1;
     color: #666;
     border: none;
@@ -79,17 +81,17 @@
     border-radius: 18px;
     transition: transform 0.1s, box-shadow 0.1s;
     text-transform: uppercase;
-}
 
-.btn-modal-cancel:hover {
-    background-color: #e9e9e9;
-}
+    &:hover {
+        background-color: #e9e9e9;
+    }
 
-.btn-modal-cancel:active {
-    transform: translateY(2px);
-}
+    &:active {
+        transform: translateY(2px);
+    }
+`;
 
-.btn-modal-ok {
+export const OkButton = styled.button`
     background-color: #333;
     color: #fff;
     border: 1px solid #333;
@@ -100,12 +102,12 @@
     border-radius: 18px;
     transition: transform 0.1s, box-shadow 0.1s;
     text-transform: uppercase;
-}
 
-.btn-modal-ok:hover {
-    background-color: #000;
-}
+    &:hover {
+        background-color: #000;
+    }
 
-.btn-modal-ok:active {
-    transform: translateY(2px);
-}
+    &:active {
+        transform: translateY(2px);
+    }
+`;

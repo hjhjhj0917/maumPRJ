@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import InputField from '../../components/common/InputField';
 import CustomModal from '../../components/common/CustomModal';
-import { useFindPwForm } from '../../hooks/account/useFindPwForm';
+import { useFindPwForm } from '../../hooks/pages/account/useFindPwForm';
 import * as S from '../../style/pages/Account/FindPw.styles';
 
 const FindPw = () => {
@@ -65,7 +65,7 @@ const FindPw = () => {
                                 <S.StepSubTitle>가입하신 아이디와 이메일을 입력해 주세요.</S.StepSubTitle>
                                 <form onSubmit={handleStep1Submit}>
                                     <S.FormStepFieldWrapper $hasMessage={!!messages.userIdMsg || !!messages.userEmailMsg}>
-                                        <InputField label="ID" name="userId" value={formData.userId}
+                                        <InputField label="User ID" name="userId" value={formData.userId}
                                                     onChange={handleChange} errorMsg={messages.userIdMsg}
                                                     placeholder="아이디를 입력하세요." />
                                         <InputField label="E-mail" name="userEmail" value={formData.userEmail}

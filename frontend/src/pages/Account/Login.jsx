@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import LoginSlider from '../../components/account/LoginSlider';
-import {useLoginForm} from '../../hooks/account/useLoginForm';
+import {useLoginForm} from '../../hooks/pages/account/useLoginForm';
 import logoImg from '../../assets/images/includes/logo.png';
 import * as S from '../../style/pages/Account/Login.styles';
 

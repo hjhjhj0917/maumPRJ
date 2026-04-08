@@ -5,7 +5,7 @@ export const HeaderContainer = styled.header`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 50px;
+    padding: 11px 50px;
     width: 100%;
     top: 0;
     left: 0;
@@ -28,7 +28,7 @@ export const LogoContainer = styled(Link)`
 `;
 
 export const LogoImage = styled.img`
-    height: 50px;
+    height: 46px;
     width: auto;
     object-fit: contain;
     display: block;
@@ -101,7 +101,7 @@ export const NavLink = styled(Link)`
     text-decoration: none;
     color: #555;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 13px;
     padding: 10px 0;
     transition: color 0.3s;
     display: block;
@@ -123,7 +123,7 @@ export const BtnSignin = styled.button`
     border-radius: 4px;
     background-color: transparent;
     color: #333;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;

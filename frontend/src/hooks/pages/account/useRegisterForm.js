@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { checkEmailExists, checkUserIdExists, registerUser, verifyEmailCode } from '../../api/authApi';
+import { checkEmailExists, checkUserIdExists, registerUser, verifyEmailCode } from '../../../api/authApi';
 
 export const useRegisterForm = () => {
     const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import React from 'react';
 import CustomModal from '../../components/common/CustomModal';
 import ZodiacItem from '../../components/account/ZodiacItem';
-import { useProfileForm } from '../../hooks/account/useProfileForm';
+import { useProfileForm } from '../../hooks/pages/account/useProfileForm';
 import * as S from '../../style/pages/Account/Profile.styles';
 
 const zodiacList = [

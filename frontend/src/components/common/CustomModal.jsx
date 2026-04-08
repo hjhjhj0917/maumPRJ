@@ -1,33 +1,33 @@
 import React from 'react';
-import './CustomModal.css';
+import * as S from '../../style/components/common/CustomModal.styles';
 
 const CustomModal = ({ isOpen, title, message, isConfirm, onConfirm, onCancel }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="custom-modal-overlay">
-            <div className="custom-modal-box">
-                <span className="custom-modal-close" onClick={onCancel}>
+        <S.ModalOverlay>
+            <S.ModalBox>
+                <S.CloseButton onClick={onCancel}>
                     <i className="fa-solid fa-xmark"></i>
-                </span>
+                </S.CloseButton>
 
-                <div className="custom-modal-content">
+                <S.ModalContent>
                     <h2>{title || (isConfirm ? '확인' : '알림')}</h2>
                     <p>{message}</p>
-                </div>
+                </S.ModalContent>
 
-                <div className="custom-modal-actions">
+                <S.ModalActions>
                     {isConfirm && (
-                        <button type="button" className="btn-modal-cancel" onClick={onCancel}>
+                        <S.CancelButton type="button" onClick={onCancel}>
                             취소
-                        </button>
+                        </S.CancelButton>
                     )}
-                    <button type="button" className="btn-modal-ok" onClick={onConfirm || onCancel}>
+                    <S.OkButton type="button" onClick={onConfirm || onCancel}>
                         확인
-                    </button>
-                </div>
-            </div>
-        </div>
+                    </S.OkButton>
+                </S.ModalActions>
+            </S.ModalBox>
+        </S.ModalOverlay>
     );
 };
 
