@@ -132,7 +132,7 @@ public class UserInfoController {
                 .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
 
         if (!rDTO.exists() && rDTO.authNumber() != 0) {
-            session.setAttribute("REG_AUTH_" + email, rDTO.authNumber());
+            session.setAttribute("AUTH_" + email, rDTO.authNumber());
             session.setMaxInactiveInterval(3 * 60);
         }
 
@@ -155,12 +155,11 @@ public class UserInfoController {
         String email = CmmUtil.nvl(request.getParameter("email"));
         String code = CmmUtil.nvl(request.getParameter("code"));
 
-        Object storedAuthCode = session.getAttribute("REG_AUTH_" + email);
+        Object storedAuthCode = session.getAttribute("AUTH_" + email);
 
         log.info("email: {}, code: {}, storedAuthCode: {}", email, code, storedAuthCode);
 
         if (storedAuthCode != null && storedAuthCode.toString().equals(code)) {
-            session.removeAttribute("REG_AUTH_" + email);
             return MsgDTO.builder().result(1).msg("인증에 성공하였습니다.").build();
         }
 
@@ -316,8 +315,8 @@ public class UserInfoController {
     }
 
     /*
-   로그인 상태 확인
-   */
+    로그인 상태 확인
+    */
     @ResponseBody
     @GetMapping(value = "status")
     public UserInfoDTO getLoginStatus(HttpSession session) {
@@ -432,5 +431,96 @@ public class UserInfoController {
         log.info("{}.getUserId End!", this.getClass().getName());
 
         return UserInfoDTO.builder().build();
+    }
+
+    /*
+    비밀번호 찾기
+    */
+    @ResponseBody
+    @PostMapping(value = "findUserPw")
+    public ExistsDTO findUserPw(HttpServletRequest request, HttpSession session) throws Exception {
+
+        log.info("{}.findUserPw Start!", this.getClass().getName());
+
+        String email = CmmUtil.nvl(request.getParameter("email"));
+        String userId = CmmUtil.nvl(request.getParameter("userId"));
+
+        log.info("email: {}, userId: {}", email, userId);
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .email(EncryptUtil.encAES128BCBC(email))
+                .userId(userId)
+                .build();
+
+        ExistsDTO rDTO = Optional.ofNullable(userInfoService.findUserPw(pDTO))
+                .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
+
+        if (rDTO.exists()) {
+            session.setAttribute("AUTH_" + email, rDTO.authNumber());
+            session.setMaxInactiveInterval(3 * 60);
+            session.setAttribute("UPDATE_PASSWORD_ID", userId);
+        }
+
+        log.info("{}.findUserPw End!", this.getClass().getName());
+
+        return ExistsDTO.builder()
+                .exists(rDTO.exists())
+                .authNumber(0)
+                .build();
+    }
+
+    /*
+    비밀번호 수정
+    */
+    @ResponseBody
+    @PostMapping(value = "updateUserPw")
+    public MsgDTO updateUserPw(HttpServletRequest request, HttpSession session) throws Exception {
+
+        log.info("{}.updateUserPw Start!", this.getClass().getName());
+
+        String email = CmmUtil.nvl(request.getParameter("email"));
+        String password = CmmUtil.nvl(request.getParameter("password"));
+        String code = CmmUtil.nvl(request.getParameter("code"));
+
+        Object storedAuthCode = session.getAttribute("AUTH_" + email);
+
+        log.info("email: {}, code: {}, storedAuthCode: {}", email, code, storedAuthCode);
+
+        int res = 0;
+        String msg = "인증번호가 일치하지 않거나 만료되었습니다.";
+
+        if (storedAuthCode != null && storedAuthCode.toString().equals(code)) {
+
+            String userId = CmmUtil.nvl((String) session.getAttribute("UPDATE_PASSWORD_ID"));
+            log.info("Updating password for userId: {}", userId);
+
+            if (userId.isEmpty()) {
+                msg = "인증 정보가 만료되었습니다. 다시 시도해주세요.";
+            } else {
+                UserInfoDTO pDTO = UserInfoDTO.builder()
+                        .userId(userId)
+                        .password(EncryptUtil.encHashSHA256(password))
+                        .build();
+
+                res = userInfoService.updatePassword(pDTO);
+
+                if (res == 1) {
+                    msg = "비밀번호 수정이 완료되었습니다.";
+                    session.removeAttribute("AUTH_" + email);
+                    session.removeAttribute("UPDATE_PASSWORD_ID");
+                } else {
+                    msg = "비밀번호 수정에 실패했습니다.";
+                }
+            }
+        }
+
+        MsgDTO dto = MsgDTO.builder()
+                .result(res)
+                .msg(msg)
+                .build();
+
+        log.info("{}.updateUserPw End!", this.getClass().getName());
+
+        return dto;
     }
 }

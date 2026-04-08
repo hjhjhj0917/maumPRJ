@@ -1,18 +1,12 @@
-import styled, {keyframes} from 'styled-components';
-import {Link} from 'react-router-dom';
+import styled, { keyframes } from 'styled-components';
+import { Link } from 'react-router-dom';
 
 const fadeInStep = keyframes`
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 `;
 
-export const FindIdWrapper = styled.div`
+export const FindPwWrapper = styled.div`
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -28,7 +22,7 @@ export const Container = styled.div`
     padding: 40px 20px;
 `;
 
-export const FindIdCard = styled.div`
+export const FindPwCard = styled.div`
     width: 100%;
     max-width: 475px;
 `;
@@ -65,9 +59,7 @@ export const StepperItem = styled.div`
         font-size: 14px;
         transition: all 0.3s ease;
 
-        i {
-            color: ${props => (props.$active || props.$completed ? '#333' : '#ddd')};
-        }
+        i { color: ${props => (props.$active || props.$completed ? '#333' : '#ddd')}; }
     }
 
     .step-label {
@@ -76,7 +68,7 @@ export const StepperItem = styled.div`
         font-size: 11px;
         position: absolute;
         top: -25px;
-        width: 60px;
+        width: 70px;
         text-align: center;
     }
 `;
@@ -105,11 +97,7 @@ export const StepSubTitle = styled.p`
     margin-bottom: 10px;
     text-align: left;
     min-height: 48px;
-
-    span {
-        color: #333;
-        font-weight: 600;
-    }
+    span { color: #333; font-weight: 600; }
 `;
 
 export const SlideViewport = styled.div`
@@ -137,18 +125,7 @@ export const FormStep = styled.div`
 `;
 
 export const FormStepFieldWrapper = styled.div`
-    .input-group {
-        margin-bottom: 10px;
-    }
-
-    .field-message {
-        display: block;
-        height: 20px;
-        line-height: 20px;
-        margin-top: 4px;
-        font-size: 12px;
-        visibility: ${props => props.$hasMessage ? 'visible' : 'hidden'};
-    }
+    .input-group { margin-bottom: 10px; }
 `;
 
 export const VerificationWrapper = styled.div`
@@ -174,10 +151,6 @@ export const VerificationWrapper = styled.div`
             box-shadow: 0 0 0 4px rgba(255, 209, 102, 0.1);
             outline: none;
         }
-
-        &::placeholder {
-            color: #eee;
-        }
     }
 `;
 
@@ -194,124 +167,27 @@ export const FieldMessage = styled.span`
 `;
 
 export const ResendText = styled.div`
-    text-align: left;
-    font-size: 14px;
-    color: #888;
-    margin-bottom: 20px;
-
+    text-align: left; font-size: 14px; color: #888; margin-bottom: 20px;
     button {
-        background: none;
-        border: none;
-        color: #FFD166;
-        text-decoration: underline;
-        cursor: pointer;
-        font-weight: 500;
-        margin-left: 6px;
-        padding: 0;
-
-        &:hover {
-            color: #E0B34A;
-        }
-    }
-`;
-
-export const ResultContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    animation: ${fadeInStep} 0.4s ease-out forwards;
-`;
-
-export const ResultHeader = styled.div` display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-
-    h2 {
-        margin-bottom: 0;
-    } `;
-
-export const ResultCheck = styled.div`
-    width: 36px;
-    height: 36px;
-    background-color: #FFD166;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 18px;
-
-    i {
-        color: #333;
+        background: none; border: none; color: #FFD166; text-decoration: underline;
+        cursor: pointer; font-weight: 500; margin-left: 6px; padding: 0;
     }
 `;
 
 export const BtnConfirm = styled.button`
-    width: 100%;
-    padding: 16px;
-    background-color: #333;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 10px;
-    margin-bottom: 40px;
-    transition: background-color 0.3s;
-
-    &:hover {
-        background-color: #000;
-    }
-`;
-
-export const HighlightIdBox = styled.div`
-    width: 100%;
-    padding: 25px;
-    background-color: #f8f9fa;
-    border: 2px solid #eee;
-    border-radius: 12px;
-    font-size: 28px;
-    font-weight: 700;
-    text-align: center;
-    color: #333;
-    margin-bottom: 20px;
+    width: 100%; padding: 16px; background-color: #333; color: #fff;
+    border: none; border-radius: 12px; font-size: 16px; font-weight: 700;
+    cursor: pointer; margin-top: 10px; margin-bottom: 40px;
+    &:hover { background-color: #000; }
 `;
 
 export const AuthLinks = styled.div`
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 40px;
-    text-align: center;
-
-    a {
-        color: #888;
-        text-decoration: none;
-        transition: color 0.2s;
-
-        &:hover {
-            color: #333;
-            font-weight: 600;
-        }
-    }
+    font-size: 13px; color: #888; margin-bottom: 40px; text-align: center;
+    a { color: #888; text-decoration: none; &:hover { color: #333; font-weight: 600; } }
 `;
 
-export const Separator = styled.span` margin: 0 10px;
-    color: #ddd;
-    font-size: 10px;
-    vertical-align: middle; `;
+export const Separator = styled.span` margin: 0 10px; color: #ddd; font-size: 10px; `;
 
-export const SignupBox = styled.div` font-size: 14px;
-    color: #999;
-    line-height: 1.6;
-    text-align: left;
-    width: 100%;
-    margin-top: 20px; `;
+export const SignupBox = styled.div` font-size: 14px; color: #999; line-height: 1.6; text-align: left; margin-top: 20px; `;
 
-export const LinkSignup = styled(Link)` color: #FFD166;
-    text-decoration: none;
-    font-weight: 700;
-    margin-left: 5px;
-
-    &:hover {
-        text-decoration: underline;
-    } `;
+export const LinkSignup = styled(Link)` color: #FFD166; text-decoration: none; font-weight: 700; margin-left: 5px; `;

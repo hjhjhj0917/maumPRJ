@@ -41,6 +41,16 @@ public interface IUserInfoService {
     UserInfoDTO getUserId(UserInfoDTO pDTO) throws Exception;
 
     /*
+    비밀번호 찾기
+    */
+    ExistsDTO findUserPw(UserInfoDTO pDTO) throws Exception;
+
+    /*
+    비밀번호 수정
+    */
+    int updatePassword(UserInfoDTO pDTO) throws Exception;
+
+    /*
     아이디로 모든 회원 정보를 조회
     */
     UserInfoDTO getUserInfo(UserInfoDTO pDTO) throws Exception;

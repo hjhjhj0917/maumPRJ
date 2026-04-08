@@ -28,4 +28,9 @@ public interface UserInfoRepository extends JpaRepository<UserInfoEntity, Intege
     이메일과 이름으로 아이디 찾기
     */
     Optional<UserInfoEntity> findByEmailAndUserName(String email, String userName);
+
+    /*
+    이메일과 아이디로 회원 조회
+    */
+    Optional<UserInfoEntity> findByEmailAndUserId(String email, String userId);
 }

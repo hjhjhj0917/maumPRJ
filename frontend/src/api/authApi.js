@@ -30,7 +30,6 @@ export const checkEmailExists = async (email) => {
     return await response.json();
 };
 
-
 /*
 이메일 중복 확인 인증번호 확인
 */
@@ -49,7 +48,6 @@ export const verifyEmailCode = async (email, code) => {
     }
 };
 
-
 /*
 아이디 중복 확인
 */
@@ -63,7 +61,6 @@ export const checkUserIdExists = async (userId) => {
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
 };
-
 
 /*
 회원가입
@@ -83,6 +80,23 @@ export const registerUser = async (formData) => {
     return await response.json();
 };
 
+/*
+로그인 상태 확인
+*/
+export const getUserStatus = async () => {
+    const response = await fetch('/api/account/status');
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+};
+
+/*
+로그아웃
+*/
+export const logoutUser = async () => {
+    const response = await fetch('/api/account/logout', { method: 'POST' });
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+};
 
 /*
 아이디 찾기
@@ -113,19 +127,29 @@ export const getUserId = async (email, userName, code) => {
 };
 
 /*
-로그인 상태 확인
+비밀번호 찾기
 */
-export const getUserStatus = async () => {
-    const response = await fetch('/api/account/status');
+export const findUserPw = async (email, userId) => {
+    const params = new URLSearchParams({ email, userId });
+    const response = await fetch('/api/account/findUserPw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+    });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
 };
 
 /*
-로그아웃
+비밀번호 수정
 */
-export const logoutUser = async () => {
-    const response = await fetch('/api/account/logout', { method: 'POST' });
+export const updateUserPw = async (password) => {
+    const params = new URLSearchParams({ password });
+    const response = await fetch('/api/account/updateUserPw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+    });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
 };

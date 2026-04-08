@@ -1,11 +1,11 @@
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import InputField from '../../components/common/InputField';
 import CustomModal from '../../components/common/CustomModal';
-import { useFindIdForm } from '../../hooks/account/useFindIdForm';
-import * as S from '../../style/pages/Account/FindId.styles';
+import { useFindPwForm } from '../../hooks/account/useFindPwForm';
+import * as S from '../../style/pages/Account/FindPw.styles';
 
-const FindId = () => {
+const FindPw = () => {
     const {
         step,
         formData,
@@ -14,36 +14,36 @@ const FindId = () => {
         handleKeyDown,
         handlePaste,
         messages,
-        foundId,
         modal,
         inputRefs,
         handleModalConfirm,
         handleModalCancel,
         handleStep1Submit,
         handleStep2Submit,
+        handleStep3Submit,
         handleResend,
         navigate
-    } = useFindIdForm();
+    } = useFindPwForm();
 
     const steps = [
         { num: 1, label: '정보입력' },
         { num: 2, label: '인증' },
-        { num: 3, label: '결과확인' }
+        { num: 3, label: '새 비밀번호' }
     ];
 
     return (
-        <S.FindIdWrapper>
+        <S.FindPwWrapper>
             <CustomModal
                 isOpen={modal.show}
                 title={modal.title}
                 message={modal.message}
-                isConfirm={false}
+                isConfirm={modal.isConfirm}
                 onCancel={handleModalCancel}
                 onConfirm={handleModalConfirm}
             />
 
             <S.Container>
-                <S.FindIdCard>
+                <S.FindPwCard>
                     <S.StepperWrapper>
                         {steps.map((s, idx) => (
                             <React.Fragment key={s.num}>
@@ -61,18 +61,18 @@ const FindId = () => {
                     <S.SlideViewport>
                         <S.SlideTrack $step={step}>
                             <S.FormStep $active={step === 1}>
-                                <S.StepTitle>아이디 찾기</S.StepTitle>
-                                <S.StepSubTitle>가입하신 이메일과 이름을 입력해 주세요.</S.StepSubTitle>
+                                <S.StepTitle>비밀번호 찾기</S.StepTitle>
+                                <S.StepSubTitle>가입하신 아이디와 이메일을 입력해 주세요.</S.StepSubTitle>
                                 <form onSubmit={handleStep1Submit}>
-                                    <S.FormStepFieldWrapper $hasMessage={!!messages.userEmailMsg || !!messages.userNameMsg}>
+                                    <S.FormStepFieldWrapper $hasMessage={!!messages.userIdMsg || !!messages.userEmailMsg}>
+                                        <InputField label="ID" name="userId" value={formData.userId}
+                                                    onChange={handleChange} errorMsg={messages.userIdMsg}
+                                                    placeholder="아이디를 입력하세요." />
                                         <InputField label="E-mail" name="userEmail" value={formData.userEmail}
                                                     onChange={handleChange} errorMsg={messages.userEmailMsg}
                                                     placeholder="이메일을 입력하세요." />
-                                        <InputField label="Name" name="userName" value={formData.userName}
-                                                    onChange={handleChange} errorMsg={messages.userNameMsg}
-                                                    placeholder="이름을 입력하세요." />
                                     </S.FormStepFieldWrapper>
-                                    <S.BtnConfirm type="submit">확인</S.BtnConfirm>
+                                    <S.BtnConfirm type="submit">인증번호 발송</S.BtnConfirm>
                                 </form>
                             </S.FormStep>
 
@@ -104,29 +104,24 @@ const FindId = () => {
                                         혹시 이메일을 못 받으셨나요?
                                         <button type="button" onClick={handleResend}>재전송</button>
                                     </S.ResendText>
-                                    <S.BtnConfirm type="submit">확인</S.BtnConfirm>
+                                    <S.BtnConfirm type="submit">인증하기</S.BtnConfirm>
                                 </form>
                             </S.FormStep>
 
                             <S.FormStep $active={step === 3}>
-                                <S.ResultContainer>
-                                    <S.ResultHeader>
-                                        <S.StepTitle>아이디 찾기 결과</S.StepTitle>
-                                        <S.ResultCheck>
-                                            <i className="fa-solid fa-check"></i>
-                                        </S.ResultCheck>
-                                    </S.ResultHeader>
-                                    <S.StepSubTitle>
-                                        {formData.userName}님의 정보와 일치하는 <br />
-                                        <span>아이디</span>는 다음과 같습니다.
-                                    </S.StepSubTitle>
-                                    <S.HighlightIdBox>
-                                        {foundId}
-                                    </S.HighlightIdBox>
-                                    <S.BtnConfirm type="button" onClick={() => navigate('/account/login')}>
-                                        확인
-                                    </S.BtnConfirm>
-                                </S.ResultContainer>
+                                <S.StepTitle>새 비밀번호 설정</S.StepTitle>
+                                <S.StepSubTitle>보안을 위해 새로운 비밀번호를 설정해 주세요.</S.StepSubTitle>
+                                <form onSubmit={handleStep3Submit}>
+                                    <S.FormStepFieldWrapper $hasMessage={!!messages.passwordMsg || !!messages.passwordConfirmMsg}>
+                                        <InputField label="New Password" name="password" type="password" value={formData.password}
+                                                    onChange={handleChange} errorMsg={messages.passwordMsg}
+                                                    placeholder="새 비밀번호를 입력하세요." />
+                                        <InputField label="Confirm Password" name="passwordConfirm" type="password" value={formData.passwordConfirm}
+                                                    onChange={handleChange} errorMsg={messages.passwordConfirmMsg}
+                                                    placeholder="비밀번호를 한 번 더 입력하세요." />
+                                    </S.FormStepFieldWrapper>
+                                    <S.BtnConfirm type="submit">비밀번호 변경</S.BtnConfirm>
+                                </form>
                             </S.FormStep>
                         </S.SlideTrack>
                     </S.SlideViewport>
@@ -134,17 +129,17 @@ const FindId = () => {
                     <S.AuthLinks>
                         <Link to="/account/login">로그인</Link>
                         <S.Separator>|</S.Separator>
-                        <Link to="/account/findPw">비밀번호 찾기</Link>
+                        <Link to="/account/findId">아이디 찾기</Link>
                     </S.AuthLinks>
 
                     <S.SignupBox>
                         아직 회원이 아니시라면, 지금 바로 마음을 시작해 보세요.
                         <S.LinkSignup to="/account/register">가입하기</S.LinkSignup>
                     </S.SignupBox>
-                </S.FindIdCard>
+                </S.FindPwCard>
             </S.Container>
-        </S.FindIdWrapper>
+        </S.FindPwWrapper>
     );
 };
 
-export default FindId;
+export default FindPw;
