@@ -9,7 +9,8 @@ export const loginRequest = async (userId, password) => {
     const response = await fetch('/api/account/loginProc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
+        body: params,
+        credentials: 'include'
     });
 
     if (!response.ok) throw new Error('Network response was not ok');
@@ -24,7 +25,8 @@ export const checkEmailExists = async (email) => {
     const response = await fetch('/api/account/getEmailExists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
+        body: params,
+        credentials: 'include'
     });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
@@ -39,7 +41,8 @@ export const verifyEmailCode = async (email, code) => {
         const response = await fetch('/api/account/verifyEmailCode', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params
+            body: params,
+            credentials: 'include'
         });
         return await response.json();
     } catch (error) {
@@ -56,7 +59,8 @@ export const checkUserIdExists = async (userId) => {
     const response = await fetch('/api/account/getUserIdExists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
+        body: params,
+        credentials: 'include'
     });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
@@ -74,7 +78,8 @@ export const registerUser = async (formData) => {
     const response = await fetch('/api/account/insertUserInfo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
+        body: params,
+        credentials: 'include'
     });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
@@ -84,7 +89,9 @@ export const registerUser = async (formData) => {
 로그인 상태 확인
 */
 export const getUserStatus = async () => {
-    const response = await fetch('/api/account/status');
+    const response = await fetch('/api/account/status', {
+        credentials: 'include'
+    });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
 };
@@ -93,7 +100,10 @@ export const getUserStatus = async () => {
 로그아웃
 */
 export const logoutUser = async () => {
-    const response = await fetch('/api/account/logout', { method: 'POST' });
+    const response = await fetch('/api/account/logout', {
+        method: 'POST',
+        credentials: 'include'
+    });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
 };
@@ -106,7 +116,8 @@ export const findUserId = async (email, userName) => {
     const response = await fetch('/api/account/findUserId', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
+        body: params,
+        credentials: 'include'
     });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
@@ -120,7 +131,8 @@ export const getUserId = async (email, userName, code) => {
     const response = await fetch('/api/account/getUserId', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
+        body: params,
+        credentials: 'include'
     });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
@@ -134,7 +146,8 @@ export const findUserPw = async (email, userId) => {
     const response = await fetch('/api/account/findUserPw', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
+        body: params,
+        credentials: 'include'
     });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
@@ -143,12 +156,13 @@ export const findUserPw = async (email, userId) => {
 /*
 비밀번호 수정
 */
-export const updateUserPw = async (password) => {
-    const params = new URLSearchParams({ password });
+export const updateUserPw = async (email, password, code) => {
+    const params = new URLSearchParams({ email, password, code });
     const response = await fetch('/api/account/updateUserPw', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
+        body: params,
+        credentials: 'include'
     });
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();

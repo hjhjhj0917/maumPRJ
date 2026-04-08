@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -97,54 +98,49 @@ public class UserInfoService implements IUserInfoService {
 
         log.info("{}.insertUserInfo Start!", this.getClass().getName());
 
-        log.info("pDTO: {}", pDTO);
-
         int res;
 
         String userId = CmmUtil.nvl(pDTO.userId());
-        String birthDate = CmmUtil.nvl(pDTO.birthDate());
+        String birthDate = CmmUtil.nvl(pDTO.birthDate()).trim();
 
         Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
 
         if (rEntity.isPresent()) {
             res = 2;
         } else {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
+
             String profileImgUrl = "/images/account/profile1.png";
 
             if (birthDate.length() >= 4) {
                 try {
                     int birthYear = Integer.parseInt(birthDate.substring(0, 4));
-
                     int zodiacNum = ((birthYear - 4) % 12) + 1;
-                    if (zodiacNum < 1) {
-                        zodiacNum += 12;
-                    }
-
+                    if (zodiacNum < 1) zodiacNum += 12;
                     profileImgUrl = "/images/account/profile" + zodiacNum + ".png";
-
                 } catch (NumberFormatException e) {
-                    log.error("생년월일 파싱 오류: {}", e.getMessage());
+                    log.error("생년월일 연도 파싱 오류: {}", e.getMessage());
                 }
             }
+
+            LocalDate parsedBirthDate = LocalDate.parse(birthDate, formatter);
 
             UserInfoEntity pEntity = UserInfoEntity.builder()
                     .userId(userId)
                     .password(CmmUtil.nvl(pDTO.password()))
                     .userName(CmmUtil.nvl(pDTO.userName()))
                     .email(CmmUtil.nvl(pDTO.email()))
-                    .birthDate(LocalDate.parse(birthDate))
+                    .birthDate(parsedBirthDate)
                     .addr(CmmUtil.nvl(pDTO.addr()))
                     .detailAddr(CmmUtil.nvl(pDTO.detailAddr()))
                     .profileImgUrl(profileImgUrl)
                     .build();
 
             userInfoRepository.save(pEntity);
-
             res = 1;
         }
 
         log.info("{}.insertUserInfo End!", this.getClass().getName());
-
         return res;
     }
 
