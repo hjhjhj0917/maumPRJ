@@ -12,16 +12,6 @@ const Index = () => {
             <S.MainContent $index={currentSectionIndex} $isMobile={isMobile}>
 
                 <S.Section $bg="#f4f7f9">
-                    <S.HeroNav>
-                        <S.NavLinks>
-                            <a href="#none">Get Started</a>
-                            <a href="#none">Docs</a>
-                            <a href="#none">Blog</a>
-                            <a href="#none">FAQ</a>
-                            <Link to="/account/login">Login</Link>
-                        </S.NavLinks>
-                    </S.HeroNav>
-
                     <S.HeroGrid>
                         <S.HeroTextContent>
                             <h1>Build Natural<br />Language<br />Experiences</h1>
@@ -32,7 +22,7 @@ const Index = () => {
                         <S.HeroCtaContent>
                             <Link to="/account/login" style={{ textDecoration: 'none' }}>
                                 <S.MetaButton>
-                                    Continue With MAUM
+                                    마음 MAUM 이용 시작하기
                                 </S.MetaButton>
                             </Link>
                         </S.HeroCtaContent>
@@ -40,21 +30,20 @@ const Index = () => {
 
                     <S.HeroFeatures>
                         <S.FeatureItem>
-                            <div className="icon-box"><i className="fa-solid fa-robot"></i>
-                            </div>
-                            <span>ChatBots</span>
+                            <div className="icon-box"><i className="fa-solid fa-robot"></i></div>
+                            <span>챗봇</span>
                         </S.FeatureItem>
                         <S.FeatureItem>
                             <div className="icon-box"><i className="fa-solid fa-book"></i></div>
-                            <span>Diary</span>
+                            <span>일기 작성</span>
                         </S.FeatureItem>
                         <S.FeatureItem>
                             <div className="icon-box"><i className="fa-solid fa-chart-pie"></i></div>
-                            <span>Analysis</span>
+                            <span>AI 감정 분석</span>
                         </S.FeatureItem>
                         <S.FeatureItem>
                             <div className="icon-box"><i className="fa-solid fa-map-location-dot"></i></div>
-                            <span>Locations</span>
+                            <span>주변 상담소 위치</span>
                         </S.FeatureItem>
                     </S.HeroFeatures>
                 </S.Section>

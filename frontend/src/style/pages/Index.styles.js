@@ -1,4 +1,4 @@
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 
 export const ViewportWrapper = styled.div`
     width: 100%;
@@ -30,7 +30,7 @@ export const MainContent = styled.div`
 export const Section = styled.section`
     width: 100%;
     height: 100vh;
-    flex-shrink: 0; /* 중요: 높이가 줄어들지 않도록 고정 */
+    flex-shrink: 0;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -43,29 +43,6 @@ export const Section = styled.section`
         height: auto;
         min-height: 100vh;
         padding: 60px 0;
-    }
-`;
-
-export const HeroNav = styled.nav`
-    position: absolute;
-    top: 0;
-    width: 100%;
-    max-width: 1200px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 30px 20px;
-    z-index: 10;
-`;
-
-export const NavLinks = styled.div`
-    display: flex;
-    gap: 25px;
-    a {
-        text-decoration: none;
-        color: #555;
-        font-size: 14px;
-        font-weight: 500;
     }
 `;
 
@@ -94,6 +71,10 @@ export const HeroTextContent = styled.div`
         color: #333;
         margin-bottom: 30px;
         letter-spacing: -2px;
+
+        &:first-of-type {
+            color: #FFD166;
+        }
     }
     p {
         font-size: 18px;
@@ -128,8 +109,13 @@ export const MetaButton = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    font-weight: 600;
+    font-weight: 400;
     cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: #444;
+    }
 `;
 
 export const HeroFeatures = styled.div`
@@ -186,7 +172,7 @@ export const SplitPanel = styled.div`
     align-items: center;
     text-decoration: none;
     transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-    background-color: #333;
+    background-color: #666;
     overflow: hidden;
     cursor: pointer;
 
@@ -212,7 +198,9 @@ export const FooterWrapper = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    @media (max-width: 768px) { height: auto; }
+    @media (max-width: 768px) {
+        height: auto;
+    }
 `;
 
 export const StatsSection = styled.div`
@@ -227,6 +215,6 @@ export const StatsSection = styled.div`
 
 export const StatItem = styled.div`
     text-align: center;
-    .num { font-size: 4.5rem; font-weight: 800; color: #FFD166; margin-bottom: 10px; }
+    .num { font-size: 4.5rem; font-weight: 700; color: #FFD166; margin-bottom: 10px; }
     .label { font-size: 1.2rem; color: #555; font-weight: 600; }
 `;

@@ -1,8 +1,10 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Layout from './components/common/Layout';
+import {GlobalStyle} from './style/GlobalStyle';
+import HeaderLayout from './components/layout/HeaderLayout';
+import Layout from './components/layout/Layout';
 import Index from './pages/Index';
 import Main from './pages/Main';
-import { GlobalStyle } from './style/GlobalStyle';
+import DiaryWrite from './pages/Diary/DiaryWrite';
 import AccountRoutes from './routes/AccountRoutes';
 
 function App() {
@@ -10,18 +12,17 @@ function App() {
         <BrowserRouter>
             <GlobalStyle />
             <Routes>
-                {/* 1. 헤더가 없는 단독 페이지 */}
-
-                {/* 2. 공통 헤더(Layout)가 적용되는 페이지 그룹 */}
-                <Route element={<Layout />}>
+                {/* 그룹 1: 사이드바 없이 [헤더만] 필요한 페이지들 */}
+                <Route element={<HeaderLayout />}>
                     <Route path="/" element={<Index />} />
-                    <Route path="/main" element={<Main />} />
-
-                    {/* /account로 시작하는 모든 주소는 AccountRoutes로 넘김 */}
                     <Route path="/account/*" element={<AccountRoutes />} />
+                </Route>
 
-                    {/* 추후 추가될 라우터들 */}
-                    {/* <Route path="/diary/*" element={<DiaryRoutes />} /> */}
+                {/* 그룹 2: [헤더 + 사이드바]가 모두 필요한 서비스 내부 페이지들 */}
+                <Route element={<Layout />}>
+                    <Route path="/main" element={<Main />} />
+                    <Route path="/diary/write" element={<DiaryWrite />} />
+                    {/* 추가될 일기 목록, 상담소 등... */}
                 </Route>
             </Routes>
         </BrowserRouter>

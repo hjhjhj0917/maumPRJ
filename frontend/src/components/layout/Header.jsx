@@ -8,13 +8,12 @@ import * as S from '../../style/components/layout/Header.styles';
 const Header = () => {
     const {
         isMobileMenuOpen, isProfileExpanded, user, showLogoutModal, setShowLogoutModal,
-        profileRef, isAccountPage, pathName, hideMenus, hideSignBtn,
-        toggleMobileMenu, toggleProfile, handleLogoutClick, confirmLogout, handleSignClick
+        profileRef, toggleMobileMenu, toggleProfile, handleLogoutClick, confirmLogout
     } = useHeader();
 
     return (
         <>
-            <S.HeaderContainer $isAccountPage={isAccountPage}>
+            <S.HeaderContainer>
                 <S.LogoContainer to={user ? '/main' : '/'}>
                     <S.LogoImage src={logoImg} alt="MAUM" />
                 </S.LogoContainer>
@@ -26,28 +25,17 @@ const Header = () => {
                 </S.MenuToggle>
 
                 <S.NavMenu $isOpen={isMobileMenuOpen}>
-                    {!hideMenus && (
+                    {!user ? (
                         <>
                             <S.NavItem>
-                                <S.NavLink to="/map/centerMap">주변 상담소</S.NavLink>
+                                <S.NavLink to="/account/register">회원가입</S.NavLink>
                             </S.NavItem>
                             <S.NavItem>
-                                <S.NavLink to="/chat/chat">오늘의 대화</S.NavLink>
-                            </S.NavItem>
-                            <S.NavItem>
-                                <S.NavLink to="/diary/write">일기 작성</S.NavLink>
+                                <S.NavLink to="/account/login">로그인</S.NavLink>
                             </S.NavItem>
                         </>
-                    )}
-
-                    <S.NavItem>
-                        {!user ? (
-                            !hideSignBtn && (
-                                <S.BtnSignin onClick={handleSignClick}>
-                                    {pathName === 'login' ? '회원가입' : '로그인'}
-                                </S.BtnSignin>
-                            )
-                        ) : (
+                    ) : (
+                        <S.NavItem>
                             <S.UserProfileContainer $isExpanded={isProfileExpanded} ref={profileRef}>
                                 <S.ProfileImg src={user.profileImg} alt="프로필" />
                                 <S.UserName $isExpanded={isProfileExpanded}>{user.name}님</S.UserName>
@@ -62,8 +50,8 @@ const Header = () => {
                                     &#8942;
                                 </S.BtnMore>
                             </S.UserProfileContainer>
-                        )}
-                    </S.NavItem>
+                        </S.NavItem>
+                    )}
                 </S.NavMenu>
             </S.HeaderContainer>
 

@@ -12,7 +12,6 @@ export const useHeader = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const pathName = location.pathname.split('/').pop() || 'index';
     const isAccountPage = location.pathname.startsWith('/account');
 
     const fetchUserStatus = async () => {
@@ -73,20 +72,9 @@ export const useHeader = () => {
         }
     };
 
-    const handleSignClick = () => {
-        if (pathName === 'login') {
-            navigate('/account/register');
-        } else {
-            navigate('/account/login');
-        }
-    };
-
-    const hideMenus = ['login', 'register'].includes(pathName);
-    const hideSignBtn = ['profile', 'chat', 'list'].includes(pathName);
-
     return {
         isMobileMenuOpen, isProfileExpanded, user, showLogoutModal, setShowLogoutModal,
-        profileRef, isAccountPage, pathName, hideMenus, hideSignBtn,
-        toggleMobileMenu, toggleProfile, handleLogoutClick, confirmLogout, handleSignClick
+        profileRef, isAccountPage,
+        toggleMobileMenu, toggleProfile, handleLogoutClick, confirmLogout
     };
 };
