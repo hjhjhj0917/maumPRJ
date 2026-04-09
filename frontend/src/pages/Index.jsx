@@ -1,46 +1,47 @@
 import React from 'react';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Footer from '../components/common/Footer';
-import {useIndex} from '../hooks/pages/useIndex';
+import { useIndex } from '../hooks/pages/useIndex';
 import * as S from '../style/pages/Index.styles';
-import mainBg from '../assets/images/main-background.png';
 
 const Index = () => {
-    const {currentSectionIndex, isMobile, stats, statsRef} = useIndex();
+    const { currentSectionIndex, isMobile, stats, statsRef } = useIndex();
 
     return (
         <S.ViewportWrapper>
             <S.MainContent $index={currentSectionIndex} $isMobile={isMobile}>
 
-                <S.Section>
-                    <S.HeroBackground $src={mainBg}/>
+                <S.Section $bg="#f4f7f9">
                     <S.HeroNav>
-                        <S.Logo>wit.ai</S.Logo>
                         <S.NavLinks>
                             <a href="#none">Get Started</a>
                             <a href="#none">Docs</a>
                             <a href="#none">Blog</a>
-                            <a href="#none">Ecosystem</a>
                             <a href="#none">FAQ</a>
-                            <a href="#none">Jobs</a>
                             <Link to="/account/login">Login</Link>
                         </S.NavLinks>
                     </S.HeroNav>
 
                     <S.HeroGrid>
                         <S.HeroTextContent>
-                            <h1>수많은 소음 속,<br/>온전히 나에게 집중하는 시간</h1>
-                            <p>
-                                누구에게도 말 못한 고민이 있다면 MAUM에 털어놓으세요.
-                                <br/>AI가 당신의 하루를 듣고 따듯한 위로와 분석을 건넵니다.
-                            </p>
-                            <a href="/account/register" className="sign-in">마음(MAÜM) 시작하기&gt;</a>
+                            <h1>Build Natural<br />Language<br />Experiences</h1>
+                            <p>Enable people to interact with your products<br />using voice and text.</p>
+                            <a href="/account/register" className="how-it-works">See How It Works &gt;</a>
                         </S.HeroTextContent>
+
+                        <S.HeroCtaContent>
+                            <Link to="/account/login" style={{ textDecoration: 'none' }}>
+                                <S.MetaButton>
+                                    Continue With MAUM
+                                </S.MetaButton>
+                            </Link>
+                        </S.HeroCtaContent>
                     </S.HeroGrid>
 
                     <S.HeroFeatures>
                         <S.FeatureItem>
-                            <div className="icon-box"><i className="fa-solid fa-robot"></i></div>
+                            <div className="icon-box"><i className="fa-solid fa-robot"></i>
+                            </div>
                             <span>ChatBots</span>
                         </S.FeatureItem>
                         <S.FeatureItem>
@@ -48,11 +49,11 @@ const Index = () => {
                             <span>Diary</span>
                         </S.FeatureItem>
                         <S.FeatureItem>
-                            <div className="icon-box"><i className="fa-solid fa-brain"></i></div>
+                            <div className="icon-box"><i className="fa-solid fa-chart-pie"></i></div>
                             <span>Analysis</span>
                         </S.FeatureItem>
                         <S.FeatureItem>
-                            <div className="icon-box"><i className="fa-solid fa-map"></i></div>
+                            <div className="icon-box"><i className="fa-solid fa-map-location-dot"></i></div>
                             <span>Locations</span>
                         </S.FeatureItem>
                     </S.HeroFeatures>
@@ -87,7 +88,7 @@ const Index = () => {
                             <div className="label">함께한 시간</div>
                         </S.StatItem>
                     </S.StatsSection>
-                    <Footer/>
+                    <Footer />
                 </S.FooterWrapper>
 
             </S.MainContent>

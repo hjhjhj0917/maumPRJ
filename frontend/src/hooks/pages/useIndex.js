@@ -1,9 +1,9 @@
-import {useState, useEffect, useRef} from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export const useIndex = () => {
     const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    const [stats, setStats] = useState({records: 0, comforted: 0, hours: 0});
+    const [stats, setStats] = useState({ records: 0, comforted: 0, hours: 0 });
 
     const isScrolling = useRef(false);
     const indexRef = useRef(0);
@@ -23,9 +23,7 @@ export const useIndex = () => {
             isScrolling.current = true;
             setCurrentSectionIndex(newIndex);
             indexRef.current = newIndex;
-            setTimeout(() => {
-                isScrolling.current = false;
-            }, 800);
+            setTimeout(() => { isScrolling.current = false; }, 800);
         };
 
         const handleWheel = (e) => {
@@ -40,7 +38,7 @@ export const useIndex = () => {
             else if (e.key === "ArrowUp" && indexRef.current > 0) changeSection(indexRef.current - 1);
         };
 
-        window.addEventListener("wheel", handleWheel, {passive: false});
+        window.addEventListener("wheel", handleWheel, { passive: false });
         window.addEventListener("keydown", handleKeyDown);
         return () => {
             window.removeEventListener("wheel", handleWheel);
@@ -56,9 +54,9 @@ export const useIndex = () => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
                 const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-                setStats(prev => ({...prev, [key]: Math.floor(easeOutQuart * target)}));
+                setStats(prev => ({ ...prev, [key]: Math.floor(easeOutQuart * target) }));
                 if (progress < 1) window.requestAnimationFrame(step);
-                else setStats(prev => ({...prev, [key]: target}));
+                else setStats(prev => ({ ...prev, [key]: target }));
             };
             window.requestAnimationFrame(step);
         };
@@ -72,13 +70,11 @@ export const useIndex = () => {
                     animateValue('hours', 365);
                 }
             });
-        }, {threshold: 0.5});
+        }, { threshold: 0.5 });
 
         if (statsRef.current) observer.observe(statsRef.current);
-        return () => {
-            if (statsRef.current) observer.unobserve(statsRef.current);
-        };
+        return () => { if (statsRef.current) observer.unobserve(statsRef.current); };
     }, []);
 
-    return {currentSectionIndex, isMobile, stats, statsRef};
+    return { currentSectionIndex, isMobile, stats, statsRef };
 };

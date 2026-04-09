@@ -1,10 +1,5 @@
 import styled, { keyframes } from 'styled-components';
 
-const zoomEffect = keyframes`
-    from { transform: scale(1); }
-    to { transform: scale(1.1); }
-`;
-
 export const ViewportWrapper = styled.div`
     width: 100%;
     height: 100vh;
@@ -35,48 +30,19 @@ export const MainContent = styled.div`
 export const Section = styled.section`
     width: 100%;
     height: 100vh;
-    flex-shrink: 0;
+    flex-shrink: 0; /* 중요: 높이가 줄어들지 않도록 고정 */
     position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    background-color: #ffffff;
+    background-color: ${props => props.$bg || '#ffffff'};
 
     @media (max-width: 768px) {
         height: auto;
         min-height: 100vh;
         padding: 60px 0;
-    }
-`;
-
-export const HeroBackground = styled.div`
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url(${props => props.$src});
-    background-size: cover;
-    background-position: center;
-    z-index: 0;
-    animation: ${zoomEffect} 20s infinite alternate ease-in-out;
-
-    &::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        /* 상단은 진하게(어둡게), 하단은 급격히 하얗게 */
-        background: linear-gradient(
-                to bottom,
-                rgba(0, 0, 0, 0.5) 0%,
-                rgba(255, 255, 255, 0) 40%,
-                rgba(255, 255, 255, 1) 85%
-        );
     }
 `;
 
@@ -92,68 +58,78 @@ export const HeroNav = styled.nav`
     z-index: 10;
 `;
 
-export const Logo = styled.div`
-    font-size: 24px;
-    font-weight: 900;
-    color: #111;
-`;
-
 export const NavLinks = styled.div`
     display: flex;
     gap: 25px;
     a {
         text-decoration: none;
-        color: #333;
+        color: #555;
         font-size: 14px;
         font-weight: 500;
     }
 `;
 
 export const HeroGrid = styled.div`
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
     width: 100%;
     max-width: 1200px;
     padding: 0 40px;
-    z-index: 1;
+    align-items: center;
     margin-top: -50px;
 
     @media (max-width: 768px) {
+        grid-template-columns: 1fr;
         text-align: center;
+        gap: 40px;
         margin-top: 20px;
     }
 `;
 
 export const HeroTextContent = styled.div`
-    max-width: 800px;
     h1 {
-        font-size: 3.5rem;
-        font-weight: 600;
-        line-height: 1.5;
-        color: #FFD166;
+        font-size: 80px;
+        font-weight: 500;
+        line-height: 1.1;
+        color: #333;
         margin-bottom: 30px;
         letter-spacing: -2px;
     }
     p {
-        font-size: 1.1rem;
-        font-weight: 300;
-        color: #fff;
+        font-size: 18px;
+        color: #666;
         line-height: 1.6;
         margin-bottom: 20px;
     }
-    .sign-in {
+    .how-it-works {
         display: inline-block;
-        color: #333;
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 18px;
-    }
-    
-    .sign-in:hover {
-        color: #FFD166;
+        color: #111;
+        text-decoration: underline;
+        font-weight: 600;
+        font-size: 16px;
     }
 
     @media (max-width: 768px) {
         h1 { font-size: 40px; }
     }
+`;
+
+export const HeroCtaContent = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    @media (max-width: 768px) { justify-content: center; }
+`;
+
+export const MetaButton = styled.div`
+    background-color: #333;
+    color: #fff;
+    padding: 14px 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    cursor: pointer;
 `;
 
 export const HeroFeatures = styled.div`
@@ -164,7 +140,6 @@ export const HeroFeatures = styled.div`
     display: flex;
     justify-content: space-between;
     padding: 0 40px;
-    z-index: 1;
 
     @media (max-width: 768px) {
         position: relative;
@@ -180,20 +155,20 @@ export const FeatureItem = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
     .icon-box {
-        width: 85px;
-        height: 85px;
-        background: white;
+        width: 70px;
+        height: 70px;
+        background: #555;
         border-radius: 50%;
         display: flex;
         justify-content: center;
         align-items: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        font-size: 32px;
-        color: #333;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        font-size: 24px;
+        color: #FFD166;
     }
-    span { font-weight: 500; color: #555; font-size: 15px; }
+    span { font-weight: 500; color: #666; font-size: 14px; }
 `;
 
 export const SplitContainer = styled.div`
@@ -232,14 +207,12 @@ export const FooterWrapper = styled.div`
     width: 100%;
     height: 100vh;
     flex-shrink: 0;
-    background-color: #ffffff;
+    background-color: #fff;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    @media (max-width: 768px) {
-        height: auto;
-    }
+    @media (max-width: 768px) { height: auto; }
 `;
 
 export const StatsSection = styled.div`
