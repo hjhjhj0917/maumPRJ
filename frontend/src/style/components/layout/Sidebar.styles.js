@@ -3,14 +3,12 @@ import styled from 'styled-components';
 export const SidebarWrapper = styled.aside`
     width: ${props => (props.$isOpen ? '280px' : '68px')};
     height: 100vh;
-    background-color: #1e1f20;
+    background-color: #333;
     display: flex;
     flex-direction: column;
-    position: fixed;
-    left: 0;
-    top: 0;
+    flex-shrink: 0;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1000;
+    z-index: 100;
 `;
 
 export const TopSection = styled.div`
@@ -29,7 +27,10 @@ export const IconButton = styled.button`
     border-radius: 50%;
     cursor: pointer;
     font-size: 20px;
-    &:hover { background-color: #333537; }
+
+    &:hover {
+        background-color: #333537;
+    }
 `;
 
 export const NewPostBtn = styled.button`
@@ -45,7 +46,10 @@ export const NewPostBtn = styled.button`
     overflow: hidden;
     white-space: nowrap;
     width: fit-content;
-    &:hover { background-color: #3f4143; }
+
+    &:hover {
+        background-color: #3f4143;
+    }
 `;
 
 export const NavSection = styled.nav`
@@ -67,8 +71,21 @@ export const NavItem = styled.div`
     background-color: ${props => props.$active ? '#333537' : 'transparent'};
     white-space: nowrap;
     overflow: hidden;
-    &:hover { background-color: #333537; }
-    i { font-size: 18px; min-width: 20px; text-align: center; }
+
+    &:hover {
+        background-color: #333537;
+    }
+    
+    span {
+        font-size: 15px;
+    }
+
+    i {
+        color: #FFD166;
+        font-size: 15px;
+        min-width: 20px;
+        text-align: center;
+    }
 `;
 
 export const BottomSection = styled.div`

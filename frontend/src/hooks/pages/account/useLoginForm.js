@@ -45,7 +45,7 @@ export const useLoginForm = () => {
             const json = await loginRequest(userId, password);
 
             if (json.result === 1) {
-                navigate('/main');
+                navigate('/diary/write');
             } else {
                 setMessage('userId', json.msg, 'error');
                 setPassword('');

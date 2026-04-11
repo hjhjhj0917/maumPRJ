@@ -14,9 +14,15 @@ const Header = () => {
     return (
         <>
             <S.HeaderContainer>
-                <S.LogoContainer to={user ? '/main' : '/'}>
-                    <S.LogoImage src={logoImg} alt="MAUM" />
-                </S.LogoContainer>
+                {user ? (
+                    <S.LogoContainer as="div">
+                        <S.LogoImage src={logoImg} alt="MAUM" />
+                    </S.LogoContainer>
+                ) : (
+                    <S.LogoContainer to="/">
+                        <S.LogoImage src={logoImg} alt="MAUM" />
+                    </S.LogoContainer>
+                )}
 
                 <S.MenuToggle onClick={toggleMobileMenu}>
                     <S.Bar />

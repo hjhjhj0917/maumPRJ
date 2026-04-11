@@ -54,7 +54,7 @@ export const SignupBox = styled.div`
 export const LoginSection = styled.div`
     flex: 0.8;
     display: flex;
-    justify-content: center;
+    justify-content: center;    
     align-items: center;
     background-color: #ffffff;
     transition: flex 0.5s ease-in-out;

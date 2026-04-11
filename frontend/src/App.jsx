@@ -3,7 +3,6 @@ import {GlobalStyle} from './style/GlobalStyle';
 import HeaderLayout from './components/layout/HeaderLayout';
 import Layout from './components/layout/Layout';
 import Index from './pages/Index';
-import Main from './pages/Main';
 import DiaryWrite from './pages/Diary/DiaryWrite';
 import AccountRoutes from './routes/AccountRoutes';
 
@@ -20,7 +19,6 @@ function App() {
 
                 {/* 그룹 2: [헤더 + 사이드바]가 모두 필요한 서비스 내부 페이지들 */}
                 <Route element={<Layout />}>
-                    <Route path="/main" element={<Main />} />
                     <Route path="/diary/write" element={<DiaryWrite />} />
                     {/* 추가될 일기 목록, 상담소 등... */}
                 </Route>

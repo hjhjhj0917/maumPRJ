@@ -7,13 +7,13 @@ export const HeaderContainer = styled.header`
     align-items: center;
     padding: 11px 50px;
     width: 100%;
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
-    z-index: 1000;
+    z-index: 100;
     background-color: transparent;
-    box-shadow: none;              
-    border-bottom: none;        
+    box-shadow: none;
+    border-bottom: none;
     transition: all 0.3s ease;
 
     @media (max-width: 768px) {
@@ -47,7 +47,7 @@ export const MenuToggle = styled.div`
 export const Bar = styled.span`
     width: 25px;
     height: 3px;
-    background-color: #fff; 
+    background-color: #fff;
     border-radius: 3px;
 `;
 
@@ -64,7 +64,7 @@ export const NavMenu = styled.ul`
         left: 0;
         width: 100%;
         flex-direction: column;
-        background-color: rgba(30, 31, 32, 0.9); 
+        background-color: rgba(30, 31, 32, 0.9);
         padding: 20px;
         gap: 0;
     }
@@ -78,7 +78,7 @@ export const NavItem = styled.li`
 
 export const NavLink = styled(Link)`
     text-decoration: none;
-    color: #333; 
+    color: #333;
     font-weight: 500;
     font-size: 13px;
     transition: color 0.3s;

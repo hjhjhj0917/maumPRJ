@@ -34,7 +34,7 @@ const Index = () => {
                             <span>챗봇</span>
                         </S.FeatureItem>
                         <S.FeatureItem>
-                            <div className="icon-box"><i className="fa-solid fa-book"></i></div>
+                            <div className="icon-box"><i className="fa-solid fa-bars-staggered"></i></div>
                             <span>일기 작성</span>
                         </S.FeatureItem>
                         <S.FeatureItem>
