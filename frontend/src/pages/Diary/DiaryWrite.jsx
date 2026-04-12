@@ -28,7 +28,7 @@ const DiaryWrite = () => {
                     />
                     <S.DateWrapper>
                         <S.DateSelector onClick={() => setShowDatePicker(true)}>
-                            {formattedDate} <i className="fa-solid fa-calendar"></i>
+                            {formattedDate}
                         </S.DateSelector>
 
                         {showDatePicker && (

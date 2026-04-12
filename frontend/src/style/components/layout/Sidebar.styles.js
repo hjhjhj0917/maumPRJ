@@ -27,6 +27,10 @@ export const IconButton = styled.button`
     border-radius: 50%;
     cursor: pointer;
     font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: ${props => props.$isOpen ? '0' : '0 auto'};
 
     &:hover {
         background-color: #333537;
@@ -36,19 +40,24 @@ export const IconButton = styled.button`
 export const NewPostBtn = styled.button`
     display: flex;
     align-items: center;
+    justify-content: ${props => props.$isOpen ? 'flex-start' : 'center'};
     gap: 12px;
-    padding: 12px ${props => props.$isOpen ? '16px' : '12px'};
-    border-radius: 24px;
+    width: ${props => props.$isOpen ? 'fit-content' : '44px'};
+    height: 44px;
+    padding: 0 ${props => props.$isOpen ? '16px' : '0'};
+    margin: ${props => props.$isOpen ? '0' : '0 auto'};
+    border-radius: ${props => props.$isOpen ? '24px' : '50%'};
     border: none;
     background-color: #333537;
-    color: #e3e3e3;
-    cursor: pointer;
+    color: ${props => props.$isOpen ? '#e3e3e3' : '#888'};
+    cursor: ${props => props.$isOpen ? 'pointer' : 'default'};
+    pointer-events: ${props => props.$isOpen ? 'auto' : 'none'};
     overflow: hidden;
     white-space: nowrap;
-    width: fit-content;
+    box-sizing: border-box;
 
     &:hover {
-        background-color: #3f4143;
+        background-color: ${props => props.$isOpen ? '#3f4143' : '#333537'};
     }
 `;
 
@@ -63,25 +72,31 @@ export const NavSection = styled.nav`
 export const NavItem = styled.div`
     display: flex;
     align-items: center;
+    justify-content: ${props => props.$isOpen ? 'flex-start' : 'center'};
     gap: 12px;
-    padding: 12px 16px;
-    border-radius: 24px;
-    cursor: pointer;
+    width: ${props => props.$isOpen ? '100%' : '44px'};
+    height: 44px;
+    padding: 0 ${props => props.$isOpen ? '16px' : '0'};
+    margin: 0 auto;
+    border-radius: ${props => props.$isOpen ? '24px' : '50%'};
+    box-sizing: border-box;
+    cursor: ${props => props.$isOpen ? 'pointer' : 'default'};
+    pointer-events: ${props => props.$isOpen ? 'auto' : 'none'};
     color: ${props => props.$active ? '#ffffff' : '#e3e3e3'};
     background-color: ${props => props.$active ? '#333537' : 'transparent'};
     white-space: nowrap;
     overflow: hidden;
 
     &:hover {
-        background-color: #333537;
+        background-color: ${props => props.$isOpen ? '#333537' : 'transparent'};
     }
-    
+
     span {
         font-size: 15px;
     }
 
     i {
-        color: #FFD166;
+        color: ${props => props.$isOpen ? '#FFD166' : '#888'};
         font-size: 15px;
         min-width: 20px;
         text-align: center;

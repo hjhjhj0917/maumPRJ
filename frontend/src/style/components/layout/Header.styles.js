@@ -92,11 +92,8 @@ export const UserProfileContainer = styled.div`
     border: 2px solid #FFD166;
     border-radius: 40px;
     height: 44px;
-    padding: 4px 15px 4px 4px;
-    position: relative;
-    overflow: hidden;
-    transition: width 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    width: ${props => props.$isExpanded ? '305px' : '142px'};
+    padding: 4px 17px 4px 4px;
+    width: fit-content;
 `;
 
 export const ProfileImg = styled.img`
@@ -104,44 +101,11 @@ export const ProfileImg = styled.img`
     height: 34px;
     border-radius: 50%;
     object-fit: cover;
-    z-index: 2;
 `;
 
 export const UserName = styled.span`
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     color: #000;
     margin-left: 10px;
-    opacity: ${props => props.$isExpanded ? '0' : '1'};
-`;
-
-export const ExpandedMenus = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    opacity: ${props => props.$isExpanded ? '1' : '0'};
-    position: absolute;
-    left: 55px;
-    pointer-events: ${props => props.$isExpanded ? 'auto' : 'none'};
-    transition: opacity 0.3s;
-
-    a, button {
-        font-size: 13px;
-        font-weight: 500;
-        color: #000;
-        text-decoration: none;
-        background: none;
-        border: none;
-        cursor: pointer;
-        &:hover { color: #FFD166; }
-    }
-`;
-
-export const BtnMore = styled.button`
-    background: none;
-    border: none;
-    font-size: 20px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-left: auto;
 `;
