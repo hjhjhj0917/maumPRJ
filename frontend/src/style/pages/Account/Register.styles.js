@@ -166,10 +166,9 @@ export const RegisterWrapper = styled.div`
         width: 92%;
         height: 30px;
 
-        border-top: 1px solid #FFD166;
-        border-bottom: 1px solid #FFD166;
+        border-top: 1px solid #333;
+        border-bottom: 1px solid #333;
         pointer-events: none;
-        border-radius: 4px;
     }
 
     .roller-col {

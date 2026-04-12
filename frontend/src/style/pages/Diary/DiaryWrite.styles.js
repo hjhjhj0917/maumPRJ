@@ -17,15 +17,88 @@ export const WritePageContainer = styled.div`
 `;
 
 export const HeaderSection = styled.div`
-    h1 {
-        font-size: 40px;
-        color: #e3e3e3;
-        font-weight: 400;
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
     p {
         font-size: 18px;
         color: #8e918f;
-        margin-top: 10px;
+        margin-top: 5px;
+    }
+`;
+
+export const TitleDateRow = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+
+    @media (max-width: 560px) {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+`;
+
+export const TitleInput = styled.input`
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #333;
+    font-size: 40px;
+    font-weight: 400;
+    width: 100%;
+
+    &::placeholder {
+        color: #e3e3e3;
+    }
+`;
+
+export const DateWrapper = styled.div`
+    position: relative;
+`;
+
+export const DateSelector = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #888;
+    font-size: 16px;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    i {
+        font-size: 18px;
+    }
+`;
+
+export const PickerOverlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+`;
+
+export const PickerContainer = styled.div`
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 300px;
+    z-index: 100;
+
+    @media (max-width: 560px) {
+        left: 0;
+        right: auto;
     }
 `;
 
