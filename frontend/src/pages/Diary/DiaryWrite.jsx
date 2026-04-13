@@ -14,7 +14,7 @@ const DiaryWrite = () => {
         day: today.getDate()
     });
 
-    const formattedDate = `${date.year}.${String(date.month).padStart(2, '0')}.${String(date.day).padStart(2, '0')}`;
+    const formattedDate = `${date.year}년 ${String(date.month).padStart(2, '0')}월 ${String(date.day).padStart(2, '0')}일`;
 
     return (
         <S.WritePageContainer>
