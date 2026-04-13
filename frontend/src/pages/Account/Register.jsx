@@ -54,8 +54,9 @@ const Register = () => {
                     <form onSubmit={handleSubmit}>
                         <S.SlideViewport>
                             <S.SlideTrack $step={step}>
-
                                 <S.FormStep $active={step === 1}>
+                                    <S.StepTitle>회원가입</S.StepTitle>
+                                    <S.StepSubTitle>사용하실 메일 인증을 진행해 주세요.</S.StepSubTitle>
                                     <S.AuthInputs>
                                         <InputField label="E-mail" name="email" value={formData.email}
                                                     onChange={handleChange} errorMsg={messages.emailMsg}

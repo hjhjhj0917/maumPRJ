@@ -307,6 +307,28 @@ export const StepLine = styled.div`
     margin-right: -5px;
 `;
 
+export const StepTitle = styled.h2`
+    font-size: 32px;
+    font-weight: 800;
+    color: #000;
+    margin-bottom: 12px;
+    text-align: left;
+`;
+
+export const StepSubTitle = styled.p`
+    font-size: 16px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: -40px;
+    text-align: left;
+    min-height: 48px;
+
+    span {
+        color: #333;
+        font-weight: 600;
+    }
+`;
+
 export const SlideViewport = styled.div`
     width: 100%;
     overflow: hidden;
