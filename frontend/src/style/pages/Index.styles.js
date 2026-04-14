@@ -65,11 +65,11 @@ export const HeroGrid = styled.div`
 
 export const HeroTextContent = styled.div`
     h1 {
-        font-size: 80px;
+        font-size: 65px;
         font-weight: 500;
         line-height: 1.1;
         color: #333;
-        margin-bottom: 30px;
+        margin-bottom: 45px;
         letter-spacing: -2px;
 
         &:first-of-type {
@@ -77,7 +77,7 @@ export const HeroTextContent = styled.div`
         }
     }
     p {
-        font-size: 18px;
+        font-size: 16px;
         color: #666;
         line-height: 1.6;
         margin-bottom: 20px;
@@ -88,6 +88,11 @@ export const HeroTextContent = styled.div`
         text-decoration: underline;
         font-weight: 600;
         font-size: 16px;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
     }
 
     @media (max-width: 768px) {

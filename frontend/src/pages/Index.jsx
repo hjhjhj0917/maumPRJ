@@ -5,7 +5,7 @@ import { useIndex } from '../hooks/pages/useIndex';
 import * as S from '../style/pages/Index.styles';
 
 const Index = () => {
-    const { currentSectionIndex, isMobile, stats, statsRef } = useIndex();
+    const { currentSectionIndex, isMobile, stats, statsRef, scrollToSection } = useIndex();
 
     return (
         <S.ViewportWrapper>
@@ -14,9 +14,15 @@ const Index = () => {
                 <S.Section $bg="#f4f7f9">
                     <S.HeroGrid>
                         <S.HeroTextContent>
-                            <h1>Build Natural<br />Language<br />Experiences</h1>
-                            <p>Enable people to interact with your products<br />using voice and text.</p>
-                            <a href="/account/register" className="how-it-works">See How It Works &gt;</a>
+                            <h1>Manage<br />AI<br />Understand Emotions<br />Meaningfully</h1>
+                            <p>하루를 기록하고 감정을 분석하며,<br />AI와의 대화를 통해 스스로를 더 잘 이해하세요.</p>
+
+                            <button
+                                className="how-it-works"
+                                onClick={() => scrollToSection(1)}
+                            >
+                                See How It Works &gt;
+                            </button>
                         </S.HeroTextContent>
 
                         <S.HeroCtaContent>

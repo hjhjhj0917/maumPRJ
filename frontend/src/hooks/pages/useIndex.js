@@ -12,6 +12,19 @@ export const useIndex = () => {
 
     const totalSections = 3;
 
+    const changeSection = (newIndex) => {
+        isScrolling.current = true;
+        setCurrentSectionIndex(newIndex);
+        indexRef.current = newIndex;
+        setTimeout(() => { isScrolling.current = false; }, 800);
+    };
+
+    const scrollToSection = (targetIndex) => {
+        if (targetIndex >= 0 && targetIndex < totalSections) {
+            changeSection(targetIndex);
+        }
+    };
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
         window.addEventListener('resize', handleResize);
@@ -19,13 +32,6 @@ export const useIndex = () => {
     }, []);
 
     useEffect(() => {
-        const changeSection = (newIndex) => {
-            isScrolling.current = true;
-            setCurrentSectionIndex(newIndex);
-            indexRef.current = newIndex;
-            setTimeout(() => { isScrolling.current = false; }, 800);
-        };
-
         const handleWheel = (e) => {
             if (isMobile || isScrolling.current) return;
             if (e.deltaY > 0 && indexRef.current < totalSections - 1) changeSection(indexRef.current + 1);
@@ -76,5 +82,5 @@ export const useIndex = () => {
         return () => { if (statsRef.current) observer.unobserve(statsRef.current); };
     }, []);
 
-    return { currentSectionIndex, isMobile, stats, statsRef };
+    return { currentSectionIndex, isMobile, stats, statsRef, scrollToSection };
 };

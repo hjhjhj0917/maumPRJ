@@ -224,7 +224,7 @@ export const BtnLogin = styled.button`
     box-shadow: 0 4px 15px rgba(51, 51, 51, 0.4);
 
     &:hover {
-            background-color: #000;
+        background-color: #000;
         transform: translateY(-2px);
     }
 `;
