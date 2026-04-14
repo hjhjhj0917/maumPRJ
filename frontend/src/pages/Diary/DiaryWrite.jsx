@@ -1,20 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import RollerDatePicker from '../../components/common/RollerDatePicker';
+import { useDiaryWriteForm } from '../../hooks/pages/diary/useDiaryWriteForm';
 import * as S from '../../style/pages/Diary/DiaryWrite.styles';
 
 const DiaryWrite = () => {
-    const [title, setTitle] = useState('');
-    const [content, setContent] = useState('');
-    const [showDatePicker, setShowDatePicker] = useState(false);
-
-    const today = new Date();
-    const [date, setDate] = useState({
-        year: today.getFullYear(),
-        month: today.getMonth() + 1,
-        day: today.getDate()
-    });
-
-    const formattedDate = `${date.year}년 ${String(date.month).padStart(2, '0')}월 ${String(date.day).padStart(2, '0')}일`;
+    const {
+        title, setTitle,
+        content, setContent,
+        showDatePicker, setShowDatePicker,
+        date, setDate,
+        formattedDate,
+        handleSubmit
+    } = useDiaryWriteForm();
 
     return (
         <S.WritePageContainer>
@@ -58,7 +55,7 @@ const DiaryWrite = () => {
                     onChange={(e) => setContent(e.target.value)}
                 />
                 <S.FooterActions>
-                    <S.SubmitButton>작성 완료</S.SubmitButton>
+                    <S.SubmitButton onClick={handleSubmit}>작성 완료</S.SubmitButton>
                 </S.FooterActions>
             </S.EditorWrapper>
         </S.WritePageContainer>

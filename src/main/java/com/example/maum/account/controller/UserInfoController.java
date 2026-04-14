@@ -28,66 +28,6 @@ public class UserInfoController {
     private final IUserInfoService userInfoService;
 
     /*
-    로그인 페이지
-    */
-    @GetMapping(value = "login")
-    public String login() {
-
-        log.info("{}.login Start!", this.getClass().getName());
-        log.info("{}.login End!", this.getClass().getName());
-
-        return "account/login";
-    }
-
-    /*
-    회원가입 페이지
-    */
-    @GetMapping(value = "register")
-    public String register() {
-
-        log.info("{}.register Start!", this.getClass().getName());
-        log.info("{}.register End!", this.getClass().getName());
-
-        return "account/register";
-    }
-
-    /*
-    아이디 찾기 페이지
-    */
-    @GetMapping(value = "find-id")
-    public String findId() {
-
-        log.info("{}.findId Start!", this.getClass().getName());
-        log.info("{}.findId End!", this.getClass().getName());
-
-        return "account/find-id";
-    }
-
-    /*
-    비밀번호 찾기 페이지
-    */
-    @GetMapping(value = "find-pw")
-    public String findPw() {
-
-        log.info("{}.findPw Start!", this.getClass().getName());
-        log.info("{}.findPw End!", this.getClass().getName());
-
-        return "account/find-pw";
-    }
-
-    /*
-    프로필 페이지
-    */
-    @GetMapping(value = "profile")
-    public String profile() {
-
-        log.info("{}.profile Start!", this.getClass().getName());
-        log.info("{}.profile End!", this.getClass().getName());
-
-        return "account/profile";
-    }
-
-    /*
     아이디 중복 확인
     */
     @ResponseBody
