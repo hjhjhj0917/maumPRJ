@@ -64,11 +64,13 @@ export const HeroGrid = styled.div`
 `;
 
 export const HeroTextContent = styled.div`
+    
     h1 {
         font-size: 65px;
         font-weight: 500;
         line-height: 1.1;
         color: #333;
+        margin-top: -100px;
         margin-bottom: 45px;
         letter-spacing: -2px;
 
