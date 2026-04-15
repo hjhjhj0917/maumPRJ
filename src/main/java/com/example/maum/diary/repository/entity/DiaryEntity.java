@@ -56,4 +56,12 @@ public class DiaryEntity implements Serializable {
 
     @Column(name = "CREATED_AT", nullable = false)
     private LocalDate createdAt;
+
+    public void updateAnalysisResult(String summary, String mainEmotion, Integer depLvl, BigDecimal depScore, Integer symptomYn) {
+        this.summary = summary;
+        this.mainEmotion = mainEmotion;
+        this.depLvl = depLvl;
+        this.depScore = depScore;
+        this.symptomYn = symptomYn;
+    }
 }
