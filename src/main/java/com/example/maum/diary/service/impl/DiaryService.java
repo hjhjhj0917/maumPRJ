@@ -69,24 +69,32 @@ public class DiaryService implements IDiaryService {
                     log.info("Analysis Result Received Successfully.");
 
                     try {
+                        // 1. 파이썬에서 보낸 데이터 추출
                         String summary = (String) responseBody.get("analysis_summary");
                         String mainEmotion = (String) responseBody.get("main_emotion");
 
+                        // 파이썬 코드에서 'main_color'로 보냈다면 아래와 같이 받습니다.
+                        // 만약 파이썬에서 'emotion_color'로 키를 바꿨다면 해당 키값을 입력하세요.
+                        String emotionColor = (String) responseBody.get("main_color");
+
+                        // 2. dep_res 내부 데이터 추출
                         Map<String, Object> depRes = (Map<String, Object>) responseBody.get("dep_res");
-                        Integer depLvl = (Integer) depRes.get("DEP_LVL");
+                        Integer depLvl = (Integer) depRes.get("final_level"); // 파이썬 결과 키에 맞춰 수정
 
-                        BigDecimal depScore = new BigDecimal(String.valueOf(depRes.get("DEP_SCORE")));
+                        BigDecimal depScore = new BigDecimal(String.valueOf(depRes.get("raw_score")));
 
-                        Boolean isSymptom = (Boolean) depRes.get("IS_SYMPTOM");
+                        Boolean isSymptom = (Boolean) depRes.get("is_symptom");
                         Integer symptomYn = (isSymptom != null && isSymptom) ? 1 : 0;
 
-                        pEntity.updateAnalysisResult(summary, mainEmotion, depLvl, depScore, symptomYn);
+                        // 3. 엔티티 업데이트 (수정된 메서드 호출)
+                        pEntity.updateAnalysisResult(summary, mainEmotion, emotionColor, depLvl, depScore, symptomYn);
 
                         diaryRepository.save(pEntity);
-                        log.info("Analysis Result Successfully Saved to DB.");
+                        log.info("Analysis Result (including Color: {}) Successfully Saved to DB.", emotionColor);
 
                     } catch (Exception parseEx) {
                         log.error("Failed to parse and save analysis result to DB: {}", parseEx.getMessage());
+                        parseEx.printStackTrace(); // 상세 에러 확인용
                     }
 
                 } else {
