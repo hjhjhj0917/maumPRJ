@@ -4,20 +4,21 @@ export const PickerOverlay = styled.div`
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 90;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
 `;
 
 export const PickerContainer = styled.div`
-    position: absolute;
-    top: calc(100% + 5px);
-    left: 0;
-    width: 100%;
-    background: #ffffff;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    max-width: 90vw;
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    z-index: 100;
+    z-index: 1000;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -27,7 +28,6 @@ export const PickerBody = styled.div`
     display: flex;
     position: relative;
     height: 150px;
-    background: #fdfdfd;
 `;
 
 export const Highlight = styled.div`
@@ -64,7 +64,7 @@ export const Item = styled.div`
     text-align: center;
     scroll-snap-align: center;
     font-size: 15px;
-    color: ${props => (props.$active ? '#333' : '#ccc')};
+    color: ${props => (props.$active ? '#FFD166' : '#ccc')};
     font-weight: ${props => (props.$active ? '500' : 'normal')};
     cursor: pointer;
     transition: color 0.1s, font-size 0.1s, font-weight 0.1s;
@@ -73,13 +73,11 @@ export const Item = styled.div`
 export const Footer = styled.div`
     display: flex;
     padding: 15px;
-    background: #fff;
     border-radius: 0 0 12px 12px;
 `;
 
 export const ConfirmButton = styled.button`
     flex: 1;
-    background-color: #fff;
     color: #333;
     border: none;
     padding: 12px 0;
