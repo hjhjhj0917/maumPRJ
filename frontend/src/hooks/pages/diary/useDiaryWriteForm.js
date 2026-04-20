@@ -33,7 +33,7 @@ export const useDiaryWriteForm = () => {
 
             if (res.result === 1) {
                 alert(res.msg);
-                navigate('/diary/list');
+                navigate('/diary/write');
             } else {
                 alert(res.msg);
             }
