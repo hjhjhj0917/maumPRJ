@@ -3,12 +3,13 @@ import styled from 'styled-components';
 export const SidebarWrapper = styled.aside`
     width: ${props => (props.$isOpen ? '280px' : '68px')};
     height: 100vh;
-    background-color: #333;
+    background-color: #f4f7f9;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 100;
+    border-right: solid 2px #EBEBEB;
 `;
 
 export const TopSection = styled.div`
@@ -23,7 +24,7 @@ export const IconButton = styled.button`
     height: 44px;
     border: none;
     background: transparent;
-    color: #e3e3e3;
+    color: #333;
     border-radius: 50%;
     cursor: pointer;
     font-size: 20px;
@@ -34,6 +35,7 @@ export const IconButton = styled.button`
 
     &:hover {
         background-color: #333537;
+        color: #fff;
     }
 `;
 
@@ -89,9 +91,13 @@ export const NavItem = styled.div`
 
     &:hover {
         background-color: ${props => props.$isOpen ? '#333537' : 'transparent'};
+        span {
+            color: ${props => props.$isOpen ? '#ffffff' : '#333'};
+        }
     }
 
     span {
+        color: #333;
         font-size: 15px;
     }
 
@@ -105,5 +111,4 @@ export const NavItem = styled.div`
 
 export const BottomSection = styled.div`
     padding: 12px;
-    border-top: 1px solid #333537;
 `;

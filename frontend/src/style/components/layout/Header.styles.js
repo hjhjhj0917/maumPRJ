@@ -88,8 +88,6 @@ export const NavLink = styled(Link)`
 export const UserProfileContainer = styled.div`
     display: flex;
     align-items: center;
-    background-color: #fff;
-    border: 2px solid #FFD166;
     border-radius: 40px;
     height: 44px;
     padding: 4px 17px 4px 4px;
@@ -97,9 +95,10 @@ export const UserProfileContainer = styled.div`
 `;
 
 export const ProfileImg = styled.img`
-    width: 34px;
-    height: 34px;
+    width: 37px;
+    height: 37px;
     border-radius: 50%;
+    border: 2px solid #FFE3A2;
     object-fit: cover;
 `;
 

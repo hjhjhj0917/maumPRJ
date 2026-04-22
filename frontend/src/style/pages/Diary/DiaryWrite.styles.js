@@ -63,7 +63,7 @@ export const DateSelector = styled.div`
     display: flex;
     align-items: center;
     gap: 10px;
-    color: #888;
+    color: #333;
     font-size: 16px;
     font-weight: 400;
     cursor: pointer;
@@ -103,7 +103,7 @@ export const PickerContainer = styled.div`
 `;
 
 export const EditorWrapper = styled.div`
-    background-color: #333;
+    background-color: #fff;
     border-radius: 28px 28px 0 0;
     padding: 40px;
     flex: 1;
@@ -116,7 +116,7 @@ export const EditorWrapper = styled.div`
         background: transparent;
         border: none;
         outline: none;
-        color: #e3e3e3;
+        color: #333;
         font-size: 17px;
         line-height: 1.6;
         resize: none;
