@@ -97,7 +97,7 @@ export const NavItem = styled.div`
     }
 
     span {
-        color: #333;
+        color: ${props => props.$active ? '#ffffff' : '#333'};
         font-size: 15px;
     }
 

@@ -2,18 +2,21 @@ package com.example.maum.diary.controller;
 
 import com.example.maum.diary.dto.DiaryDTO;
 import com.example.maum.diary.service.impl.DiaryService;
+import com.example.maum.global.controller.response.CommonResponse;
 import com.example.maum.global.dto.MsgDTO;
 import com.example.maum.global.util.CmmUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.ArrayList;
+import java.util.List;
+
+@RestController
 @Slf4j
 @RequestMapping(value = "/api/diary")
 @RequiredArgsConstructor
@@ -74,5 +77,48 @@ public class DiaryController {
         log.info("{}.diaryInsert End!", this.getClass().getName());
 
         return dto;
+    }
+
+    @GetMapping("/monthly")
+    public ResponseEntity<CommonResponse<List<DiaryDTO>>> getMonthlyDiaryList(DiaryDTO pDTO, HttpSession session) {
+
+        log.info("{}.getMonthlyDiaryList Start!", this.getClass().getName());
+
+        Integer userNo = (Integer) session.getAttribute("SS_USER_NO");
+
+        if (userNo == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(CommonResponse.<List<DiaryDTO>>builder()
+                            .httpStatus(HttpStatus.UNAUTHORIZED)
+                            .message("로그인이 필요합니다.")
+                            .build());
+        }
+
+        try {
+            // Record는 불변이므로 필요한 정보(userNo)를 합쳐 새 DTO 객체 생성
+            DiaryDTO searchDTO = DiaryDTO.builder()
+                    .userNo(userNo)
+                    .createdAt(CmmUtil.nvl(pDTO.createdAt()))
+                    .build();
+
+            List<DiaryDTO> rList = diaryService.getMonthlyDiaryList(searchDTO);
+            if (rList == null) rList = new ArrayList<>();
+
+            return ResponseEntity.ok(
+                    CommonResponse.<List<DiaryDTO>>builder()
+                            .httpStatus(HttpStatus.OK)
+                            .message("조회 성공")
+                            .data(rList)
+                            .build()
+            );
+
+        } catch (Exception e) {
+            log.error("조회 중 에러 발생: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(CommonResponse.<List<DiaryDTO>>builder()
+                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .message("서버 조회 오류")
+                            .build());
+        }
     }
 }

@@ -5,6 +5,7 @@ import Layout from './components/layout/Layout';
 import Index from './pages/Index';
 import DiaryWrite from './pages/Diary/DiaryWrite';
 import AccountRoutes from './routes/AccountRoutes';
+import DiaryList from "./pages/Diary/DiaryList.jsx";
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                 {/* 그룹 2: [헤더 + 사이드바]가 모두 필요한 서비스 내부 페이지들 */}
                 <Route element={<Layout />}>
                     <Route path="/diary/write" element={<DiaryWrite />} />
+                    <Route path="/diary/list" element={<DiaryList />} />
                     {/* 추가될 일기 목록, 상담소 등... */}
                 </Route>
             </Routes>

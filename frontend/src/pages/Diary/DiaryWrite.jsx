@@ -24,6 +24,7 @@ const DiaryWrite = () => {
                         onChange={(e) => setTitle(e.target.value)}
                     />
                     <S.DateWrapper>
+                        {/* 클릭 시 날짜 선택기가 열립니다. */}
                         <S.DateSelector onClick={() => setShowDatePicker(true)}>
                             {formattedDate}
                         </S.DateSelector>
