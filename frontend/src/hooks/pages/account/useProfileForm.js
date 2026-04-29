@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { updateProfileImg } from '../../../api/authApi'; // API 함수 임포트
 
 export const useProfileForm = (initialZodiac) => {
     const navigate = useNavigate();
@@ -23,23 +24,17 @@ export const useProfileForm = (initialZodiac) => {
         e.preventDefault();
 
         try {
-            const params = new URLSearchParams({ profileImage: selectedZodiac.img });
+            // fetch 대신 apiClient 기반 함수 호출
+            const res = await updateProfileImg(selectedZodiac.img);
 
-            const response = await fetch('/api/account/updateProfileImg', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params,
-                credentials: 'include'
-            });
-            const json = await response.json();
-
-            if (json.result === 1) {
+            if (res.result === 1) {
                 showAlert("프로필 설정 완료", "프로필 설정이 완료되었습니다.", () => navigate('/account/login'));
             } else {
-                showAlert("오류", json.msg || "프로필 설정 중 오류가 발생했습니다.");
+                showAlert("오류", res.msg || "프로필 설정 중 오류가 발생했습니다.");
             }
         } catch (error) {
-            showAlert("시스템 오류", "서버 통신 중 오류가 발생했습니다.");
+            const errorMsg = error.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";
+            showAlert("시스템 오류", errorMsg);
         }
     };
 

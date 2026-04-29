@@ -13,7 +13,13 @@ export const useFindPwForm = () => {
         passwordConfirm: ''
     });
     const [messages, setMessages] = useState({});
-    const [modal, setModal] = useState({ show: false, title: '', message: '', isConfirm: false, onConfirm: null });
+    const [modal, setModal] = useState({
+        show: false,
+        title: '',
+        message: '',
+        isConfirm: false,
+        onConfirm: null
+    });
 
     const messageTimers = useRef({});
     const inputRefs = useRef([]);
@@ -44,10 +50,8 @@ export const useFindPwForm = () => {
     };
 
     const handleKeyDown = (e, index) => {
-        if (e.key === "Backspace") {
-            if (!formData.code?.[index] && index > 0) {
-                inputRefs.current[index - 1].focus();
-            }
+        if (e.key === "Backspace" && !formData.code?.[index] && index > 0) {
+            inputRefs.current[index - 1].focus();
         }
     };
 
@@ -81,21 +85,19 @@ export const useFindPwForm = () => {
         setModal({ show: true, title, message, isConfirm: false, onConfirm: onConfirmCallback });
     };
 
-    const showConfirm = (title, message, onConfirmCallback = null) => {
-        setModal({ show: true, title, message, isConfirm: true, onConfirm: onConfirmCallback });
-    };
-
     const handleModalConfirm = () => {
         if (modal.onConfirm) modal.onConfirm();
-        setModal({ show: false, title: '', message: '', isConfirm: false, onConfirm: null });
+        setModal(prev => ({ ...prev, show: false }));
     };
 
     const handleModalCancel = () => {
-        setModal({ show: false, title: '', message: '', isConfirm: false, onConfirm: null });
+        setModal(prev => ({ ...prev, show: false }));
     };
 
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+    /** * Step 1: 유저 확인 및 인증번호 발송
+     */
     const handleStep1Submit = async (e) => {
         e.preventDefault();
         if (!formData.userId.trim()) return setMessage('userIdMsg', '아이디를 입력하세요.', 'error');
@@ -103,58 +105,70 @@ export const useFindPwForm = () => {
         if (!validateEmail(formData.userEmail)) return setMessage('userEmailMsg', '유효한 이메일 형식이 아닙니다.', 'error');
 
         try {
-            const json = await findUserPw(formData.userEmail, formData.userId);
-            if (json.exists) {
+            // apiClient 사용으로 자동 파싱됨
+            const res = await findUserPw(formData.userEmail, formData.userId);
+            if (res.exists) {
                 showAlert("인증번호 발송", "이메일로 인증번호가 발송되었습니다.", () => setStep(2));
             } else {
-                setMessage('userEmailMsg', '정보와 일치하는 회원이 없습니다.', 'error');
+                setMessage('userEmailMsg', res.msg || '정보와 일치하는 회원이 없습니다.', 'error');
             }
         } catch (error) {
-            showAlert("시스템 오류", "서버 통신 중 오류가 발생했습니다.");
+            const errorMsg = error.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";
+            showAlert("시스템 오류", errorMsg);
         }
     };
 
+    /** * Step 2: 인증번호 검증
+     */
     const handleStep2Submit = async (e) => {
         e.preventDefault();
         const code = formData.code?.replace(/\s/g, '');
         if (!code || code.length < 6) return setMessage('codeMsg', '인증번호 6자리를 입력하세요.', 'error');
 
         try {
-            const json = await verifyEmailCode(formData.userEmail, code);
-            if (json.result === 1) {
+            const res = await verifyEmailCode(formData.userEmail, code);
+            if (res.result === 1) {
                 setMessage('codeMsg', '인증에 성공하였습니다.', 'success');
                 setTimeout(() => setStep(3), 800);
             } else {
-                setMessage('codeMsg', '인증번호가 일치하지 않습니다.', 'error');
+                setMessage('codeMsg', res.msg || '인증번호가 일치하지 않습니다.', 'error');
             }
         } catch (error) {
-            showAlert("시스템 오류", "서버 통신 중 오류가 발생했습니다.");
+            const errorMsg = error.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";
+            showAlert("시스템 오류", errorMsg);
         }
     };
 
+    /** * Step 3: 새 비밀번호 설정
+     */
     const handleStep3Submit = async (e) => {
         e.preventDefault();
         if (!formData.password.trim()) return setMessage('passwordMsg', '새 비밀번호를 입력하세요.', 'error');
         if (formData.password !== formData.passwordConfirm) return setMessage('passwordConfirmMsg', '비밀번호가 일치하지 않습니다.', 'error');
 
         try {
-            const json = await updateUserPw(formData.userEmail, formData.password, formData.code);
-            if (json.result === 1) {
+            const res = await updateUserPw(formData.userEmail, formData.password, formData.code);
+            if (res.result === 1) {
                 showAlert("변경 완료", "비밀번호가 성공적으로 변경되었습니다.", () => navigate('/account/login'));
             } else {
-                showAlert("변경 실패", json.msg || "다시 시도해 주세요.");
+                showAlert("변경 실패", res.msg || "다시 시도해 주세요.");
             }
         } catch (error) {
-            showAlert("시스템 오류", "서버 통신 중 오류가 발생했습니다.");
+            const errorMsg = error.response?.data?.msg || "비밀번호 변경 중 오류가 발생했습니다.";
+            showAlert("시스템 오류", errorMsg);
         }
     };
 
+    /** * 인증번호 재전송
+     */
     const handleResend = async () => {
         try {
-            const json = await findUserPw(formData.userEmail, formData.userId);
-            if (json.exists) setMessage('codeMsg', '인증번호가 재전송되었습니다.', 'success');
+            const res = await findUserPw(formData.userEmail, formData.userId);
+            if (res.exists) {
+                setMessage('codeMsg', '인증번호가 재전송되었습니다.', 'success');
+            }
         } catch (error) {
-            showAlert("시스템 오류", "서버 통신 중 오류가 발생했습니다.");
+            setMessage('codeMsg', '재전송 중 오류가 발생했습니다.', 'error');
         }
     };
 

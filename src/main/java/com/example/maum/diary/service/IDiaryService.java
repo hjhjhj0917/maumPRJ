@@ -15,4 +15,9 @@ public interface IDiaryService {
     일기 목록 불러오기
     */
     List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception;
+
+    /*
+    일기 상세 보기
+    */
+    DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception;
 }

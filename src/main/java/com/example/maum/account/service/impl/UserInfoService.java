@@ -141,6 +141,7 @@ public class UserInfoService implements IUserInfoService {
         }
 
         log.info("{}.insertUserInfo End!", this.getClass().getName());
+
         return res;
     }
 

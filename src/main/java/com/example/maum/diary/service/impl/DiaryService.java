@@ -12,7 +12,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient; // RestClient 임포트
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,7 +30,9 @@ import java.util.stream.Collectors;
 public class DiaryService implements IDiaryService {
 
     private final DiaryRepository diaryRepository;
-    private final RestTemplate restTemplate = new RestTemplate();
+
+    // RestTemplate 대신 최신 권장 방식인 RestClient 생성
+    private final RestClient restClient = RestClient.create();
 
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
@@ -47,8 +49,8 @@ public class DiaryService implements IDiaryService {
         int res = 0;
 
         try {
-            String createdAt = CmmUtil.nvl(pDTO.createdAt());
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
+            String createdAt = CmmUtil.nvl(pDTO.createdAt()).trim();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDate parsedDate = LocalDate.parse(createdAt, formatter);
 
             DiaryEntity pEntity = DiaryEntity.builder()
@@ -67,7 +69,12 @@ public class DiaryService implements IDiaryService {
                 requestMap.put("content", pDTO.content());
                 requestMap.put("disease_type", "depression");
 
-                ResponseEntity<Map> response = restTemplate.postForEntity(pythonApiUrl, requestMap, Map.class);
+                // RestClient를 활용한 체이닝(Fluent) 방식의 API 호출
+                ResponseEntity<Map> response = restClient.post()
+                        .uri(pythonApiUrl)
+                        .body(requestMap)
+                        .retrieve()
+                        .toEntity(Map.class);
 
                 if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                     Map<String, Object> responseBody = response.getBody();
@@ -77,21 +84,19 @@ public class DiaryService implements IDiaryService {
                         // 1. 파이썬에서 보낸 데이터 추출
                         String summary = (String) responseBody.get("analysis_summary");
                         String mainEmotion = (String) responseBody.get("main_emotion");
-
-                        // 파이썬 코드에서 'main_color'로 보냈다면 아래와 같이 받습니다.
-                        // 만약 파이썬에서 'emotion_color'로 키를 바꿨다면 해당 키값을 입력하세요.
                         String emotionColor = (String) responseBody.get("main_color");
 
                         // 2. dep_res 내부 데이터 추출
                         Map<String, Object> depRes = (Map<String, Object>) responseBody.get("dep_res");
-                        Integer depLvl = (Integer) depRes.get("final_level"); // 파이썬 결과 키에 맞춰 수정
 
+                        // Integer 변환을 더 안전하게 처리하도록 보완
+                        Integer depLvl = Integer.parseInt(String.valueOf(depRes.get("final_level")));
                         BigDecimal depScore = new BigDecimal(String.valueOf(depRes.get("raw_score")));
 
-                        Boolean isSymptom = (Boolean) depRes.get("is_symptom");
-                        Integer symptomYn = (isSymptom != null && isSymptom) ? 1 : 0;
+                        Object isSymptomObj = depRes.get("is_symptom");
+                        Integer symptomYn = (isSymptomObj instanceof Boolean && (Boolean) isSymptomObj) ? 1 : 0;
 
-                        // 3. 엔티티 업데이트 (수정된 메서드 호출)
+                        // 3. 엔티티 업데이트
                         pEntity.updateAnalysisResult(summary, mainEmotion, emotionColor, depLvl, depScore, symptomYn);
 
                         diaryRepository.save(pEntity);
@@ -118,6 +123,9 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
+    /*
+    월별 일기 목록 조회
+    */
     @Transactional(readOnly = true)
     @Cacheable(value = "diaryCache", key = "#pDTO.userNo() + '_' + #pDTO.createdAt()")
     @Override
@@ -125,15 +133,13 @@ public class DiaryService implements IDiaryService {
 
         log.info("{}.getMonthlyDiaryList Start!", this.getClass().getName());
 
-        // 1. 날짜 파싱 안전하게 처리 (CmmUtil 활용)
-        String dateStr = CmmUtil.nvl(pDTO.createdAt()); // "2026-04"
+        String dateStr = CmmUtil.nvl(pDTO.createdAt());
 
         if (dateStr.isEmpty() || !dateStr.contains("-")) {
             log.warn("조회 날짜가 비어있거나 형식이 잘못되었습니다.");
             return new ArrayList<>();
         }
 
-        // 2. 해당 월의 시작일(1일)과 종료일(말일) 계산
         YearMonth yearMonth = YearMonth.of(
                 Integer.parseInt(dateStr.split("-")[0]),
                 Integer.parseInt(dateStr.split("-")[1])
@@ -141,23 +147,55 @@ public class DiaryService implements IDiaryService {
         LocalDate start = yearMonth.atDay(1);
         LocalDate end = yearMonth.atEndOfMonth();
 
-        // 3. DB 조회 (JPA Between 사용)
         List<DiaryEntity> entities = diaryRepository.findAllByUserNoAndCreatedAtBetween(
                 pDTO.userNo(), start, end);
 
-        // 4. Entity -> DTO 변환 (Stream API 활용)
         List<DiaryDTO> rList = entities.stream()
                 .map(e -> DiaryDTO.builder()
                         .diaryNo(e.getDiaryNo())
                         .userNo(e.getUserNo())
                         .title(e.getTitle())
                         .emotionColor(e.getEmotionColor())
-                        .createdAt(e.getCreatedAt().toString()) // "2026-04-23"
+                        .createdAt(e.getCreatedAt().toString())
                         .build())
                 .collect(Collectors.toList());
 
         log.info("{}.getMonthlyDiaryList End!", this.getClass().getName());
 
         return rList;
+    }
+
+    /*
+    일기 상세 조회
+    */
+    @Transactional(readOnly = true)
+    @Override
+    public DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception {
+        log.info("{}.getDiaryDetail Start!", this.getClass().getName());
+
+        DiaryEntity rEntity = diaryRepository.findById(pDTO.diaryNo())
+                .orElseThrow(() -> new Exception("해당 일기를 찾을 수 없습니다."));
+
+        if (!rEntity.getUserNo().equals(pDTO.userNo())) {
+            throw new Exception("해당 일기에 대한 접근 권한이 없습니다.");
+        }
+
+        DiaryDTO rDTO = DiaryDTO.builder()
+                .diaryNo(rEntity.getDiaryNo())
+                .userNo(rEntity.getUserNo())
+                .title(rEntity.getTitle())
+                .content(rEntity.getContent())
+                .emotionColor(rEntity.getEmotionColor())
+                .mainEmotion(rEntity.getMainEmotion())
+                .summary(rEntity.getSummary())
+                .depLvl(rEntity.getDepLvl())
+                .depScore(rEntity.getDepScore())
+                .symptomYn(rEntity.getSymptomYn())
+                .createdAt(rEntity.getCreatedAt().toString())
+                .build();
+
+        log.info("{}.getDiaryDetail End!", this.getClass().getName());
+
+        return rDTO;
     }
 }

@@ -6,6 +6,8 @@ import Index from './pages/Index';
 import DiaryWrite from './pages/Diary/DiaryWrite';
 import AccountRoutes from './routes/AccountRoutes';
 import DiaryList from "./pages/Diary/DiaryList.jsx";
+// 1. 상세 페이지 컴포넌트를 임포트합니다.
+import DiaryDetail from "./pages/Diary/DiaryDetail.jsx";
 
 function App() {
     return (
@@ -22,7 +24,11 @@ function App() {
                 <Route element={<Layout />}>
                     <Route path="/diary/write" element={<DiaryWrite />} />
                     <Route path="/diary/list" element={<DiaryList />} />
-                    {/* 추가될 일기 목록, 상담소 등... */}
+
+                    {/* 2. 상세 조회 라우트를 추가합니다. :diaryNo는 파라미터입니다. */}
+                    <Route path="/diary/:diaryNo" element={<DiaryDetail />} />
+
+                    {/* 추가될 상담소 등... */}
                 </Route>
             </Routes>
         </BrowserRouter>

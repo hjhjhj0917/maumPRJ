@@ -51,10 +51,8 @@ export const useRegisterForm = () => {
     };
 
     const handleKeyDown = (e, index) => {
-        if (e.key === "Backspace") {
-            if (!formData.code?.[index] && index > 0) {
-                inputRefs.current[index - 1].focus();
-            }
+        if (e.key === "Backspace" && !formData.code?.[index] && index > 0) {
+            inputRefs.current[index - 1].focus();
         }
     };
 
@@ -65,7 +63,6 @@ export const useRegisterForm = () => {
 
         setFormData(prev => ({ ...prev, code: pasteData }));
         clearMessage('codeMsg');
-
         const nextIndex = pasteData.length === 6 ? 5 : pasteData.length;
         inputRefs.current[nextIndex]?.focus();
     };
@@ -109,51 +106,53 @@ export const useRegisterForm = () => {
 
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+    // 이메일 중복 확인 및 인증번호 발송
     const handleEmailSend = async () => {
         if (!formData.email.trim()) return setMessage('emailMsg', '이메일을 입력하세요.', 'error');
         if (!validateEmail(formData.email)) return setMessage('emailMsg', '유효한 이메일 형식이 아닙니다.', 'error');
 
         try {
-            const json = await checkEmailExists(formData.email);
-            if (json.exists) {
+            const res = await checkEmailExists(formData.email);
+            if (res.exists) {
                 setMessage('emailMsg', '이미 가입된 이메일 주소가 존재합니다.', 'error');
             } else {
                 showAlert("인증번호 발송", "이메일로 인증번호가 발송되었습니다.");
             }
         } catch (e) {
-            showAlert("서버 오류", "서버 통신 중 오류가 발생했습니다.");
+            const errorMsg = e.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";
+            showAlert("서버 오류", errorMsg);
         }
     };
 
+    // 인증번호 확인
     const handleCodeVerify = async () => {
         const code = formData.code?.replace(/\s/g, '');
         if (!code || code.length < 6) return setMessage('codeMsg', '인증번호 6자리를 모두 입력하세요.', 'error');
 
         try {
-            const json = await verifyEmailCode(formData.email, code);
+            const res = await verifyEmailCode(formData.email, code);
 
-            if (json.result === 1) {
+            if (res.result === 1) {
                 setMessage('codeMsg', '인증번호가 확인되었습니다.', 'success');
                 setFlags(prev => ({ ...prev, emailVerified: true }));
-
-                setTimeout(() => {
-                    setStep(2);
-                }, 800);
+                setTimeout(() => setStep(2), 800);
             } else {
-                setMessage('codeMsg', json.msg || '잘못된 인증번호 입니다.', 'error');
+                setMessage('codeMsg', res.msg || '잘못된 인증번호입니다.', 'error');
             }
         } catch (e) {
             setMessage('codeMsg', '서버 통신 중 오류가 발생했습니다.', 'error');
         }
     };
 
+    // 아이디 중복 체크
     const handleUserIdCheck = async () => {
         if (!formData.userId.trim()) return setMessage('userIdMsg', '아이디를 입력하세요.', 'error');
 
         try {
-            const json = await checkUserIdExists(formData.userId);
-            if (json.exists) {
+            const res = await checkUserIdExists(formData.userId);
+            if (res.exists) {
                 setMessage('userIdMsg', '이미 가입된 아이디가 존재합니다.', 'error');
+                setFlags(prev => ({ ...prev, userIdChecked: false }));
             } else {
                 setMessage('userIdMsg', '사용 가능한 아이디입니다.', 'success');
                 setFlags(prev => ({ ...prev, userIdChecked: true }));
@@ -237,19 +236,21 @@ export const useRegisterForm = () => {
         }
     };
 
+    // 회원가입 제출
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateStep1() || !validateStep2() || !validateStep3()) return;
 
         try {
-            const json = await registerUser(formData);
-            if (json.result === 1) {
-                showAlert("회원가입 성공", json.msg, () => navigate('/account/profile'));
+            const res = await registerUser(formData);
+            if (res.result === 1) {
+                showAlert("회원가입 성공", res.msg, () => navigate('/account/profile'));
             } else {
-                showAlert("회원가입 실패", json.msg);
+                showAlert("회원가입 실패", res.msg);
             }
         } catch (err) {
-            showAlert("서버 오류", "서버 통신 중 오류가 발생했습니다.");
+            const errorMsg = err.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";
+            showAlert("서버 오류", errorMsg);
         }
     };
 

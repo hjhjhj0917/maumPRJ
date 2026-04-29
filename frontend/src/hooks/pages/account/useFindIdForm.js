@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { findUserId, getUserId } from '../../../api/authApi';
 
@@ -8,7 +8,7 @@ export const useFindIdForm = () => {
     const [formData, setFormData] = useState({ userName: '', userEmail: '', code: '' });
     const [messages, setMessages] = useState({});
     const [foundId, setFoundId] = useState('');
-    const [modal, setModal] = useState({ show: false, title: '', message: '', onConfirm: null });
+    const [modal, setModal] = useState({ show: false, title: '', message: '', isConfirm: false, onConfirm: null, onCancel: null });
 
     const messageTimers = useRef({});
     const inputRefs = useRef([]);
@@ -77,26 +77,19 @@ export const useFindIdForm = () => {
         setModal({ show: true, title, message, isConfirm: false, onConfirm: onConfirmCallback, onCancel: null });
     };
 
-    const showConfirm = (title, message, onConfirmCallback = null, onCancelCallback = null) => {
-        setModal({ show: true, title, message, isConfirm: true, onConfirm: onConfirmCallback, onCancel: onCancelCallback });
-    };
-
     const handleModalConfirm = () => {
-        if (modal.onConfirm) {
-            modal.onConfirm();
-        }
-        setModal({ show: false, title: '', message: '', onConfirm: null });
+        if (modal.onConfirm) modal.onConfirm();
+        setModal(prev => ({ ...prev, show: false }));
     };
 
     const handleModalCancel = () => {
-        if (modal.onConfirm) {
-            modal.onConfirm();
-        }
-        setModal({ show: false, title: '', message: '', onConfirm: null });
+        if (modal.onCancel) modal.onCancel();
+        setModal(prev => ({ ...prev, show: false }));
     };
 
     const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+    // Step 1: 아이디 존재 여부 확인 및 인증번호 발송
     const handleStep1Submit = async (e) => {
         e.preventDefault();
         if (!formData.userEmail.trim()) return setMessage('userEmailMsg', '이메일을 입력하세요.', 'error');
@@ -104,45 +97,52 @@ export const useFindIdForm = () => {
         if (!formData.userName.trim()) return setMessage('userNameMsg', '이름을 입력하세요.', 'error');
 
         try {
-            const json = await findUserId(formData.userEmail, formData.userName);
-            if (json.exists) {
+            // apiClient 사용으로 인해 .json() 파싱이 필요 없음
+            const res = await findUserId(formData.userEmail, formData.userName);
+
+            if (res.exists) {
                 showAlert("인증번호 발송", "이메일로 인증번호가 발송되었습니다.", () => {
                     setStep(2);
                 });
             } else {
-                setMessage('userEmailMsg', '입력하신 정보와 일치하는 회원이 없습니다.', 'error');
+                setMessage('userEmailMsg', res.msg || '일치하는 회원이 없습니다.', 'error');
             }
         } catch (error) {
-            showAlert("시스템 오류", "서버 통신 중 오류가 발생했습니다.");
+            const errorMsg = error.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";
+            showAlert("시스템 오류", errorMsg);
         }
     };
 
+    // Step 2: 인증번호 검증 및 아이디 획득
     const handleStep2Submit = async (e) => {
         e.preventDefault();
         const code = formData.code?.replace(/\s/g, '');
         if (!code || code.length < 6) return setMessage('codeMsg', '인증번호 6자리를 모두 입력하세요.', 'error');
 
         try {
-            const json = await getUserId(formData.userEmail, formData.userName, code);
-            if (json.userId) {
-                setFoundId(json.userId);
+            const res = await getUserId(formData.userEmail, formData.userName, code);
+
+            if (res.userId) {
+                setFoundId(res.userId);
                 setStep(3);
             } else {
-                setMessage('codeMsg', '인증번호가 일치하지 않거나 만료되었습니다.', 'error');
+                setMessage('codeMsg', res.msg || '인증번호가 일치하지 않거나 만료되었습니다.', 'error');
             }
         } catch (error) {
-            showAlert("시스템 오류", "서버 통신 중 오류가 발생했습니다.");
+            const errorMsg = error.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";
+            showAlert("시스템 오류", errorMsg);
         }
     };
 
+    // 인증번호 재전송
     const handleResend = async () => {
         try {
-            const json = await findUserId(formData.userEmail, formData.userName);
-            if (json.exists) {
+            const res = await findUserId(formData.userEmail, formData.userName);
+            if (res.exists) {
                 setMessage('codeMsg', '인증번호가 재전송되었습니다.', 'success');
             }
         } catch (error) {
-            showAlert("시스템 오류", "서버 통신 중 오류가 발생했습니다.");
+            setMessage('codeMsg', '재전송 중 오류가 발생했습니다.', 'error');
         }
     };
 

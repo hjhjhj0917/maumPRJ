@@ -1,169 +1,78 @@
+import apiClient from './apiClient';
+
 /*
 로그인
 */
-export const loginRequest = async (userId, password) => {
-    const params = new URLSearchParams();
-    params.append('userId', userId);
-    params.append('password', password);
-
-    const response = await fetch('/api/account/loginProc', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params,
-        credentials: 'include'
-    });
-
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
-};
+export const loginRequest = (userId, password) =>
+    apiClient.post('/account/loginProc', new URLSearchParams({userId, password}));
 
 /*
 이메일 중복 확인
 */
-export const checkEmailExists = async (email) => {
-    const params = new URLSearchParams({ email });
-    const response = await fetch('/api/account/getEmailExists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params,
-        credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
-};
+export const checkEmailExists = (email) =>
+    apiClient.post('/account/getEmailExists', new URLSearchParams({email}));
 
 /*
-이메일 중복 확인 인증번호 확인
+이메일 인증번호 확인
 */
-export const verifyEmailCode = async (email, code) => {
-    try {
-        const params = new URLSearchParams({ email, code });
-        const response = await fetch('/api/account/verifyEmailCode', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params,
-            credentials: 'include'
-        });
-        return await response.json();
-    } catch (error) {
-        console.error("verifyEmailCode Error:", error);
-        throw error;
-    }
-};
+export const verifyEmailCode = (email, code) =>
+    apiClient.post('/account/verifyEmailCode', new URLSearchParams({email, code}));
 
 /*
 아이디 중복 확인
 */
-export const checkUserIdExists = async (userId) => {
-    const params = new URLSearchParams({ userId });
-    const response = await fetch('/api/account/getUserIdExists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params,
-        credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
-};
+export const checkUserIdExists = (userId) =>
+    apiClient.post('/account/getUserIdExists', new URLSearchParams({userId}));
 
 /*
 회원가입
 */
-export const registerUser = async (formData) => {
+export const registerUser = (formData) => {
     const params = new URLSearchParams();
     Object.keys(formData).forEach(key => {
-        if (key !== 'code' && key !== 'passwordConfirm') params.append(key, formData[key]);
+        if (key !== 'code' && key !== 'passwordConfirm') {
+            params.append(key, formData[key]);
+        }
     });
-
-    const response = await fetch('/api/account/insertUserInfo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params,
-        credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
+    return apiClient.post('/account/insertUserInfo', params);
 };
+
+/*
+프로필 이미지 수정
+*/
+export const updateProfileImg = (profileImage) =>
+    apiClient.post('/account/updateProfileImg', new URLSearchParams({ profileImage }));
 
 /*
 로그인 상태 확인
 */
-export const getUserStatus = async () => {
-    const response = await fetch('/api/account/status', {
-        credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
-};
+export const getUserStatus = () => apiClient.get('/account/status');
 
 /*
 로그아웃
 */
-export const logoutUser = async () => {
-    const response = await fetch('/api/account/logout', {
-        method: 'POST',
-        credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
-};
+export const logoutUser = () => apiClient.post('/account/logout');
 
 /*
 아이디 찾기
 */
-export const findUserId = async (email, userName) => {
-    const params = new URLSearchParams({ email, userName });
-    const response = await fetch('/api/account/findUserId', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params,
-        credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
-};
+export const findUserId = (email, userName) =>
+    apiClient.post('/account/findUserId', new URLSearchParams({email, userName}));
 
 /*
 메일과 이름으로 아이디 조회
 */
-export const getUserId = async (email, userName, code) => {
-    const params = new URLSearchParams({ email, userName, code });
-    const response = await fetch('/api/account/getUserId', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params,
-        credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
-};
+export const getUserId = (email, userName, code) =>
+    apiClient.post('/account/getUserId', new URLSearchParams({email, userName, code}));
 
 /*
 비밀번호 찾기
 */
-export const findUserPw = async (email, userId) => {
-    const params = new URLSearchParams({ email, userId });
-    const response = await fetch('/api/account/findUserPw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params,
-        credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
-};
+export const findUserPw = (email, userId) =>
+    apiClient.post('/account/findUserPw', new URLSearchParams({email, userId}));
 
 /*
 비밀번호 수정
 */
-export const updateUserPw = async (email, password, code) => {
-    const params = new URLSearchParams({ email, password, code });
-    const response = await fetch('/api/account/updateUserPw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params,
-        credentials: 'include'
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
-};
+export const updateUserPw = (email, password, code) =>
+    apiClient.post('/account/updateUserPw', new URLSearchParams({email, password, code}));

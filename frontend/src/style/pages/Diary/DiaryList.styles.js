@@ -117,7 +117,6 @@ export const ListItem = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: #888;
     height: 60px;
     padding: 0 30px;
     border-radius: 30px;

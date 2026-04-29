@@ -121,4 +121,49 @@ public class DiaryController {
                             .build());
         }
     }
+
+    @GetMapping("/detail")
+    public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@RequestParam(value = "diaryNo") Integer diaryNo, HttpSession session) {
+
+        log.info("{}.getDiaryDetail Start!", this.getClass().getName());
+
+        // 1. 세션에서 로그인 사용자 번호 확인
+        Integer userNo = (Integer) session.getAttribute("SS_USER_NO");
+
+        if (userNo == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(CommonResponse.<DiaryDTO>builder()
+                            .httpStatus(HttpStatus.UNAUTHORIZED)
+                            .message("로그인이 필요한 서비스입니다.")
+                            .build());
+        }
+
+        try {
+            // 2. 조회용 DTO 구성 (diaryNo와 userNo 포함)
+            DiaryDTO pDTO = DiaryDTO.builder()
+                    .diaryNo(diaryNo)
+                    .userNo(userNo)
+                    .build();
+
+            // 3. 서비스 호출
+            DiaryDTO rDTO = diaryService.getDiaryDetail(pDTO);
+
+            // 4. 성공 응답 반환
+            return ResponseEntity.ok(
+                    CommonResponse.<DiaryDTO>builder()
+                            .httpStatus(HttpStatus.OK)
+                            .message("일기 조회 성공")
+                            .data(rDTO)
+                            .build()
+            );
+
+        } catch (Exception e) {
+            log.error("일기 상세 조회 중 오류 발생: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(CommonResponse.<DiaryDTO>builder()
+                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .message(e.getMessage())
+                            .build());
+        }
+    }
 }

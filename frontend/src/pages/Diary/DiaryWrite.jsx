@@ -46,7 +46,7 @@ const DiaryWrite = () => {
                         )}
                     </S.DateWrapper>
                 </S.TitleDateRow>
-                <p>오늘 하루는 어떠셨나요? 마음을 들려주세요.</p>
+                {/*<p>오늘 하루는 어떠셨나요? 마음을 들려주세요.</p>*/}
             </S.HeaderSection>
 
             <S.EditorWrapper>
