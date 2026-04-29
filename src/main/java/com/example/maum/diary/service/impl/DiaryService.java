@@ -5,6 +5,7 @@ import com.example.maum.diary.repository.DiaryRepository;
 import com.example.maum.diary.repository.entity.DiaryEntity;
 import com.example.maum.diary.service.IDiaryService;
 import com.example.maum.global.util.CmmUtil;
+import com.example.maum.global.util.DateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,12 +13,11 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient; // RestClient 임포트
+import org.springframework.web.client.RestClient;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,8 +50,8 @@ public class DiaryService implements IDiaryService {
 
         try {
             String createdAt = CmmUtil.nvl(pDTO.createdAt()).trim();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            LocalDate parsedDate = LocalDate.parse(createdAt, formatter);
+
+            LocalDate parsedDate = DateUtil.parseLocalDate(createdAt, "yyyy-MM-dd");
 
             DiaryEntity pEntity = DiaryEntity.builder()
                     .userNo(pDTO.userNo())
@@ -140,10 +140,15 @@ public class DiaryService implements IDiaryService {
             return new ArrayList<>();
         }
 
-        YearMonth yearMonth = YearMonth.of(
-                Integer.parseInt(dateStr.split("-")[0]),
-                Integer.parseInt(dateStr.split("-")[1])
-        );
+        // 만약 yyyy-MM-dd 형태의 날짜가 들어온다면 dateStr.substring(0, 7) 로 잘라서 사용하세요.
+        YearMonth yearMonth;
+        try {
+            yearMonth = YearMonth.parse(dateStr.length() > 7 ? dateStr.substring(0, 7) : dateStr);
+        } catch (Exception e) {
+            log.warn("YearMonth 파싱 실패: {}", dateStr);
+            return new ArrayList<>();
+        }
+
         LocalDate start = yearMonth.atDay(1);
         LocalDate end = yearMonth.atEndOfMonth();
 
@@ -156,7 +161,7 @@ public class DiaryService implements IDiaryService {
                         .userNo(e.getUserNo())
                         .title(e.getTitle())
                         .emotionColor(e.getEmotionColor())
-                        .createdAt(e.getCreatedAt().toString())
+                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
                         .build())
                 .collect(Collectors.toList());
 
@@ -191,7 +196,7 @@ public class DiaryService implements IDiaryService {
                 .depLvl(rEntity.getDepLvl())
                 .depScore(rEntity.getDepScore())
                 .symptomYn(rEntity.getSymptomYn())
-                .createdAt(rEntity.getCreatedAt().toString())
+                .createdAt(DateUtil.formatLocalDate(rEntity.getCreatedAt(), "yyyy-MM-dd"))
                 .build();
 
         log.info("{}.getDiaryDetail End!", this.getClass().getName());
