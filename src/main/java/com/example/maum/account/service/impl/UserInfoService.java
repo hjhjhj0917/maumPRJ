@@ -7,6 +7,7 @@ import com.example.maum.account.repository.UserInfoRepository;
 import com.example.maum.account.repository.entity.UserInfoEntity;
 import com.example.maum.account.service.IUserInfoService;
 import com.example.maum.global.util.CmmUtil;
+import com.example.maum.global.util.DateUtil;
 import com.example.maum.global.util.EncryptUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -39,7 +39,12 @@ public class UserInfoService implements IUserInfoService {
 
         String userId = CmmUtil.nvl(pDTO.userId());
 
-        boolean exists = userInfoRepository.findByUserId(userId).isPresent();
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
+
+        boolean exists = false;
+        if (rEntity.isPresent()) {
+            exists = true;
+        }
 
         ExistsDTO rDTO = ExistsDTO.builder()
                 .exists(exists)
@@ -60,7 +65,9 @@ public class UserInfoService implements IUserInfoService {
 
         String email = CmmUtil.nvl(pDTO.email());
 
-        boolean exists = userInfoRepository.findByEmail(email).isPresent();
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmail(email);
+
+        boolean exists = rEntity.isPresent();
         int authNumber = 0;
 
         log.info("exists : {}", exists);
@@ -108,10 +115,10 @@ public class UserInfoService implements IUserInfoService {
         if (rEntity.isPresent()) {
             res = 2;
         } else {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
-
+            // 기본 프로필 이미지 설정
             String profileImgUrl = "/images/account/profile1.png";
 
+            // 생년월일 연도를 이용한 띠별 프로필 로직
             if (birthDate.length() >= 4) {
                 try {
                     int birthYear = Integer.parseInt(birthDate.substring(0, 4));
@@ -123,7 +130,7 @@ public class UserInfoService implements IUserInfoService {
                 }
             }
 
-            LocalDate parsedBirthDate = LocalDate.parse(birthDate, formatter);
+            LocalDate parsedBirthDate = DateUtil.parseLocalDate(birthDate, "yyyy년 MM월 dd일");
 
             UserInfoEntity pEntity = UserInfoEntity.builder()
                     .userId(userId)
@@ -157,17 +164,22 @@ public class UserInfoService implements IUserInfoService {
         String userId = CmmUtil.nvl(pDTO.userId());
         String profileImage = CmmUtil.nvl(pDTO.profileImgUrl());
 
-        int res = userInfoRepository.findByUserId(userId)
-                .map(entity -> {
-                    String profileImgUrl = profileImage;
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
 
-                    if (profileImage != null && profileImage.startsWith("/images/account/profile") && profileImage.endsWith(".png")) {
-                        profileImgUrl = profileImage;
-                    }
+        int res;
+        if (rEntity.isPresent()) {
+            UserInfoEntity entity = rEntity.get();
+            String profileImgUrl = profileImage;
 
-                    entity.updateProfileImg(profileImgUrl);
-                    return 1;
-                }).orElse(0);
+            if (profileImage != null && profileImage.startsWith("/images/account/profile") && profileImage.endsWith(".png")) {
+                profileImgUrl = profileImage;
+            }
+
+            entity.updateProfileImg(profileImgUrl);
+            res = 1;
+        } else {
+            res = 0;
+        }
 
         log.info("{}.updateProfileImg End!", this.getClass().getName());
 
@@ -187,11 +199,18 @@ public class UserInfoService implements IUserInfoService {
 
         log.info("userId: {}, password: {}", userId, password);
 
-        boolean res = userInfoRepository.findByUserIdAndPassword(userId, password).isPresent();
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserIdAndPassword(userId, password);
+
+        int res;
+        if (rEntity.isPresent()) {
+            res = 1;
+        } else {
+            res = 0;
+        }
 
         log.info("{}.getUserLogin End!", this.getClass().getName());
 
-        return res ? 1 : 0;
+        return res;
     }
 
     /*
@@ -205,7 +224,9 @@ public class UserInfoService implements IUserInfoService {
         String email = CmmUtil.nvl(pDTO.email());
         String userName = CmmUtil.nvl(pDTO.userName());
 
-        boolean exists = userInfoRepository.findByEmailAndUserName(email, userName).isPresent();
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmailAndUserName(email, userName);
+
+        boolean exists = rEntity.isPresent();
         int authNumber = 0;
 
         log.info("exists : {}", exists);
@@ -245,11 +266,17 @@ public class UserInfoService implements IUserInfoService {
         String email = CmmUtil.nvl(pDTO.email());
         String userName = CmmUtil.nvl(pDTO.userName());
 
-        UserInfoDTO rDTO = userInfoRepository.findByEmailAndUserName(email, userName)
-                .map(entity -> UserInfoDTO.builder()
-                        .userId(entity.getUserId())
-                        .build())
-                .orElseGet(() -> UserInfoDTO.builder().build());
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmailAndUserName(email, userName);
+
+        UserInfoDTO rDTO;
+        if (rEntity.isPresent()) {
+            UserInfoEntity entity = rEntity.get();
+            rDTO = UserInfoDTO.builder()
+                    .userId(entity.getUserId())
+                    .build();
+        } else {
+            rDTO = UserInfoDTO.builder().build();
+        }
 
         log.info("{}.getUserId End!", this.getClass().getName());
 
@@ -267,7 +294,9 @@ public class UserInfoService implements IUserInfoService {
         String email = CmmUtil.nvl(pDTO.email());
         String userId = CmmUtil.nvl(pDTO.userId());
 
-        boolean exists = userInfoRepository.findByEmailAndUserId(email, userId).isPresent();
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmailAndUserId(email, userId);
+
+        boolean exists = rEntity.isPresent();
         int authNumber = 0;
 
         log.info("exists : {}", exists);
@@ -310,11 +339,16 @@ public class UserInfoService implements IUserInfoService {
 
         log.info("userId: {}", userId);
 
-        int res = userInfoRepository.findByUserId(userId)
-                .map(entity -> {
-                    entity.updatePassword(password);
-                    return 1;
-                }).orElse(0);
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
+
+        int res;
+        if (rEntity.isPresent()) {
+            UserInfoEntity entity = rEntity.get();
+            entity.updatePassword(password);
+            res = 1;
+        } else {
+            res = 0;
+        }
 
         log.info("{}.updatePassword End!", this.getClass().getName());
 
@@ -333,19 +367,22 @@ public class UserInfoService implements IUserInfoService {
 
         log.info("userId: {}", userId);
 
-        UserInfoDTO rDTO = userInfoRepository.findByUserId(userId)
-                .map(entity -> {
-                    log.info("회원 정보 조회 성공: {}", userId);
-                    return UserInfoDTO.builder()
-                            .userNo(entity.getUserNo())
-                            .userId(entity.getUserId())
-                            .userName(entity.getUserName())
-                            .profileImgUrl(entity.getProfileImgUrl())
-                            .build();
-                }).orElseGet(() -> {
-                    log.info("회원 정보를 찾을 수 없음: {}", userId);
-                    return UserInfoDTO.builder().build();
-                });
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
+
+        UserInfoDTO rDTO;
+        if (rEntity.isPresent()) {
+            UserInfoEntity entity = rEntity.get();
+            log.info("회원 정보 조회 성공: {}", userId);
+            rDTO = UserInfoDTO.builder()
+                    .userNo(entity.getUserNo())
+                    .userId(entity.getUserId())
+                    .userName(entity.getUserName())
+                    .profileImgUrl(entity.getProfileImgUrl())
+                    .build();
+        } else {
+            log.info("회원 정보를 찾을 수 없음: {}", userId);
+            rDTO = UserInfoDTO.builder().build();
+        }
 
         log.info("{}.getUserInfo End!", this.getClass().getName());
 

@@ -12,7 +12,7 @@ public interface IDiaryService {
     int diaryInsert(DiaryDTO pDTO) throws Exception;
 
     /*
-    일기 목록 불러오기
+    월별 일기 목록 불러오기
     */
     List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception;
 

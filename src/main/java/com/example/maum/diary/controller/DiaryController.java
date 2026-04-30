@@ -27,7 +27,6 @@ public class DiaryController {
     /*
     일기 저장
     */
-    @ResponseBody
     @PostMapping(value = "diaryInsert")
     public MsgDTO diaryInsert(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -37,12 +36,17 @@ public class DiaryController {
 
         Object sessionUserNo = session.getAttribute("SS_USER_NO");
 
+        MsgDTO rDTO;
+
         if (sessionUserNo == null) {
             log.warn("세션 만료 또는 비로그인 사용자의 접근입니다.");
-            return MsgDTO.builder()
+
+            rDTO = MsgDTO.builder()
                     .result(0)
                     .msg("로그인이 필요한 서비스입니다.")
                     .build();
+
+            return rDTO;
         }
 
         Integer userNo = (Integer) sessionUserNo;
@@ -69,42 +73,47 @@ public class DiaryController {
             msg = "오류로 인해 저장이 실패하였습니다.";
         }
 
-        MsgDTO dto = MsgDTO.builder()
+        rDTO = MsgDTO.builder()
                 .result(res)
                 .msg(msg)
                 .build();
 
         log.info("{}.diaryInsert End!", this.getClass().getName());
 
-        return dto;
+        return rDTO;
     }
 
+    /*
+    월별 일기 목록 불러오기
+    */
     @GetMapping("/monthly")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getMonthlyDiaryList(DiaryDTO pDTO, HttpSession session) {
 
         log.info("{}.getMonthlyDiaryList Start!", this.getClass().getName());
 
+        ResponseEntity<CommonResponse<List<DiaryDTO>>> response;
+
         Integer userNo = (Integer) session.getAttribute("SS_USER_NO");
 
         if (userNo == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            response = ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(CommonResponse.<List<DiaryDTO>>builder()
                             .httpStatus(HttpStatus.UNAUTHORIZED)
                             .message("로그인이 필요합니다.")
                             .build());
+            return response;
         }
 
         try {
-            // Record는 불변이므로 필요한 정보(userNo)를 합쳐 새 DTO 객체 생성
-            DiaryDTO searchDTO = DiaryDTO.builder()
+            DiaryDTO sDTO = DiaryDTO.builder()
                     .userNo(userNo)
                     .createdAt(CmmUtil.nvl(pDTO.createdAt()))
                     .build();
 
-            List<DiaryDTO> rList = diaryService.getMonthlyDiaryList(searchDTO);
+            List<DiaryDTO> rList = diaryService.getMonthlyDiaryList(sDTO);
             if (rList == null) rList = new ArrayList<>();
 
-            return ResponseEntity.ok(
+            response = ResponseEntity.ok(
                     CommonResponse.<List<DiaryDTO>>builder()
                             .httpStatus(HttpStatus.OK)
                             .message("조회 성공")
@@ -114,42 +123,46 @@ public class DiaryController {
 
         } catch (Exception e) {
             log.error("조회 중 에러 발생: ", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(CommonResponse.<List<DiaryDTO>>builder()
                             .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
                             .message("서버 조회 오류")
                             .build());
         }
+
+        return response;
     }
 
+    /*
+    일기 상세 보기
+    */
     @GetMapping("/detail")
     public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@RequestParam(value = "diaryNo") Integer diaryNo, HttpSession session) {
 
         log.info("{}.getDiaryDetail Start!", this.getClass().getName());
 
-        // 1. 세션에서 로그인 사용자 번호 확인
+        ResponseEntity<CommonResponse<DiaryDTO>> response;
+
         Integer userNo = (Integer) session.getAttribute("SS_USER_NO");
 
         if (userNo == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            response = ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(CommonResponse.<DiaryDTO>builder()
                             .httpStatus(HttpStatus.UNAUTHORIZED)
                             .message("로그인이 필요한 서비스입니다.")
                             .build());
+            return response;
         }
 
         try {
-            // 2. 조회용 DTO 구성 (diaryNo와 userNo 포함)
             DiaryDTO pDTO = DiaryDTO.builder()
                     .diaryNo(diaryNo)
                     .userNo(userNo)
                     .build();
 
-            // 3. 서비스 호출
             DiaryDTO rDTO = diaryService.getDiaryDetail(pDTO);
 
-            // 4. 성공 응답 반환
-            return ResponseEntity.ok(
+            response = ResponseEntity.ok(
                     CommonResponse.<DiaryDTO>builder()
                             .httpStatus(HttpStatus.OK)
                             .message("일기 조회 성공")
@@ -159,11 +172,13 @@ public class DiaryController {
 
         } catch (Exception e) {
             log.error("일기 상세 조회 중 오류 발생: ", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(CommonResponse.<DiaryDTO>builder()
                             .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
                             .message(e.getMessage())
                             .build());
         }
+
+        return response;
     }
 }

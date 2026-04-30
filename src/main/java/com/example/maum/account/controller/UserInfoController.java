@@ -10,16 +10,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.swing.*;
 import java.util.Optional;
 
-@Controller
+@RestController
 @Slf4j
 @RequestMapping(value = "/api/account")
 @RequiredArgsConstructor
@@ -30,7 +29,6 @@ public class UserInfoController {
     /*
     아이디 중복 확인
     */
-    @ResponseBody
     @PostMapping(value = "getUserIdExists")
     public ExistsDTO getUserExists(HttpServletRequest request) throws Exception {
 
@@ -55,7 +53,6 @@ public class UserInfoController {
     /*
     이메일 중복 확인
     */
-    @ResponseBody
     @PostMapping(value = "getEmailExists")
     public ExistsDTO getEmailExists(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -78,16 +75,17 @@ public class UserInfoController {
 
         log.info(this.getClass().getName() + ".getEmailExists End!");
 
-        return ExistsDTO.builder()
+        ExistsDTO dto = ExistsDTO.builder()
                 .exists(rDTO.exists())
                 .authNumber(0)
                 .build();
+
+        return dto;
     }
 
     /*
     이메일 인증번호 확인
     */
-    @ResponseBody
     @PostMapping(value = "verifyEmailCode")
     public MsgDTO verifyEmailCode(HttpServletRequest request, HttpSession session) throws Exception {
         log.info(this.getClass().getName() + ".verifyEmailCode Start!");
@@ -97,19 +95,30 @@ public class UserInfoController {
 
         Object storedAuthCode = session.getAttribute("AUTH_" + email);
 
+        MsgDTO rDTO;
+
         log.info("email: {}, code: {}, storedAuthCode: {}", email, code, storedAuthCode);
 
         if (storedAuthCode != null && storedAuthCode.toString().equals(code)) {
-            return MsgDTO.builder().result(1).msg("인증에 성공하였습니다.").build();
+            rDTO = MsgDTO.builder()
+                    .result(1)
+                    .msg("인증에 성공하였습니다.")
+                    .build();
+
+            return rDTO;
         }
 
-        return MsgDTO.builder().result(0).msg("인증번호가 일치하지 않거나 만료되었습니다.").build();
+        rDTO = MsgDTO.builder()
+                .result(0)
+                .msg("인증번호가 일치하지 않거나 만료되었습니다.")
+                .build();
+
+        return rDTO;
     }
 
     /*
     회원가입
     */
-    @ResponseBody
     @PostMapping(value = "insertUserInfo")
     public MsgDTO insertUserInfo(HttpServletRequest request) throws Exception {
 
@@ -164,7 +173,6 @@ public class UserInfoController {
     /*
     프로필 이미지 수정
     */
-    @ResponseBody
     @PostMapping(value = "updateProfileImg")
     public MsgDTO updateProfileImg(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -209,7 +217,6 @@ public class UserInfoController {
     /*
     로그인
     */
-    @ResponseBody
     @PostMapping(value = "loginProc")
     public MsgDTO loginProc(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -257,7 +264,6 @@ public class UserInfoController {
     /*
     로그인 상태 확인
     */
-    @ResponseBody
     @GetMapping(value = "status")
     public UserInfoDTO getLoginStatus(HttpSession session) {
 
@@ -265,7 +271,12 @@ public class UserInfoController {
 
         Integer userNo = (Integer) session.getAttribute("SS_USER_NO");
 
-        if (userNo == null) return UserInfoDTO.builder().build();
+        UserInfoDTO rDTO;
+
+        if (userNo == null) {
+            rDTO = UserInfoDTO.builder().build();
+            return rDTO;
+        }
 
         String userId = CmmUtil.nvl((String) session.getAttribute("SS_USER_ID"));
         String userName = CmmUtil.nvl((String) session.getAttribute("SS_USER_NAME"));
@@ -273,18 +284,19 @@ public class UserInfoController {
 
         log.info("{}.getLoginStatus Start!", this.getClass().getName());
 
-        return UserInfoDTO.builder()
+        rDTO = UserInfoDTO.builder()
                 .userNo(userNo)
                 .userId(userId)
                 .userName(userName)
                 .profileImgUrl(profileImgUrl)
                 .build();
+
+        return rDTO;
     }
 
     /*
     로그아웃
     */
-    @ResponseBody
     @PostMapping(value = "logout")
     public MsgDTO logout(HttpSession session) {
 
@@ -305,7 +317,6 @@ public class UserInfoController {
     /*
     아이디 찾기
     */
-    @ResponseBody
     @PostMapping(value = "findUserId")
     public ExistsDTO findUserId(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -315,6 +326,8 @@ public class UserInfoController {
         String userName = CmmUtil.nvl(request.getParameter("userName"));
 
         log.info("email: {}, userName: {}", email, userName);
+
+        ExistsDTO dto;
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .email(EncryptUtil.encAES128BCBC(email))
@@ -331,16 +344,17 @@ public class UserInfoController {
 
         log.info("{}.findUserId End!", this.getClass().getName());
 
-        return ExistsDTO.builder()
+        dto = ExistsDTO.builder()
                 .exists(rDTO.exists())
                 .authNumber(0)
                 .build();
+
+        return dto;
     }
 
     /*
     메일과 이름으로 아이디 조회
     */
-    @ResponseBody
     @PostMapping(value = "getUserId")
     public UserInfoDTO getUserId(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -354,13 +368,15 @@ public class UserInfoController {
 
         log.info("email: {}, userName: {}, code: {}, storedAuthCode: {}", email, userName, code, storedAuthCode);
 
+        UserInfoDTO rDTO;
+
         if (storedAuthCode != null && storedAuthCode.toString().equals(code)) {
             UserInfoDTO pDTO = UserInfoDTO.builder()
                     .email(EncryptUtil.encAES128BCBC(email))
                     .userName(userName)
                     .build();
 
-            UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserId(pDTO))
+            rDTO = Optional.ofNullable(userInfoService.getUserId(pDTO))
                     .orElseGet(() -> UserInfoDTO.builder().build());
 
             session.removeAttribute("AUTH_" + email);
@@ -370,13 +386,14 @@ public class UserInfoController {
 
         log.info("{}.getUserId End!", this.getClass().getName());
 
-        return UserInfoDTO.builder().build();
+        rDTO = UserInfoDTO.builder().build();
+
+        return rDTO;
     }
 
     /*
     비밀번호 찾기
     */
-    @ResponseBody
     @PostMapping(value = "findUserPw")
     public ExistsDTO findUserPw(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -392,7 +409,9 @@ public class UserInfoController {
                 .userId(userId)
                 .build();
 
-        ExistsDTO rDTO = Optional.ofNullable(userInfoService.findUserPw(pDTO))
+        ExistsDTO rDTO;
+
+        rDTO = Optional.ofNullable(userInfoService.findUserPw(pDTO))
                 .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
 
         if (rDTO.exists()) {
@@ -403,16 +422,17 @@ public class UserInfoController {
 
         log.info("{}.findUserPw End!", this.getClass().getName());
 
-        return ExistsDTO.builder()
+        rDTO = ExistsDTO.builder()
                 .exists(rDTO.exists())
                 .authNumber(0)
                 .build();
+
+        return rDTO;
     }
 
     /*
     비밀번호 수정
     */
-    @ResponseBody
     @PostMapping(value = "updateUserPw")
     public MsgDTO updateUserPw(HttpServletRequest request, HttpSession session) throws Exception {
 

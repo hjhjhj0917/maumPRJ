@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -120,6 +121,8 @@ public class DiaryService implements IDiaryService {
             log.error("Diary Insert Error : {}", e.getMessage());
         }
 
+        log.info("{}.diaryInsert End!", this.getClass().getName());
+
         return res;
     }
 
@@ -127,7 +130,7 @@ public class DiaryService implements IDiaryService {
     월별 일기 목록 조회
     */
     @Transactional(readOnly = true)
-    @Cacheable(value = "diaryCache", key = "#pDTO.userNo() + '_' + #pDTO.createdAt()")
+    @Cacheable(value = "diaryCache", key = "#pDTO.userNo() + '_' + #pDTO.createdAt()") // 중복된 요청을 빠르게 처리하기 위함
     @Override
     public List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception {
 
@@ -152,8 +155,7 @@ public class DiaryService implements IDiaryService {
         LocalDate start = yearMonth.atDay(1);
         LocalDate end = yearMonth.atEndOfMonth();
 
-        List<DiaryEntity> entities = diaryRepository.findAllByUserNoAndCreatedAtBetween(
-                pDTO.userNo(), start, end);
+        List<DiaryEntity> entities = diaryRepository.findAllByUserNoAndCreatedAtBetween(pDTO.userNo(), start, end);
 
         List<DiaryDTO> rList = entities.stream()
                 .map(e -> DiaryDTO.builder()
@@ -178,26 +180,33 @@ public class DiaryService implements IDiaryService {
     public DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception {
         log.info("{}.getDiaryDetail Start!", this.getClass().getName());
 
-        DiaryEntity rEntity = diaryRepository.findById(pDTO.diaryNo())
-                .orElseThrow(() -> new Exception("해당 일기를 찾을 수 없습니다."));
+        Optional<DiaryEntity> oEntity = diaryRepository.findById(pDTO.diaryNo());
 
-        if (!rEntity.getUserNo().equals(pDTO.userNo())) {
-            throw new Exception("해당 일기에 대한 접근 권한이 없습니다.");
+        DiaryDTO rDTO;
+
+        if (oEntity.isPresent()) {
+            DiaryEntity rEntity = oEntity.get();
+
+            if (!rEntity.getUserNo().equals(pDTO.userNo())) {
+                throw new Exception("해당 일기에 대한 접근 권한이 없습니다.");
+            }
+
+            rDTO = DiaryDTO.builder()
+                    .diaryNo(rEntity.getDiaryNo())
+                    .userNo(rEntity.getUserNo())
+                    .title(rEntity.getTitle())
+                    .content(rEntity.getContent())
+                    .emotionColor(rEntity.getEmotionColor())
+                    .mainEmotion(rEntity.getMainEmotion())
+                    .summary(rEntity.getSummary())
+                    .depLvl(rEntity.getDepLvl())
+                    .depScore(rEntity.getDepScore())
+                    .symptomYn(rEntity.getSymptomYn())
+                    .createdAt(DateUtil.formatLocalDate(rEntity.getCreatedAt(), "yyyy-MM-dd"))
+                    .build();
+        } else {
+            throw new Exception("해당 일기를 찾을 수 없습니다.");
         }
-
-        DiaryDTO rDTO = DiaryDTO.builder()
-                .diaryNo(rEntity.getDiaryNo())
-                .userNo(rEntity.getUserNo())
-                .title(rEntity.getTitle())
-                .content(rEntity.getContent())
-                .emotionColor(rEntity.getEmotionColor())
-                .mainEmotion(rEntity.getMainEmotion())
-                .summary(rEntity.getSummary())
-                .depLvl(rEntity.getDepLvl())
-                .depScore(rEntity.getDepScore())
-                .symptomYn(rEntity.getSymptomYn())
-                .createdAt(DateUtil.formatLocalDate(rEntity.getCreatedAt(), "yyyy-MM-dd"))
-                .build();
 
         log.info("{}.getDiaryDetail End!", this.getClass().getName());
 

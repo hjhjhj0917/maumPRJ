@@ -46,7 +46,7 @@ export const useLoginForm = () => {
             const res = await loginRequest(userId, password);
 
             if (res.result === 1) {
-                navigate('/diary/write');
+                navigate('/diary/list');
             } else {
                 setMessage('userId', res.msg || "로그인 정보를 확인해주세요.", 'error');
                 setPassword('');
