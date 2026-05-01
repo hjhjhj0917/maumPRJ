@@ -41,8 +41,8 @@ public class UserInfoController {
                 .userId(userId)
                 .build();
 
-//        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
-//                .orElseGet(() -> ExistsDTO.builder().exists(false).build());
+        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
+                .orElseGet(() -> ExistsDTO.builder().exists(false).build());
 
         log.info("{}.getUserIdExists End!", this.getClass().getName());
 
