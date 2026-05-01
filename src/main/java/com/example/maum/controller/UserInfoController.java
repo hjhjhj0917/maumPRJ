@@ -29,9 +29,9 @@ public class UserInfoController {
     아이디 중복 확인
     */
     @PostMapping(value = "getUserIdExists")
-    public ExistsDTO getUserExists(HttpServletRequest request) throws Exception {
+    public ExistsDTO getUserIdExists(HttpServletRequest request) throws Exception {
 
-        log.info("{}.getUserExists Start!", this.getClass().getName());
+        log.info("{}.getUserIdExists Start!", this.getClass().getName());
 
         String userId = CmmUtil.nvl(request.getParameter("userId"));
 
@@ -41,10 +41,10 @@ public class UserInfoController {
                 .userId(userId)
                 .build();
 
-        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
-                .orElseGet(() -> ExistsDTO.builder().exists(false).build());
+//        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
+//                .orElseGet(() -> ExistsDTO.builder().exists(false).build());
 
-        log.info("{}.getUserExists End!", this.getClass().getName());
+        log.info("{}.getUserIdExists End!", this.getClass().getName());
 
         return rDTO;
     }
