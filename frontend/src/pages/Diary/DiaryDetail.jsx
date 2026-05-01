@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDiaryDetail } from '../../hooks/pages/diary/useDiaryDetail';
+import { useDiaryDetail } from '../../hooks/diary/useDiaryDetail';
 import * as S from '../../style/pages/diary/DiaryDetail.styles';
 
 const DiaryDetail = () => {

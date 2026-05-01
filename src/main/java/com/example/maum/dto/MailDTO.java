@@ -1,0 +1,12 @@
+package com.example.maum.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class MailDTO {
+    private String title;
+    private String content;
+    private String receiver;
+}

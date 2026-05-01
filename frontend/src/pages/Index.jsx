@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Footer from '../components/common/Footer';
-import { useIndex } from '../hooks/pages/useIndex';
+import { useIndex } from '../hooks/useIndex.js';
 import * as S from '../style/pages/Index.styles';
 
 const Index = () => {

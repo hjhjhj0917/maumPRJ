@@ -1,5 +1,5 @@
 import React from 'react';
-import {useFooter} from '../../hooks/pages/common/useFooter';
+import {useFooter} from '../../hooks/common/useFooter.js';
 import * as S from '../../style/components/common/Footer.styles';
 
 const Footer = () => {

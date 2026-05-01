@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import InputField from '../../components/common/InputField';
 import CustomModal from '../../components/common/CustomModal';
-import { useFindPwForm } from '../../hooks/pages/account/useFindPwForm';
+import { useFindPwForm } from '../../hooks/account/useFindPwForm';
 import * as S from '../../style/pages/Account/FindPw.styles';
 
 const FindPw = () => {
