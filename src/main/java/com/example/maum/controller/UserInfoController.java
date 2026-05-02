@@ -25,99 +25,8 @@ public class UserInfoController {
 
     private final IUserInfoService userInfoService;
 
-    /*
-    아이디 중복 확인
-    */
-    @PostMapping(value = "getUserIdExists")
-    public ExistsDTO getUserIdExists(HttpServletRequest request) throws Exception {
+    /* CREATE */
 
-        log.info("{}.getUserIdExists Start!", this.getClass().getName());
-
-        String userId = CmmUtil.nvl(request.getParameter("userId"));
-
-        log.info("userId: {}", userId);
-
-        UserInfoDTO pDTO = UserInfoDTO.builder()
-                .userId(userId)
-                .build();
-
-        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
-                .orElseGet(() -> ExistsDTO.builder().exists(false).build());
-
-        log.info("{}.getUserIdExists End!", this.getClass().getName());
-
-        return rDTO;
-    }
-
-    /*
-    이메일 중복 확인
-    */
-    @PostMapping(value = "getEmailExists")
-    public ExistsDTO getEmailExists(HttpServletRequest request, HttpSession session) throws Exception {
-
-        log.info(this.getClass().getName() + ".getEmailExists Start!");
-
-        String email = CmmUtil.nvl(request.getParameter("email"));
-        log.info("email : " + email);
-
-        UserInfoDTO pDTO = UserInfoDTO.builder()
-                .email(EncryptUtil.encAES128BCBC(email))
-                .build();
-
-        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getEmailExists(pDTO))
-                .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
-
-        if (!rDTO.exists() && rDTO.authNumber() != 0) {
-            session.setAttribute("AUTH_" + email, rDTO.authNumber());
-            session.setMaxInactiveInterval(3 * 60);
-        }
-
-        log.info(this.getClass().getName() + ".getEmailExists End!");
-
-        ExistsDTO dto = ExistsDTO.builder()
-                .exists(rDTO.exists())
-                .authNumber(0)
-                .build();
-
-        return dto;
-    }
-
-    /*
-    이메일 인증번호 확인
-    */
-    @PostMapping(value = "verifyEmailCode")
-    public MsgDTO verifyEmailCode(HttpServletRequest request, HttpSession session) throws Exception {
-        log.info(this.getClass().getName() + ".verifyEmailCode Start!");
-
-        String email = CmmUtil.nvl(request.getParameter("email"));
-        String code = CmmUtil.nvl(request.getParameter("code"));
-
-        Object storedAuthCode = session.getAttribute("AUTH_" + email);
-
-        MsgDTO rDTO;
-
-        log.info("email: {}, code: {}, storedAuthCode: {}", email, code, storedAuthCode);
-
-        if (storedAuthCode != null && storedAuthCode.toString().equals(code)) {
-            rDTO = MsgDTO.builder()
-                    .result(1)
-                    .msg("인증에 성공하였습니다.")
-                    .build();
-
-            return rDTO;
-        }
-
-        rDTO = MsgDTO.builder()
-                .result(0)
-                .msg("인증번호가 일치하지 않거나 만료되었습니다.")
-                .build();
-
-        return rDTO;
-    }
-
-    /*
-    회원가입
-    */
     @PostMapping(value = "insertUserInfo")
     public MsgDTO insertUserInfo(HttpServletRequest request) throws Exception {
 
@@ -169,53 +78,93 @@ public class UserInfoController {
         return dto;
     }
 
-    /*
-    프로필 이미지 수정
-    */
-    @PostMapping(value = "updateProfileImg")
-    public MsgDTO updateProfileImg(HttpServletRequest request, HttpSession session) throws Exception {
 
-        log.info("{}.updateProfileImg Start!", this.getClass().getName());
+    /* READ */
 
-        String msg;
-        int res = 0;
+    @PostMapping(value = "getUserIdExists")
+    public ExistsDTO getUserIdExists(HttpServletRequest request) throws Exception {
 
-        String userId = CmmUtil.nvl((String) session.getAttribute("SS_USER_ID"));
-        String profileImage = CmmUtil.nvl(request.getParameter("profileImage"));
+        log.info("{}.getUserIdExists Start!", this.getClass().getName());
+
+        String userId = CmmUtil.nvl(request.getParameter("userId"));
+
+        log.info("userId: {}", userId);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .userId(userId)
-                .profileImgUrl(profileImage)
                 .build();
 
-        log.info("userId : {}, fileName : {}", userId, profileImage);
+        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
+                .orElseGet(() -> ExistsDTO.builder().exists(false).build());
 
-        if (userId.isEmpty()) {
-            msg = "인증 정보가 만료되었습니다. 다시 시도해주세요.";
-        } else {
-            res = userInfoService.updateProfileImg(pDTO);
+        log.info("{}.getUserIdExists End!", this.getClass().getName());
 
-            if (res == 1) {
-                msg = "프로필 설정이 완료되었습니다.";
-                request.getSession().removeAttribute("SS_USER_ID");
-            } else {
-                msg = "프로필 변경에 실패했습니다.";
-            }
+        return rDTO;
+    }
+
+
+    @PostMapping(value = "getEmailExists")
+    public ExistsDTO getEmailExists(HttpServletRequest request, HttpSession session) throws Exception {
+
+        log.info(this.getClass().getName() + ".getEmailExists Start!");
+
+        String email = CmmUtil.nvl(request.getParameter("email"));
+        log.info("email : " + email);
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .email(EncryptUtil.encAES128BCBC(email))
+                .build();
+
+        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getEmailExists(pDTO))
+                .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
+
+        if (!rDTO.exists() && rDTO.authNumber() != 0) {
+            session.setAttribute("AUTH_" + email, rDTO.authNumber());
+            session.setMaxInactiveInterval(3 * 60);
         }
 
-        MsgDTO dto = MsgDTO.builder()
-                .result(res)
-                .msg(msg)
-                .build();
+        log.info(this.getClass().getName() + ".getEmailExists End!");
 
-        log.info("{}.updateProfileImg End!", this.getClass().getName());
+        ExistsDTO dto = ExistsDTO.builder()
+                .exists(rDTO.exists())
+                .authNumber(0)
+                .build();
 
         return dto;
     }
 
-    /*
-    로그인
-    */
+
+    @PostMapping(value = "verifyEmailCode")
+    public MsgDTO verifyEmailCode(HttpServletRequest request, HttpSession session) throws Exception {
+        log.info(this.getClass().getName() + ".verifyEmailCode Start!");
+
+        String email = CmmUtil.nvl(request.getParameter("email"));
+        String code = CmmUtil.nvl(request.getParameter("code"));
+
+        Object storedAuthCode = session.getAttribute("AUTH_" + email);
+
+        MsgDTO rDTO;
+
+        log.info("email: {}, code: {}, storedAuthCode: {}", email, code, storedAuthCode);
+
+        if (storedAuthCode != null && storedAuthCode.toString().equals(code)) {
+            rDTO = MsgDTO.builder()
+                    .result(1)
+                    .msg("인증에 성공하였습니다.")
+                    .build();
+
+            return rDTO;
+        }
+
+        rDTO = MsgDTO.builder()
+                .result(0)
+                .msg("인증번호가 일치하지 않거나 만료되었습니다.")
+                .build();
+
+        return rDTO;
+    }
+
+
     @PostMapping(value = "loginProc")
     public MsgDTO loginProc(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -260,9 +209,7 @@ public class UserInfoController {
         return dto;
     }
 
-    /*
-    로그인 상태 확인
-    */
+
     @GetMapping(value = "status")
     public UserInfoDTO getLoginStatus(HttpSession session) {
 
@@ -293,9 +240,7 @@ public class UserInfoController {
         return rDTO;
     }
 
-    /*
-    로그아웃
-    */
+
     @PostMapping(value = "logout")
     public MsgDTO logout(HttpSession session) {
 
@@ -313,9 +258,7 @@ public class UserInfoController {
         return dto;
     }
 
-    /*
-    아이디 찾기
-    */
+
     @PostMapping(value = "findUserId")
     public ExistsDTO findUserId(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -351,9 +294,7 @@ public class UserInfoController {
         return dto;
     }
 
-    /*
-    메일과 이름으로 아이디 조회
-    */
+
     @PostMapping(value = "getUserId")
     public UserInfoDTO getUserId(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -390,9 +331,7 @@ public class UserInfoController {
         return rDTO;
     }
 
-    /*
-    비밀번호 찾기
-    */
+
     @PostMapping(value = "findUserPw")
     public ExistsDTO findUserPw(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -429,9 +368,9 @@ public class UserInfoController {
         return rDTO;
     }
 
-    /*
-    비밀번호 수정
-    */
+
+    /* UPDATE */
+
     @PostMapping(value = "updateUserPw")
     public MsgDTO updateUserPw(HttpServletRequest request, HttpSession session) throws Exception {
 
@@ -479,6 +418,48 @@ public class UserInfoController {
                 .build();
 
         log.info("{}.updateUserPw End!", this.getClass().getName());
+
+        return dto;
+    }
+
+
+    @PostMapping(value = "updateProfileImg")
+    public MsgDTO updateProfileImg(HttpServletRequest request, HttpSession session) throws Exception {
+
+        log.info("{}.updateProfileImg Start!", this.getClass().getName());
+
+        String msg;
+        int res = 0;
+
+        String userId = CmmUtil.nvl((String) session.getAttribute("SS_USER_ID"));
+        String profileImage = CmmUtil.nvl(request.getParameter("profileImage"));
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .userId(userId)
+                .profileImgUrl(profileImage)
+                .build();
+
+        log.info("userId : {}, fileName : {}", userId, profileImage);
+
+        if (userId.isEmpty()) {
+            msg = "인증 정보가 만료되었습니다. 다시 시도해주세요.";
+        } else {
+            res = userInfoService.updateProfileImg(pDTO);
+
+            if (res == 1) {
+                msg = "프로필 설정이 완료되었습니다.";
+                request.getSession().removeAttribute("SS_USER_ID");
+            } else {
+                msg = "프로필 변경에 실패했습니다.";
+            }
+        }
+
+        MsgDTO dto = MsgDTO.builder()
+                .result(res)
+                .msg(msg)
+                .build();
+
+        log.info("{}.updateProfileImg End!", this.getClass().getName());
 
         return dto;
     }
