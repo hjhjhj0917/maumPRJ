@@ -81,26 +81,27 @@ public class UserInfoController {
 
     /* READ */
 
-    @PostMapping(value = "getUserIdExists")
-    public ExistsDTO getUserIdExists(HttpServletRequest request) throws Exception {
-
-        log.info("{}.getUserIdExists Start!", this.getClass().getName());
-
-        String userId = CmmUtil.nvl(request.getParameter("userId"));
-
-        log.info("userId: {}", userId);
-
-        UserInfoDTO pDTO = UserInfoDTO.builder()
-                .userId(userId)
-                .build();
-
-        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
-                .orElseGet(() -> ExistsDTO.builder().exists(false).build());
-
-        log.info("{}.getUserIdExists End!", this.getClass().getName());
-
-        return rDTO;
-    }
+//    여기 에러 때문에 주석처리함 나중에 주석 제거하고 에러 해결!!!!!!!
+//    @PostMapping(value = "getUserIdExists")
+//    public ExistsDTO getUserIdExists(HttpServletRequest request) throws Exception {
+//
+//        log.info("{}.getUserIdExists Start!", this.getClass().getName());
+//
+//        String userId = CmmUtil.nvl(request.getParameter("userId"));
+//
+//        log.info("userId: {}", userId);
+//
+//        UserInfoDTO pDTO = UserInfoDTO.builder()
+//                .userId(userId)
+//                .build();
+//
+//        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
+//                .orElseGet(() -> ExistsDTO.builder().exists(false).build());
+//
+//        log.info("{}.getUserIdExists End!", this.getClass().getName());
+//
+//        return rDTO;
+//    }
 
 
     @PostMapping(value = "getEmailExists")
