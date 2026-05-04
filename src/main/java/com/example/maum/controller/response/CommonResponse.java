@@ -23,7 +23,11 @@ public class CommonResponse<T> {
     }
 
     public static <T> CommonResponse<T> of(HttpStatus httpStatus, String message, T data) {
-        return new CommonResponse<>(httpStatus, message, data);
+        return CommonResponse.<T>builder()
+                .httpStatus(httpStatus)
+                .message(message)
+                .data(data)
+                .build();
     }
 
     public static ResponseEntity<CommonResponse<?>> getErrors(BindingResult bindingResult) {

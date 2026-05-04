@@ -45,7 +45,9 @@ export const useLoginForm = () => {
             // apiClient 사용으로 인해 .json() 과정 생략
             const res = await loginRequest(userId, password);
 
-            if (res.result === 1) {
+            const responseData = res.data;
+
+            if (responseData.result === 1) {
                 navigate('/diary/list');
             } else {
                 setMessage('userId', res.msg || "로그인 정보를 확인해주세요.", 'error');

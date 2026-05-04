@@ -19,7 +19,7 @@ public record UserInfoDTO(
         String userId,
 
         @NotBlank(message = "비밀번호를 입력해주세요.")
-        @Size(min = 8, message = "비밀번호는 최소 8글자 이상 입력해주세요.")
+        @Size(min = 4, message = "비밀번호는 최소 8글자 이상 입력해주세요.")
         String password,
 
         @NotBlank(message = "이름을 입력해주세요.")
@@ -27,13 +27,13 @@ public record UserInfoDTO(
         String userName,
 
         @NotBlank(message = "이메일을 입력해주세요.")
-        @Size(min = 40, message = "이메일은 최대 40글자까지 입력가능합니다..")
+        @Size(max = 40, message = "이메일은 최대 40글자까지 입력가능합니다..")
         String email,
 
-        @NotBlank(message = "이메일을 입력해주세요.")
+        @NotBlank(message = "생년월일을 입력해주세요.")
         String birthDate,
 
-        @NotBlank(message = "이메일을 입력해주세요.")
+        @NotBlank(message = "주소를 입력해주세요.")
         String addr,
 
         String detailAddr,
@@ -60,9 +60,9 @@ public record UserInfoDTO(
                         .build();
         }
 
-        public static UserInfoDTO of(UserInfoDTO dto) {
+        public static UserInfoEntity of(UserInfoDTO dto) {
 
-                return UserInfoDTO.builder()
+                return UserInfoEntity.builder()
                         .userId(dto.userId())
                         .password(dto.password())
                         .userName(dto.userName())

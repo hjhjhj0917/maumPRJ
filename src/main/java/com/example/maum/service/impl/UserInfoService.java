@@ -8,7 +8,6 @@ import com.example.maum.repository.UserInfoRepository;
 import com.example.maum.repository.entity.UserInfoEntity;
 import com.example.maum.service.IUserInfoService;
 import com.example.maum.util.CmmUtil;
-import com.example.maum.util.DateUtil;
 import com.example.maum.util.EncryptUtil;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -68,53 +67,51 @@ public class UserInfoService implements IUserInfoService {
 
     @Transactional
     @Override
-    public int insertUserInfo(@NonNull UserInfoDTO pDTO) {
+    public int insertUserInfo(UserInfoDTO pDTO) {
 
         log.info("{}.insertUserInfo Start!", this.getClass().getName());
 
         int res;
 
-        String userId = CmmUtil.nvl(pDTO.userId());
-        String birthDate = CmmUtil.nvl(pDTO.birthDate()).trim();
+        log.info("pDTO: {}", pDTO);
 
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
+        try {
+            boolean exists = userInfoRepository.existsById(pDTO.userId());
 
-        if (rEntity.isPresent()) {
-            res = 2;
-        } else {
-            String profileImgUrl = "/images/account/profile1.png";
+            if (exists) {
+                res = 2;
+            } else {
+                UserInfoEntity pEntity = UserInfoDTO.of(pDTO);
 
-            if (birthDate.length() >= 4) {
-                try {
-                    int birthYear = Integer.parseInt(birthDate.substring(0, 4));
-                    int zodiacNum = ((birthYear - 4) % 12) + 1;
-                    if (zodiacNum < 1) zodiacNum += 12;
-                    profileImgUrl = "/images/account/profile" + zodiacNum + ".png";
-                } catch (NumberFormatException e) {
-                    log.error("생년월일 연도 파싱 오류: {}", e.getMessage());
-                }
+                userInfoRepository.save(pEntity);
+
+                res = 1;
             }
-
-            String parsedBirthDate = String.valueOf(DateUtil.parseLocalDate(birthDate, "yyyy년 MM월 dd일"));
-
-            UserInfoEntity pEntity = UserInfoEntity.builder()
-                    .userId(userId)
-                    .password(CmmUtil.nvl(pDTO.password()))
-                    .userName(CmmUtil.nvl(pDTO.userName()))
-                    .email(CmmUtil.nvl(pDTO.email()))
-                    .birthDate(parsedBirthDate)
-                    .addr(CmmUtil.nvl(pDTO.addr()))
-                    .detailAddr(CmmUtil.nvl(pDTO.detailAddr()))
-                    .profileImgUrl(profileImgUrl)
-                    .build();
-
-            userInfoRepository.save(pEntity);
-            res = 1;
+        } catch (Exception e) {
+            log.error("insertUserInfo error", e);
+            res = 0;
         }
 
         log.info("{}.insertUserInfo End!", this.getClass().getName());
 
         return res;
+    }
+
+
+    @Override
+    public UserInfoDTO getUserInfo(UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.getUserInfo Start!", this.getClass().getName());
+
+        String userId = CmmUtil.nvl(pDTO.userId());
+
+        log.info("userId: {}", userId);
+
+        UserInfoDTO rDTO = UserInfoDTO.from(userInfoRepository.findByUserId(userId).orElseThrow());
+
+        log.info("{}.getUserInfo End!", this.getClass().getName());
+
+        return rDTO;
     }
 
 
@@ -345,37 +342,5 @@ public class UserInfoService implements IUserInfoService {
         log.info("{}.updatePassword End!", this.getClass().getName());
 
         return res;
-    }
-
-
-    @Override
-    public UserInfoDTO getUserInfo(@NonNull UserInfoDTO pDTO) throws Exception {
-
-        log.info("{}.getUserInfo Start!", this.getClass().getName());
-
-        String userId = CmmUtil.nvl(pDTO.userId());
-
-        log.info("userId: {}", userId);
-
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
-
-        UserInfoDTO rDTO;
-        if (rEntity.isPresent()) {
-            UserInfoEntity entity = rEntity.get();
-            log.info("회원 정보 조회 성공: {}", userId);
-            rDTO = UserInfoDTO.builder()
-                    .userNo(entity.getUserNo())
-                    .userId(entity.getUserId())
-                    .userName(entity.getUserName())
-                    .profileImgUrl(entity.getProfileImgUrl())
-                    .build();
-        } else {
-            log.info("회원 정보를 찾을 수 없음: {}", userId);
-            rDTO = UserInfoDTO.builder().build();
-        }
-
-        log.info("{}.getUserInfo End!", this.getClass().getName());
-
-        return rDTO;
     }
 }

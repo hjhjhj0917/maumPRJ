@@ -243,10 +243,13 @@ export const useRegisterForm = () => {
 
         try {
             const res = await registerUser(formData);
-            if (res.result === 1) {
-                showAlert("회원가입 성공", res.msg, () => navigate('/account/profile'));
+
+            const responseData = res.data;
+
+            if (responseData.result === 1) {
+                showAlert("회원가입 성공", responseData.msg, () => navigate('/account/profile'));
             } else {
-                showAlert("회원가입 실패", res.msg);
+                showAlert("회원가입 실패", responseData.msg);
             }
         } catch (err) {
             const errorMsg = err.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";

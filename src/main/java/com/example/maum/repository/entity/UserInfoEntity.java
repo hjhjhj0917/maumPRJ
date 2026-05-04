@@ -1,13 +1,14 @@
 package com.example.maum.repository.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import java.io.Serializable;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
@@ -57,7 +58,7 @@ public class UserInfoEntity implements Serializable {
     @Column(name = "UPDATED_AT", insertable = false, updatable = false)
     private String updatedAt;
 
-    @Column(name = "roles")
+    @Column(name = "ROLES")
     private String roles;
 
     public void updateProfileImg(String profileImgUrl) {

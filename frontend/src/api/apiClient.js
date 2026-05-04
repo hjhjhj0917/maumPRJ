@@ -1,17 +1,20 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: '/api',
+    baseURL: '/api/v1',
     withCredentials: true,
     headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
     }
 });
 
 apiClient.interceptors.response.use(
-    (response) => response.data, // 가공된 데이터(JSON)만 반환
+    (response) => response.data,
     (error) => {
-        console.error('API 호출 에러:', error);
+        if (error.response && error.response.status === 401) {
+            console.error('인증 에러: 로그인이 필요하거나 토큰이 만료되었습니다.');
+            // window.location.href = '/login';
+        }
         return Promise.reject(error);
     }
 );

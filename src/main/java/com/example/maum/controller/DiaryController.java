@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping(value = "/api/diary")
+@RequestMapping(value = "/api/v1/diary")
 @RequiredArgsConstructor
 public class DiaryController {
 

@@ -14,7 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationProvider;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -55,7 +54,7 @@ public class SecurityConfig {
                                 "/favicon.ico",
                                 "/html/**")
                         .permitAll()
-                        .requestMatchers("/reg/**", "/login/v1/**", "/auth/**")
+                        .requestMatchers("/api/v1/reg/**", "/api/v1/login/**", "/api/v1/account/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

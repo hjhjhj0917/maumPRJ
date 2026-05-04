@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UserInfoRepository extends JpaRepository<UserInfoEntity, Integer> {
+public interface UserInfoRepository extends JpaRepository<UserInfoEntity, String> {
 
     /*
     아이디 중복 여부

@@ -1,15 +1,20 @@
 package com.example.maum.controller;
 
+import com.example.maum.controller.response.CommonResponse;
 import com.example.maum.dto.ExistsDTO;
+import com.example.maum.dto.MsgDTO;
 import com.example.maum.dto.UserInfoDTO;
 import com.example.maum.service.IUserInfoService;
-import com.example.maum.dto.MsgDTO;
 import com.example.maum.util.CmmUtil;
 import com.example.maum.util.EncryptUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +24,7 @@ import java.util.Optional;
 
 @RestController
 @Slf4j
-@RequestMapping(value = "/api/account")
+@RequestMapping(value = "/api/v1/account")
 @RequiredArgsConstructor
 public class UserInfoController {
 
@@ -27,61 +32,60 @@ public class UserInfoController {
 
     /* CREATE */
 
-    @PostMapping(value = "insertUserInfo")
-    public MsgDTO insertUserInfo(HttpServletRequest request) throws Exception {
-
-        log.info("{}.insertUserInfo Start!", this.getClass().getName());
-
-        String msg;
-
-        String userId = CmmUtil.nvl(request.getParameter("userId"));
-        String userName = CmmUtil.nvl(request.getParameter("userName"));
-        String password = CmmUtil.nvl(request.getParameter("password"));
-        String email = CmmUtil.nvl(request.getParameter("email"));
-        String birthDate = CmmUtil.nvl(request.getParameter("birthDate"));
-        String addr = CmmUtil.nvl(request.getParameter("addr"));
-        String detailAddr = CmmUtil.nvl(request.getParameter("detailAddr"));
-
-        log.info("userId: {}, userName: {}, email: {}, birthDate: {}, addr: {}, detailAddr: {}",
-                userId, userName, email, birthDate, addr, detailAddr);
-
-        UserInfoDTO pDTO = UserInfoDTO.builder()
-                .userId(userId)
-                .userName(userName)
-                .password(EncryptUtil.encHashSHA256(password))
-                .email(EncryptUtil.encAES128BCBC(email))
-                .birthDate(birthDate)
-                .addr(addr)
-                .detailAddr(detailAddr)
-                .build();
-
-        int res = userInfoService.insertUserInfo(pDTO);
-
-        log.info("회원가입 결과(res): {}", res);
-
-        if (res == 1) {
-            msg = "회원가입이 완료되었습니다.";
-            request.getSession().setAttribute("SS_USER_ID", userId);
-        } else if (res == 2) {
-            msg = "이미 가입된 아이디입니다.";
-        } else {
-            msg = "오류로 인해 회원가입이 실패하였습니다.";
-        }
-
-        MsgDTO dto = MsgDTO.builder()
-                .result(res)
-                .msg(msg)
-                .build();
-
-        log.info("{}.insertUserInfo End!", this.getClass().getName());
-
-        return dto;
-    }
+//    @PostMapping(value = "insertUserInfo")
+//    public MsgDTO insertUserInfo(HttpServletRequest request) throws Exception {
+//
+//        log.info("{}.insertUserInfo Start!", this.getClass().getName());
+//
+//        String msg;
+//
+//        String userId = CmmUtil.nvl(request.getParameter("userId"));
+//        String userName = CmmUtil.nvl(request.getParameter("userName"));
+//        String password = CmmUtil.nvl(request.getParameter("password"));
+//        String email = CmmUtil.nvl(request.getParameter("email"));
+//        String birthDate = CmmUtil.nvl(request.getParameter("birthDate"));
+//        String addr = CmmUtil.nvl(request.getParameter("addr"));
+//        String detailAddr = CmmUtil.nvl(request.getParameter("detailAddr"));
+//
+//        log.info("userId: {}, userName: {}, email: {}, birthDate: {}, addr: {}, detailAddr: {}",
+//                userId, userName, email, birthDate, addr, detailAddr);
+//
+//        UserInfoDTO pDTO = UserInfoDTO.builder()
+//                .userId(userId)
+//                .userName(userName)
+//                .password(EncryptUtil.encHashSHA256(password))
+//                .email(EncryptUtil.encAES128BCBC(email))
+//                .birthDate(birthDate)
+//                .addr(addr)
+//                .detailAddr(detailAddr)
+//                .build();
+//
+//        int res = userInfoService.insertUserInfo(pDTO);
+//
+//        log.info("회원가입 결과(res): {}", res);
+//
+//        if (res == 1) {
+//            msg = "회원가입이 완료되었습니다.";
+//            request.getSession().setAttribute("SS_USER_ID", userId);
+//        } else if (res == 2) {
+//            msg = "이미 가입된 아이디입니다.";
+//        } else {
+//            msg = "오류로 인해 회원가입이 실패하였습니다.";
+//        }
+//
+//        MsgDTO dto = MsgDTO.builder()
+//                .result(res)
+//                .msg(msg)
+//                .build();
+//
+//        log.info("{}.insertUserInfo End!", this.getClass().getName());
+//
+//        return dto;
+//    }
 
 
     /* READ */
 
-//    여기 에러 때문에 주석처리함 나중에 주석 제거하고 에러 해결!!!!!!!
 //    @PostMapping(value = "getUserIdExists")
 //    public ExistsDTO getUserIdExists(HttpServletRequest request) throws Exception {
 //
@@ -104,10 +108,43 @@ public class UserInfoController {
 //    }
 
 
+
+    @PostMapping(value = "userInfo")
+    public ResponseEntity<CommonResponse<UserInfoDTO>> userInfo(@AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.userInfo Start!", this.getClass().getName());
+
+        if (jwt == null) {
+
+            log.warn("JWT principal is null - unauthorized access to /api/v1/account/userInfo");
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(CommonResponse.of(
+                            HttpStatus.UNAUTHORIZED,
+                            HttpStatus.UNAUTHORIZED.series().name(),
+                            UserInfoDTO.builder().build()
+                    ));
+        }
+
+        final String userId = jwt.getSubject();
+
+        UserInfoDTO pDTO = UserInfoDTO.builder().userId(userId).build();
+
+        UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserInfo(pDTO))
+                .orElseGet(() -> UserInfoDTO.builder().build());
+
+        log.info("{}.userInfo End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of((HttpStatus.OK), HttpStatus.OK.series().name(), rDTO)
+        );
+    }
+
+
     @PostMapping(value = "getEmailExists")
     public ExistsDTO getEmailExists(HttpServletRequest request, HttpSession session) throws Exception {
 
-        log.info(this.getClass().getName() + ".getEmailExists Start!");
+        log.info("{}.getEmailExists Start!", this.getClass().getName());
 
         String email = CmmUtil.nvl(request.getParameter("email"));
         log.info("email : " + email);
@@ -124,12 +161,13 @@ public class UserInfoController {
             session.setMaxInactiveInterval(3 * 60);
         }
 
-        log.info(this.getClass().getName() + ".getEmailExists End!");
 
         ExistsDTO dto = ExistsDTO.builder()
                 .exists(rDTO.exists())
                 .authNumber(0)
                 .build();
+
+        log.info("{}.getEmailExists End!", this.getClass().getName());
 
         return dto;
     }
@@ -137,7 +175,8 @@ public class UserInfoController {
 
     @PostMapping(value = "verifyEmailCode")
     public MsgDTO verifyEmailCode(HttpServletRequest request, HttpSession session) throws Exception {
-        log.info(this.getClass().getName() + ".verifyEmailCode Start!");
+
+        log.info("{}.verifyEmailCode Start!", this.getClass().getName());
 
         String email = CmmUtil.nvl(request.getParameter("email"));
         String code = CmmUtil.nvl(request.getParameter("code"));
@@ -162,53 +201,55 @@ public class UserInfoController {
                 .msg("인증번호가 일치하지 않거나 만료되었습니다.")
                 .build();
 
+        log.info("{}.verifyEmailCode End!", this.getClass().getName());
+
         return rDTO;
     }
 
 
-    @PostMapping(value = "loginProc")
-    public MsgDTO loginProc(HttpServletRequest request, HttpSession session) throws Exception {
-
-        log.info("{}.loginProc Start!", this.getClass().getName());
-
-        String msg;
-
-        String userId = CmmUtil.nvl(request.getParameter("userId"));
-        String password = CmmUtil.nvl(request.getParameter("password"));
-
-        log.info("userId: {}, password: {}", userId, password);
-
-        UserInfoDTO pDTO = UserInfoDTO.builder()
-                .userId(userId)
-                .password(EncryptUtil.encHashSHA256(password))
-                .build();
-
-        int res = userInfoService.getUserLogin(pDTO);
-
-        log.info("res: {}", res);
-
-        if (res == 1) {
-            msg = "로그인이 성공했습니다.";
-
-            UserInfoDTO rDTO = userInfoService.getUserInfo(pDTO);
-
-            session.setAttribute("SS_USER_ID", userId);
-            session.setAttribute("SS_USER_NO", rDTO.userNo());
-            session.setAttribute("SS_USER_NAME", rDTO.userName());
-            session.setAttribute("SS_USER_PROFILE_IMG", rDTO.profileImgUrl());
-        } else {
-            msg = "아이디와 비밀번호가 일치하지 않습니다.";
-        }
-
-        MsgDTO dto = MsgDTO.builder()
-                .result(res)
-                .msg(msg)
-                .build();
-
-        log.info("{}.loginProc End!", this.getClass().getName());
-
-        return dto;
-    }
+//    @PostMapping(value = "loginProc")
+//    public MsgDTO loginProc(HttpServletRequest request, HttpSession session) throws Exception {
+//
+//        log.info("{}.loginProc Start!", this.getClass().getName());
+//
+//        String msg;
+//
+//        String userId = CmmUtil.nvl(request.getParameter("userId"));
+//        String password = CmmUtil.nvl(request.getParameter("password"));
+//
+//        log.info("userId: {}, password: {}", userId, password);
+//
+//        UserInfoDTO pDTO = UserInfoDTO.builder()
+//                .userId(userId)
+//                .password(EncryptUtil.encHashSHA256(password))
+//                .build();
+//
+//        int res = userInfoService.getUserLogin(pDTO);
+//
+//        log.info("res: {}", res);
+//
+//        if (res == 1) {
+//            msg = "로그인이 성공했습니다.";
+//
+//            UserInfoDTO rDTO = userInfoService.getUserInfo(pDTO);
+//
+//            session.setAttribute("SS_USER_ID", userId);
+//            session.setAttribute("SS_USER_NO", rDTO.userNo());
+//            session.setAttribute("SS_USER_NAME", rDTO.userName());
+//            session.setAttribute("SS_USER_PROFILE_IMG", rDTO.profileImgUrl());
+//        } else {
+//            msg = "아이디와 비밀번호가 일치하지 않습니다.";
+//        }
+//
+//        MsgDTO dto = MsgDTO.builder()
+//                .result(res)
+//                .msg(msg)
+//                .build();
+//
+//        log.info("{}.loginProc End!", this.getClass().getName());
+//
+//        return dto;
+//    }
 
 
     @GetMapping(value = "status")
@@ -242,22 +283,22 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "logout")
-    public MsgDTO logout(HttpSession session) {
-
-        log.info("{}.logout Start!", this.getClass().getName());
-
-        session.invalidate();
-
-        MsgDTO dto = MsgDTO.builder()
-                .result(1)
-                .msg("로그아웃하였습니다.")
-                .build();
-
-        log.info("{}.logout End!", this.getClass().getName());
-
-        return dto;
-    }
+//    @PostMapping(value = "logout")
+//    public MsgDTO logout(HttpSession session) {
+//
+//        log.info("{}.logout Start!", this.getClass().getName());
+//
+//        session.invalidate();
+//
+//        MsgDTO dto = MsgDTO.builder()
+//                .result(1)
+//                .msg("로그아웃하였습니다.")
+//                .build();
+//
+//        log.info("{}.logout End!", this.getClass().getName());
+//
+//        return dto;
+//    }
 
 
     @PostMapping(value = "findUserId")
@@ -424,6 +465,7 @@ public class UserInfoController {
     }
 
 
+    // 이거 수정 고려 session 방식을 사용하고 있음
     @PostMapping(value = "updateProfileImg")
     public MsgDTO updateProfileImg(HttpServletRequest request, HttpSession session) throws Exception {
 
