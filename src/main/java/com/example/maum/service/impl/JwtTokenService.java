@@ -29,6 +29,7 @@ public class JwtTokenService implements IJwtTokenService {
     private static final String TYPE_REFRESH = "refresh";
 
     private final JwtEncoder jwtEncoder;
+    private final RedisService redisService;
 
     @Value("${secure.jwt.token.creator}")
     private String issuer;
@@ -112,5 +113,17 @@ public class JwtTokenService implements IJwtTokenService {
 
         res.addHeader("Set-Cookie", at.toString());
         res.addHeader("Set-Cookie", rt.toString());
+    }
+
+    @Override
+    public void issueTokens(UserInfoDTO user, HttpServletResponse response) {
+
+        String accessToken = generateAccessToken(user);
+        String refreshToken = generateRefreshToken(user);
+
+        long rtExpirationMillis = refreshTtlSec * 1000L;
+        redisService.setValues("RT:" + user.userId(), refreshToken, rtExpirationMillis);
+
+        writeTokenAsCookies(response, accessToken, refreshToken);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.maum.config;
 
+import com.example.maum.security.RedisBlacklistFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -24,6 +26,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
     private final BearerTokenResolver bearerTokenResolver;
+    private final RedisBlacklistFilter redisBlacklistFilter;
     private final JwtDecoder jwtDecoder;
 
     @Value("${secure.jwt.token.access.name}")
@@ -65,6 +68,7 @@ public class SecurityConfig {
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter)
                         )
                 )
+                .addFilterBefore(redisBlacklistFilter, BearerTokenAuthenticationFilter.class)
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .deleteCookies(accessTokenName, refreshTokenName)

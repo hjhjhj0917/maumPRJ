@@ -3,11 +3,14 @@ package com.example.maum.controller;
 import com.example.maum.controller.response.CommonResponse;
 import com.example.maum.dto.ExistsDTO;
 import com.example.maum.dto.MsgDTO;
+import jakarta.servlet.http.Cookie;
 import com.example.maum.dto.UserInfoDTO;
 import com.example.maum.service.IUserInfoService;
+import com.example.maum.service.impl.RedisService;
 import com.example.maum.util.CmmUtil;
 import com.example.maum.util.EncryptUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +33,8 @@ import java.util.Optional;
 public class UserInfoController {
 
     private final IUserInfoService userInfoService;
+    private final RedisService redisService;
+    private final BearerTokenResolver bearerTokenResolver;
 
     /* CREATE */
 
@@ -283,22 +289,40 @@ public class UserInfoController {
     }
 
 
-//    @PostMapping(value = "logout")
-//    public MsgDTO logout(HttpSession session) {
-//
-//        log.info("{}.logout Start!", this.getClass().getName());
-//
-//        session.invalidate();
-//
-//        MsgDTO dto = MsgDTO.builder()
-//                .result(1)
-//                .msg("로그아웃하였습니다.")
-//                .build();
-//
-//        log.info("{}.logout End!", this.getClass().getName());
-//
-//        return dto;
-//    }
+    @PostMapping(value = "logout")
+    public ResponseEntity<CommonResponse<MsgDTO>> logout(HttpServletRequest request, HttpServletResponse response) {
+
+        log.info("{}.logout Start!", this.getClass().getName());
+
+        String accessToken = bearerTokenResolver.resolve(request);
+
+        if (accessToken != null) {
+            long atExpirationMillis = 15 * 60 * 1000L;
+            redisService.setValues("AT:" + accessToken, "logout", atExpirationMillis);
+            log.info("Access Token 블랙리스트 등록 완료");
+        }
+
+        Cookie accessCookie = new Cookie("accessCookieName", null); // application.yml에 적은 쿠키 이름
+        accessCookie.setMaxAge(0);
+        accessCookie.setPath("/");
+        response.addCookie(accessCookie);
+
+        Cookie refreshCookie = new Cookie("refreshCookieName", null);
+        refreshCookie.setMaxAge(0);
+        refreshCookie.setPath("/");
+        response.addCookie(refreshCookie);
+
+        MsgDTO dto = MsgDTO.builder()
+                .result(1)
+                .msg("로그아웃 되었습니다.")
+                .build();
+
+        log.info("{}.logout End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto)
+        );
+    }
 
 
     @PostMapping(value = "findUserId")
