@@ -5,8 +5,6 @@ import com.example.maum.dto.DiaryDTO;
 import com.example.maum.dto.MsgDTO;
 import com.example.maum.service.impl.DiaryService;
 import com.example.maum.util.CmmUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,31 +28,26 @@ public class DiaryController {
     일기 저장
     */
     @PostMapping(value = "diaryInsert")
-    public MsgDTO diaryInsert(HttpServletRequest request, HttpSession session) throws Exception {
+    public MsgDTO diaryInsert(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.diaryInsert Start!", this.getClass().getName());
 
         String msg = "";
 
-        Object sessionUserNo = session.getAttribute("SS_USER_NO");
-
         MsgDTO rDTO;
 
-        if (sessionUserNo == null) {
-            log.warn("세션 만료 또는 비로그인 사용자의 접근입니다.");
-
-            rDTO = MsgDTO.builder()
+        if (jwt == null) {
+            log.warn("인증 정보가 없습니다.");
+            return MsgDTO.builder()
                     .result(0)
                     .msg("로그인이 필요한 서비스입니다.")
                     .build();
-
-            return rDTO;
         }
 
-        Integer userNo = (Integer) sessionUserNo;
-        String title = CmmUtil.nvl(request.getParameter("title"));
-        String content = CmmUtil.nvl(request.getParameter("content"));
-        String createdAt = CmmUtil.nvl(request.getParameter("createdAt"));
+        Integer userNo = Integer.parseInt(jwt.getSubject());
+        String title = CmmUtil.nvl(dDTO.title());
+        String content = CmmUtil.nvl(dDTO.content());
+        String createdAt = CmmUtil.nvl(dDTO.createdAt());
 
         log.info("userNo: {}, title: {}, content: {}, createdAt: {}", userNo, title, content, createdAt);
 
@@ -89,9 +82,7 @@ public class DiaryController {
     월별 일기 목록 불러오기
     */
     @GetMapping("/monthly")
-    public ResponseEntity<CommonResponse<List<DiaryDTO>>> getMonthlyDiaryList(
-            DiaryDTO pDTO,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<CommonResponse<List<DiaryDTO>>> getMonthlyDiaryList(DiaryDTO pDTO, @AuthenticationPrincipal Jwt jwt) {
 
         log.info("{}.getMonthlyDiaryList Start!", this.getClass().getName());
 
@@ -136,15 +127,13 @@ public class DiaryController {
     일기 상세 보기
     */
     @GetMapping("/detail")
-    public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@RequestParam(value = "diaryNo") Integer diaryNo, HttpSession session) {
+    public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@RequestParam(value = "diaryNo") Integer diaryNo, @AuthenticationPrincipal Jwt jwt) {
 
         log.info("{}.getDiaryDetail Start!", this.getClass().getName());
 
         ResponseEntity<CommonResponse<DiaryDTO>> response;
 
-        Integer userNo = (Integer) session.getAttribute("SS_USER_NO");
-
-        if (userNo == null) {
+        if (jwt == null) {
             response = ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(CommonResponse.<DiaryDTO>builder()
                             .httpStatus(HttpStatus.UNAUTHORIZED)
@@ -152,6 +141,8 @@ public class DiaryController {
                             .build());
             return response;
         }
+
+        Integer userNo = Integer.parseInt(jwt.getSubject());
 
         try {
             DiaryDTO pDTO = DiaryDTO.builder()

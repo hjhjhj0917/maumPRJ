@@ -13,7 +13,7 @@ apiClient.interceptors.response.use(
     (error) => {
         if (error.response && error.response.status === 401) {
             console.error('인증 에러: 로그인이 필요하거나 토큰이 만료되었습니다.');
-            // window.location.href = '/login';
+            window.location.href = '/login';
         }
         return Promise.reject(error);
     }

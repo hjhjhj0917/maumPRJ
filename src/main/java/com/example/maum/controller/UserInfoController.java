@@ -19,7 +19,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -141,37 +140,6 @@ public class UserInfoController {
                 .build();
 
         log.info("{}.verifyEmailCode End!", this.getClass().getName());
-
-        return rDTO;
-    }
-
-
-    @GetMapping(value = "status")
-    public UserInfoDTO getLoginStatus(HttpSession session) {
-
-        log.info("{}.getLoginStatus Start!", this.getClass().getName());
-
-        String userNo = (String) session.getAttribute("SS_USER_NO");
-
-        UserInfoDTO rDTO;
-
-        if (userNo == null) {
-            rDTO = UserInfoDTO.builder().build();
-            return rDTO;
-        }
-
-        String userId = CmmUtil.nvl((String) session.getAttribute("SS_USER_ID"));
-        String userName = CmmUtil.nvl((String) session.getAttribute("SS_USER_NAME"));
-        String profileImgUrl = CmmUtil.nvl((String) session.getAttribute("SS_USER_PROFILE_IMG"));
-
-        log.info("{}.getLoginStatus Start!", this.getClass().getName());
-
-        rDTO = UserInfoDTO.builder()
-                .userNo(userNo)
-                .userId(userId)
-                .userName(userName)
-                .profileImgUrl(profileImgUrl)
-                .build();
 
         return rDTO;
     }

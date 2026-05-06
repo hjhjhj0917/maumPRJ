@@ -1,9 +1,11 @@
 import apiClient from './apiClient';
 
 export const insertDiary = (title, content, createdAt) => {
-    const params = new URLSearchParams({ title, content, createdAt });
-
-    return apiClient.post('/diary/diaryInsert', params);
+    return apiClient.post('/diary/diaryInsert', {
+        title,
+        content,
+        createdAt
+    });
 };
 
 export const getMonthlyDiaries = async (createdAt) => {
