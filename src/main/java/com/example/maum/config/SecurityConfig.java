@@ -1,5 +1,6 @@
 package com.example.maum.config;
 
+import com.example.maum.jwt.CookieOrHeaderBearerTokenResolver;
 import com.example.maum.security.RedisBlacklistFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,9 +16,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenResolver;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -25,15 +31,14 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
-    private final BearerTokenResolver bearerTokenResolver;
     private final RedisBlacklistFilter redisBlacklistFilter;
     private final JwtDecoder jwtDecoder;
 
     @Value("${secure.jwt.token.access.name}")
     private String accessTokenName;
 
-    @Value("${secure.jwt.token.refresh.name}")
-    private String refreshTokenName;
+    @Value("${secure.app.cors.allowed-origins}")
+    private String[] allowedOrigins;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -50,30 +55,37 @@ public class SecurityConfig {
         http
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html",
-                                "/css/**", "/js/**",
-                                "/favicon.ico",
-                                "/html/**")
-                        .permitAll()
-                        .requestMatchers("/api/v1/reg/**", "/api/v1/login/**", "/api/v1/account/**")
-                        .permitAll()
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/favicon.ico", "/html/**").permitAll()
+                        .requestMatchers("/api/v1/reg/**", "/api/v1/login/**").permitAll()
+                        .requestMatchers("/api/v1/account/userInfo", "/api/v1/account/logout").authenticated()
+                        .requestMatchers("/api/v1/account/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .bearerTokenResolver(bearerTokenResolver)
+                        .bearerTokenResolver(new CookieOrHeaderBearerTokenResolver(accessTokenName))
                         .jwt(jwt -> jwt
                                 .decoder(jwtDecoder)
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter)
                         )
                 )
                 .addFilterBefore(redisBlacklistFilter, BearerTokenAuthenticationFilter.class)
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .deleteCookies(accessTokenName, refreshTokenName)
-                );
+                .logout(AbstractHttpConfigurer::disable);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

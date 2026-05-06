@@ -3,7 +3,6 @@ package com.example.maum.controller;
 import com.example.maum.controller.response.CommonResponse;
 import com.example.maum.dto.ExistsDTO;
 import com.example.maum.dto.MsgDTO;
-import jakarta.servlet.http.Cookie;
 import com.example.maum.dto.UserInfoDTO;
 import com.example.maum.service.IUserInfoService;
 import com.example.maum.service.impl.RedisService;
@@ -14,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,84 +36,16 @@ public class UserInfoController {
     private final RedisService redisService;
     private final BearerTokenResolver bearerTokenResolver;
 
-    /* CREATE */
+    @Value("${secure.jwt.token.access.name}")
+    private String accessCookieName;
 
-//    @PostMapping(value = "insertUserInfo")
-//    public MsgDTO insertUserInfo(HttpServletRequest request) throws Exception {
-//
-//        log.info("{}.insertUserInfo Start!", this.getClass().getName());
-//
-//        String msg;
-//
-//        String userId = CmmUtil.nvl(request.getParameter("userId"));
-//        String userName = CmmUtil.nvl(request.getParameter("userName"));
-//        String password = CmmUtil.nvl(request.getParameter("password"));
-//        String email = CmmUtil.nvl(request.getParameter("email"));
-//        String birthDate = CmmUtil.nvl(request.getParameter("birthDate"));
-//        String addr = CmmUtil.nvl(request.getParameter("addr"));
-//        String detailAddr = CmmUtil.nvl(request.getParameter("detailAddr"));
-//
-//        log.info("userId: {}, userName: {}, email: {}, birthDate: {}, addr: {}, detailAddr: {}",
-//                userId, userName, email, birthDate, addr, detailAddr);
-//
-//        UserInfoDTO pDTO = UserInfoDTO.builder()
-//                .userId(userId)
-//                .userName(userName)
-//                .password(EncryptUtil.encHashSHA256(password))
-//                .email(EncryptUtil.encAES128BCBC(email))
-//                .birthDate(birthDate)
-//                .addr(addr)
-//                .detailAddr(detailAddr)
-//                .build();
-//
-//        int res = userInfoService.insertUserInfo(pDTO);
-//
-//        log.info("회원가입 결과(res): {}", res);
-//
-//        if (res == 1) {
-//            msg = "회원가입이 완료되었습니다.";
-//            request.getSession().setAttribute("SS_USER_ID", userId);
-//        } else if (res == 2) {
-//            msg = "이미 가입된 아이디입니다.";
-//        } else {
-//            msg = "오류로 인해 회원가입이 실패하였습니다.";
-//        }
-//
-//        MsgDTO dto = MsgDTO.builder()
-//                .result(res)
-//                .msg(msg)
-//                .build();
-//
-//        log.info("{}.insertUserInfo End!", this.getClass().getName());
-//
-//        return dto;
-//    }
+    @Value("${secure.jwt.token.refresh.name}")
+    private String refreshCookieName;
+
+    /* CREATE */
 
 
     /* READ */
-
-//    @PostMapping(value = "getUserIdExists")
-//    public ExistsDTO getUserIdExists(HttpServletRequest request) throws Exception {
-//
-//        log.info("{}.getUserIdExists Start!", this.getClass().getName());
-//
-//        String userId = CmmUtil.nvl(request.getParameter("userId"));
-//
-//        log.info("userId: {}", userId);
-//
-//        UserInfoDTO pDTO = UserInfoDTO.builder()
-//                .userId(userId)
-//                .build();
-//
-//        ExistsDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
-//                .orElseGet(() -> ExistsDTO.builder().exists(false).build());
-//
-//        log.info("{}.getUserIdExists End!", this.getClass().getName());
-//
-//        return rDTO;
-//    }
-
-
 
     @PostMapping(value = "userInfo")
     public ResponseEntity<CommonResponse<UserInfoDTO>> userInfo(@AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -132,9 +64,10 @@ public class UserInfoController {
                     ));
         }
 
-        final String userId = jwt.getSubject();
+        final String userNo = jwt.getSubject();
+        String userId = jwt.getClaimAsString("userId");
 
-        UserInfoDTO pDTO = UserInfoDTO.builder().userId(userId).build();
+        UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).userId(userId).build();
 
         UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserInfo(pDTO))
                 .orElseGet(() -> UserInfoDTO.builder().build());
@@ -213,51 +146,6 @@ public class UserInfoController {
     }
 
 
-//    @PostMapping(value = "loginProc")
-//    public MsgDTO loginProc(HttpServletRequest request, HttpSession session) throws Exception {
-//
-//        log.info("{}.loginProc Start!", this.getClass().getName());
-//
-//        String msg;
-//
-//        String userId = CmmUtil.nvl(request.getParameter("userId"));
-//        String password = CmmUtil.nvl(request.getParameter("password"));
-//
-//        log.info("userId: {}, password: {}", userId, password);
-//
-//        UserInfoDTO pDTO = UserInfoDTO.builder()
-//                .userId(userId)
-//                .password(EncryptUtil.encHashSHA256(password))
-//                .build();
-//
-//        int res = userInfoService.getUserLogin(pDTO);
-//
-//        log.info("res: {}", res);
-//
-//        if (res == 1) {
-//            msg = "로그인이 성공했습니다.";
-//
-//            UserInfoDTO rDTO = userInfoService.getUserInfo(pDTO);
-//
-//            session.setAttribute("SS_USER_ID", userId);
-//            session.setAttribute("SS_USER_NO", rDTO.userNo());
-//            session.setAttribute("SS_USER_NAME", rDTO.userName());
-//            session.setAttribute("SS_USER_PROFILE_IMG", rDTO.profileImgUrl());
-//        } else {
-//            msg = "아이디와 비밀번호가 일치하지 않습니다.";
-//        }
-//
-//        MsgDTO dto = MsgDTO.builder()
-//                .result(res)
-//                .msg(msg)
-//                .build();
-//
-//        log.info("{}.loginProc End!", this.getClass().getName());
-//
-//        return dto;
-//    }
-
-
     @GetMapping(value = "status")
     public UserInfoDTO getLoginStatus(HttpSession session) {
 
@@ -290,7 +178,9 @@ public class UserInfoController {
 
 
     @PostMapping(value = "logout")
-    public ResponseEntity<CommonResponse<MsgDTO>> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<CommonResponse<MsgDTO>> logout(@AuthenticationPrincipal Jwt jwt,
+                                                         HttpServletRequest request,
+                                                         HttpServletResponse response) {
 
         log.info("{}.logout Start!", this.getClass().getName());
 
@@ -302,15 +192,38 @@ public class UserInfoController {
             log.info("Access Token 블랙리스트 등록 완료");
         }
 
-        Cookie accessCookie = new Cookie("accessCookieName", null); // application.yml에 적은 쿠키 이름
-        accessCookie.setMaxAge(0);
-        accessCookie.setPath("/");
-        response.addCookie(accessCookie);
+        if (jwt != null) {
+            String userNo = jwt.getSubject();
+            redisService.deleteValues("RT:" + userNo);
+            log.info("Redis Refresh Token 삭제 완료");
+        }
 
-        Cookie refreshCookie = new Cookie("refreshCookieName", null);
-        refreshCookie.setMaxAge(0);
-        refreshCookie.setPath("/");
-        response.addCookie(refreshCookie);
+        org.springframework.http.ResponseCookie accessCookie = org.springframework.http.ResponseCookie.from(accessCookieName, "")
+                .maxAge(0)
+                .path("/")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build();
+        response.addHeader("Set-Cookie", accessCookie.toString());
+
+        org.springframework.http.ResponseCookie refreshCookie = org.springframework.http.ResponseCookie.from(refreshCookieName, "")
+                .maxAge(0)
+                .path("/")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build();
+        response.addHeader("Set-Cookie", refreshCookie.toString());
+
+        org.springframework.http.ResponseCookie loginFlagCookie = org.springframework.http.ResponseCookie.from("isLoggedIn", "")
+                .maxAge(0)
+                .path("/")
+                .httpOnly(false)
+                .secure(true)
+                .sameSite("Lax")
+                .build();
+        response.addHeader("Set-Cookie", loginFlagCookie.toString());
 
         MsgDTO dto = MsgDTO.builder()
                 .result(1)

@@ -10,15 +10,24 @@ export const useHeader = () => {
     const isLoginPage = location.pathname === '/account/login';
     const isRegisterPage = location.pathname === '/account/register';
 
+    const getCookie = (name) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    };
+
     const fetchUserStatus = async () => {
         try {
-            const data = await getUserStatus();
-            if (data && data.userNo) {
+            const res = await getUserStatus();
+
+            const userData = res.data;
+
+            if (userData && userData.userId) {
                 setUser({
-                    no: data.userNo,
-                    id: data.userId,
-                    name: data.userName,
-                    profileImg: data.profileImgUrl
+                    no: userData.userNo,
+                    id: userData.userId,
+                    name: userData.userName,
+                    profileImg: userData.profileImgUrl
                 });
             } else {
                 setUser(null);
@@ -29,8 +38,17 @@ export const useHeader = () => {
     };
 
     useEffect(() => {
-        fetchUserStatus();
-    }, [location.pathname]);
+        const loginFlag = getCookie('isLoggedIn');
+
+        if (!isLoginPage && !isRegisterPage && loginFlag === 'true') {
+            fetchUserStatus();
+        } else {
+            setUser(null);
+        }
+
+        setIsMobileMenuOpen(false);
+
+    }, [location.pathname, isLoginPage, isRegisterPage]);
 
     const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 

@@ -18,11 +18,16 @@ export const useSidebar = () => {
     const confirmLogout = async () => {
         try {
             const res = await logoutUser();
-            if (res.result === 1) {
+
+            if (res && res.data && res.data.result === 1) {
                 setShowLogoutModal(false);
+                navigate('/');
+            } else {
+                console.error("로그아웃 실패:", res.message);
                 navigate('/');
             }
         } catch (error) {
+            console.error("로그아웃 통신 에러:", error);
             navigate('/');
         }
     };

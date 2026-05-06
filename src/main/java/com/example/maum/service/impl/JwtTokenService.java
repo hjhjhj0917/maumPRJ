@@ -27,6 +27,7 @@ public class JwtTokenService implements IJwtTokenService {
     private static final String CLAIM_TYPE = "type";
     private static final String TYPE_ACCESS = "access";
     private static final String TYPE_REFRESH = "refresh";
+    private static final String CLAIM_USERID = "userId";
 
     private final JwtEncoder jwtEncoder;
     private final RedisService redisService;
@@ -54,7 +55,8 @@ public class JwtTokenService implements IJwtTokenService {
                 .issuer(issuer)
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(ttlSec))
-                .subject(user.userId())
+                .subject(user.userNo())
+                .claim(CLAIM_USERID, user.userId())
                 .claim(CLAIM_USERNAME, user.userName())
                 .claim(CLAIM_TYPE, type)
                 .claim(CLAIM_ROLES, roles)
@@ -83,7 +85,7 @@ public class JwtTokenService implements IJwtTokenService {
 
     /*
     Refresh Token 생성
-     */
+    */
     @Override
     public String generateRefreshToken(UserInfoDTO user) {
         return encode(user, refreshTtlSec, TYPE_REFRESH);
@@ -91,13 +93,13 @@ public class JwtTokenService implements IJwtTokenService {
 
     /*
     Access/Refresh Token 각각 HttpOnly 쿠키로 저장
-     */
+    */
     @Override
     public void writeTokenAsCookies(HttpServletResponse res, String accessToken, String refreshToken) {
 
         ResponseCookie at = ResponseCookie.from(accessCookie, accessToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false) // 개발중에만 false 이후에는 true로 설정 바꾸기
                 .path("/")
                 .sameSite("Lax")
                 .maxAge(accessTtlSec)
@@ -105,14 +107,23 @@ public class JwtTokenService implements IJwtTokenService {
 
         ResponseCookie rt = ResponseCookie.from(refreshCookie, refreshToken)
                 .httpOnly(true)
-                .secure(true)
+                .secure(false) // 개발중에만 false 이후에는 true로 설정 바꾸기
                 .path("/")
                 .sameSite("Lax")
                 .maxAge(refreshTtlSec)
                 .build();
 
+        ResponseCookie loginFlag = ResponseCookie.from("isLoggedIn", "true")
+                .httpOnly(false)
+                .secure(false) // 개발중에만 false 이후에는 true로 설정 바꾸기
+                .path("/")
+                .sameSite("Lax")
+                .maxAge(accessTtlSec)
+                .build();
+
         res.addHeader("Set-Cookie", at.toString());
         res.addHeader("Set-Cookie", rt.toString());
+        res.addHeader("Set-Cookie", loginFlag.toString());
     }
 
     @Override
@@ -122,7 +133,7 @@ public class JwtTokenService implements IJwtTokenService {
         String refreshToken = generateRefreshToken(user);
 
         long rtExpirationMillis = refreshTtlSec * 1000L;
-        redisService.setValues("RT:" + user.userId(), refreshToken, rtExpirationMillis);
+        redisService.setValues("RT:" + user.userNo(), refreshToken, rtExpirationMillis);
 
         writeTokenAsCookies(response, accessToken, refreshToken);
     }

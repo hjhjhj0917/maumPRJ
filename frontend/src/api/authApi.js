@@ -4,7 +4,7 @@ export const loginRequest = (userId, password) =>
     apiClient.post('/login/loginProc', {userId, password});
 
 export const getUserStatus = () =>
-    apiClient.post('/login/loginInfo');
+    apiClient.post('/account/userInfo');
 
 export const registerUser = (formData) => {
     const {code, passwordConfirm, ...userData} = formData;
