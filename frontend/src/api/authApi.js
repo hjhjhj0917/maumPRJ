@@ -34,38 +34,24 @@ export const checkUserIdExists = (userId) =>
     apiClient.post('/reg/getUserIdExists', {userId});
 
 export const checkEmailExists = (email) =>
-    apiClient.post('/account/getEmailExists', new URLSearchParams({email}), {
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-    });
+    apiClient.post('/account/getEmailExists', {email});
 
 export const verifyEmailCode = (email, code) =>
-    apiClient.post('/account/verifyEmailCode', new URLSearchParams({email, code}), {
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-    });
+    apiClient.post('/account/verifyEmailCode', {email, code});
 
-export const updateProfileImg = (profileImage) =>
-    apiClient.post('/account/updateProfileImg', new URLSearchParams({profileImage}), {
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-    });
+export const updateProfileImg = (profileImgUrl) =>
+    apiClient.post('/account/updateProfileImg', {profileImgUrl});
 
 export const logoutUser = () => apiClient.post('/account/logout');
 
 export const findUserId = (email, userName) =>
-    apiClient.post('/account/findUserId', new URLSearchParams({email, userName}), {
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-    });
+    apiClient.post('/account/findUserId', {email, userName});
 
 export const getUserId = (email, userName, code) =>
-    apiClient.post('/account/getUserId', new URLSearchParams({email, userName, code}), {
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-    });
+    apiClient.post('/account/getUserId', {email, userName, code});
 
 export const findUserPw = (email, userId) =>
-    apiClient.post('/account/findUserPw', new URLSearchParams({email, userId}), {
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-    });
+    apiClient.post('/account/findUserPw', {email, userId});
 
 export const updateUserPw = (email, password, code) =>
-    apiClient.post('/account/updateUserPw', new URLSearchParams({email, password, code}), {
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'}
-    });
+    apiClient.post('/account/updateUserPw', {email, password, code});

@@ -42,20 +42,23 @@ export const useLoginForm = () => {
         }
 
         try {
-            // apiClient 사용으로 인해 .json() 과정 생략
             const res = await loginRequest(userId, password);
 
-            const responseData = res.data;
+            const msgDto = res.data;
 
-            if (responseData.result === 1) {
+            if (msgDto && msgDto.result === 1) {
                 navigate('/diary/list');
             } else {
-                setMessage('userId', res.msg || "로그인 정보를 확인해주세요.", 'error');
+                setMessage('userId', msgDto?.msg || "로그인 정보를 확인해주세요.", 'error');
                 setPassword('');
             }
         } catch (error) {
-            const errorMsg = error.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";
-            alert(errorMsg);
+            console.error("Login Error:", error);
+            const errorMsg = error.response?.data?.data?.msg
+                || error.response?.data?.message
+                || "서버 통신 중 오류가 발생했습니다.";
+            setMessage('userId', errorMsg, 'error');
+            setPassword('');
         }
     };
 

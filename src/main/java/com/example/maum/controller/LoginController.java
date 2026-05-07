@@ -37,19 +37,33 @@ public class LoginController {
 
         log.info("{}.loginProc Start!", this.getClass().getName());
 
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(pDTO.userId(), pDTO.password())
-        );
+        MsgDTO dto;
 
-        AuthInfo principal = (AuthInfo) auth.getPrincipal();
-        UserInfoDTO u = principal.userInfoDTO();
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(pDTO.userId(), pDTO.password())
+            );
 
-        jwtTokenService.issueTokens(u, response);
+            AuthInfo principal = (AuthInfo) auth.getPrincipal();
+            UserInfoDTO u = principal.userInfoDTO();
 
-        MsgDTO dto = MsgDTO.builder()
-                .result(1)
-                .msg("로그인 성공")
-                .build();
+            jwtTokenService.issueTokens(u, response);
+
+            dto = MsgDTO.builder()
+                    .result(1)
+                    .msg("로그인 성공")
+                    .build();
+
+            log.info("로그인 성공: {}", pDTO.userId());
+
+        } catch (Exception e) {
+            log.warn("로그인 실패 (userId: {}): {}", pDTO.userId(), e.getMessage());
+
+            dto = MsgDTO.builder()
+                    .result(0)
+                    .msg("아이디 또는 비밀번호가 일치하지 않습니다.")
+                    .build();
+        }
 
         log.info("{}.loginProc End!", this.getClass().getName());
 

@@ -150,7 +150,10 @@ export const useRegisterForm = () => {
 
         try {
             const res = await checkUserIdExists(formData.userId);
-            if (res.exists) {
+
+            const isExists = res.data && res.data.existsYn === 'Y';
+
+            if (isExists) {
                 setMessage('userIdMsg', '이미 가입된 아이디가 존재합니다.', 'error');
                 setFlags(prev => ({ ...prev, userIdChecked: false }));
             } else {
@@ -158,6 +161,7 @@ export const useRegisterForm = () => {
                 setFlags(prev => ({ ...prev, userIdChecked: true }));
             }
         } catch (e) {
+            console.error("ID 중복 체크 에러:", e);
             setMessage('userIdMsg', '서버 통신 중 오류가 발생했습니다.', 'error');
         }
     };
@@ -247,7 +251,7 @@ export const useRegisterForm = () => {
             const responseData = res.data;
 
             if (responseData.result === 1) {
-                showAlert("회원가입 성공", responseData.msg, () => navigate('/account/profile'));
+                showAlert("회원가입 성공", responseData.msg, () => navigate('/account/login'));
             } else {
                 showAlert("회원가입 실패", responseData.msg);
             }

@@ -42,6 +42,7 @@ public record UserInfoDTO(
         String createdAt,
         String updatedAt,
         String roles,
+        String code,
 
         String existsYn) {
 
