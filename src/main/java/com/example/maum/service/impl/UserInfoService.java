@@ -43,65 +43,7 @@ public class UserInfoService implements IUserInfoService {
     private String refreshCookieName;
 
 
-    @Transactional(readOnly = true)
-    @Override
-    public UserInfoDTO getUserIdExists(UserInfoDTO pDTO) throws Exception {
-
-        log.info("{}.getUserIdExists Start!", this.getClass().getName());
-
-        UserInfoDTO rDTO = userInfoRepository.findByUserId(pDTO.userId())
-                .map(e -> UserInfoDTO.builder()
-                        .existsYn("Y")
-                        .build())
-                .orElseGet(() -> UserInfoDTO.builder()
-                        .existsYn("N")
-                        .build());
-
-        log.info("exists: {}", rDTO.existsYn());
-
-        log.info("{}.getUserIdExists End!", this.getClass().getName());
-
-        return rDTO;
-    }
-
-
-    @Override
-    public UserInfoDTO getUserInfo(UserInfoDTO pDTO) throws Exception {
-
-        log.info("{}.getUserInfo Start!", this.getClass().getName());
-
-        String userId = CmmUtil.nvl(pDTO.userId());
-
-        log.info("userId: {}", userId);
-
-        UserInfoDTO rDTO = UserInfoDTO.from(userInfoRepository.findByUserId(userId).orElseThrow());
-
-        log.info("{}.getUserInfo End!", this.getClass().getName());
-
-        return rDTO;
-    }
-
-
-    @SneakyThrows
-    @Override
-    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-
-        log.info("{}.loadUserByUsername Start!", this.getClass().getName());
-
-        log.info("userId: {}", userId);
-
-        UserInfoEntity rEntity = userInfoRepository.findByUserId(userId)
-                .orElseThrow(() -> new UsernameNotFoundException(userId + " Not Found User"));
-
-        UserInfoDTO rDTO = UserInfoDTO.from(rEntity);
-
-        UserDetails res = new AuthInfo(rDTO);
-
-        log.info("{}.loadUserByUsername End!", this.getClass().getName());
-
-        return res;
-    }
-
+    /* [Account Management] */
 
     @Transactional
     @Override
@@ -137,40 +79,45 @@ public class UserInfoService implements IUserInfoService {
 
 
     @Override
-    public ExistsDTO getEmailExists(UserInfoDTO pDTO) throws Exception {
+    public UserInfoDTO getUserInfo(UserInfoDTO pDTO) throws Exception {
 
-        log.info("{}.getEmailExists Start!", this.getClass().getName());
+        log.info("{}.getUserInfo Start!", this.getClass().getName());
 
-        String email = CmmUtil.nvl(pDTO.email());
+        String userId = CmmUtil.nvl(pDTO.userId());
 
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmail(email);
-        boolean exists = rEntity.isPresent();
-        int authNumber = 0;
+        log.info("userId: {}", userId);
 
-        if (!exists) {
-            authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
+        UserInfoDTO rDTO = UserInfoDTO.from(userInfoRepository.findByUserId(userId).orElseThrow());
 
-            MailDTO mailDTO = new MailDTO();
-            mailDTO.setTitle("이메일 중복 확인 인증번호 발송 메일");
-            mailDTO.setContent("인증번호는 " + authNumber + " 입니다.");
-            mailDTO.setReceiver(EncryptUtil.decAES128BCBC(email));
-            mailService.doSendMail(mailDTO);
-
-            redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
-
-            log.info("Redis에 인증번호 저장 완료 (3분): AUTH:{}", email);
-        }
-
-        ExistsDTO rDTO = ExistsDTO.builder()
-                .exists(exists)
-                .authNumber(authNumber)
-                .build();
-
-        log.info("{}.getEmailExists End!", this.getClass().getName());
+        log.info("{}.getUserInfo End!", this.getClass().getName());
 
         return rDTO;
     }
 
+
+    @Transactional(readOnly = true)
+    @Override
+    public UserInfoDTO getUserIdExists(UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.getUserIdExists Start!", this.getClass().getName());
+
+        UserInfoDTO rDTO = userInfoRepository.findByUserId(pDTO.userId())
+                .map(e -> UserInfoDTO.builder()
+                        .existsYn("Y")
+                        .build())
+                .orElseGet(() -> UserInfoDTO.builder()
+                        .existsYn("N")
+                        .build());
+
+        log.info("exists: {}", rDTO.existsYn());
+
+        log.info("{}.getUserIdExists End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+
+    /* [Authentication & Verification] */
 
     @Override
     public MsgDTO verifyEmailCode(UserInfoDTO pDTO) throws Exception {
@@ -238,74 +185,7 @@ public class UserInfoService implements IUserInfoService {
     }
 
 
-    @Transactional
-    @Override
-    public int updateProfileImg(@NonNull UserInfoDTO pDTO) throws Exception {
-
-        log.info("{}.updateProfileImg Start!", this.getClass().getName());
-
-        String userId = CmmUtil.nvl(pDTO.userId());
-        String profileImage = CmmUtil.nvl(pDTO.profileImgUrl());
-
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
-
-        int res;
-        if (rEntity.isPresent()) {
-            UserInfoEntity entity = rEntity.get();
-            String profileImgUrl = profileImage;
-
-            if (profileImage != null && profileImage.startsWith("/images/account/profile") && profileImage.endsWith(".png")) {
-                profileImgUrl = profileImage;
-            }
-
-            entity.updateProfileImg(profileImgUrl);
-            res = 1;
-        } else {
-            res = 0;
-        }
-
-        log.info("{}.updateProfileImg End!", this.getClass().getName());
-
-        return res;
-    }
-
-
-    @Override
-    public ExistsDTO findUserId(UserInfoDTO pDTO) throws Exception {
-
-        log.info("{}.findUserId Start!", this.getClass().getName());
-
-        String email = CmmUtil.nvl(pDTO.email());
-        String userName = CmmUtil.nvl(pDTO.userName());
-
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmailAndUserName(email, userName);
-
-        boolean exists = rEntity.isPresent();
-        int authNumber = 0;
-
-        if (exists) {
-            authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
-
-            MailDTO mailDTO = new MailDTO();
-            mailDTO.setTitle("아이디 찾기 인증번호 발송 메일");
-            mailDTO.setContent("인증번호는 " + authNumber + " 입니다.");
-            mailDTO.setReceiver(EncryptUtil.decAES128BCBC(email));
-            mailService.doSendMail(mailDTO);
-
-            redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
-            log.info("아이디 찾기 Redis 저장 완료: AUTH:{}", email);
-        }
-
-        ExistsDTO rDTO = ExistsDTO.builder()
-                .exists(exists)
-                .authNumber(authNumber)
-                .build();
-
-        log.info("{}.findUserId End!", this.getClass().getName());
-
-        return rDTO;
-    }
-
+    /* [Account Recovery] */
 
     @Override
     public UserInfoDTO getUserId(UserInfoDTO pDTO) throws Exception {
@@ -343,6 +223,43 @@ public class UserInfoService implements IUserInfoService {
         }
 
         log.info("{}.getUserId End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+
+    @Override
+    public ExistsDTO findUserId(UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.findUserId Start!", this.getClass().getName());
+
+        String email = CmmUtil.nvl(pDTO.email());
+        String userName = CmmUtil.nvl(pDTO.userName());
+
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmailAndUserName(email, userName);
+
+        boolean exists = rEntity.isPresent();
+        int authNumber = 0;
+
+        if (exists) {
+            authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
+
+            MailDTO mailDTO = new MailDTO();
+            mailDTO.setTitle("아이디 찾기 인증번호 발송 메일");
+            mailDTO.setContent("인증번호는 " + authNumber + " 입니다.");
+            mailDTO.setReceiver(EncryptUtil.decAES128BCBC(email));
+            mailService.doSendMail(mailDTO);
+
+            redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
+            log.info("아이디 찾기 Redis 저장 완료: AUTH:{}", email);
+        }
+
+        ExistsDTO rDTO = ExistsDTO.builder()
+                .exists(exists)
+                .authNumber(authNumber)
+                .build();
+
+        log.info("{}.findUserId End!", this.getClass().getName());
 
         return rDTO;
     }
@@ -387,6 +304,76 @@ public class UserInfoService implements IUserInfoService {
     }
 
 
+    @Override
+    public ExistsDTO getEmailExists(UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.getEmailExists Start!", this.getClass().getName());
+
+        String email = CmmUtil.nvl(pDTO.email());
+
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmail(email);
+        boolean exists = rEntity.isPresent();
+        int authNumber = 0;
+
+        if (!exists) {
+            authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
+
+            MailDTO mailDTO = new MailDTO();
+            mailDTO.setTitle("이메일 중복 확인 인증번호 발송 메일");
+            mailDTO.setContent("인증번호는 " + authNumber + " 입니다.");
+            mailDTO.setReceiver(EncryptUtil.decAES128BCBC(email));
+            mailService.doSendMail(mailDTO);
+
+            redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
+
+            log.info("Redis에 인증번호 저장 완료 (3분): AUTH:{}", email);
+        }
+
+        ExistsDTO rDTO = ExistsDTO.builder()
+                .exists(exists)
+                .authNumber(authNumber)
+                .build();
+
+        log.info("{}.getEmailExists End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+
+    /* [Profile & Security] */
+
+    @Transactional
+    @Override
+    public int updateProfileImg(@NonNull UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.updateProfileImg Start!", this.getClass().getName());
+
+        String userId = CmmUtil.nvl(pDTO.userId());
+        String profileImage = CmmUtil.nvl(pDTO.profileImgUrl());
+
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
+
+        int res;
+        if (rEntity.isPresent()) {
+            UserInfoEntity entity = rEntity.get();
+            String profileImgUrl = profileImage;
+
+            if (profileImage != null && profileImage.startsWith("/images/account/profile") && profileImage.endsWith(".png")) {
+                profileImgUrl = profileImage;
+            }
+
+            entity.updateProfileImg(profileImgUrl);
+            res = 1;
+        } else {
+            res = 0;
+        }
+
+        log.info("{}.updateProfileImg End!", this.getClass().getName());
+
+        return res;
+    }
+
+
     @Transactional
     @Override
     public int updatePassword(UserInfoDTO pDTO) throws Exception {
@@ -425,4 +412,26 @@ public class UserInfoService implements IUserInfoService {
 
         return res;
     }
+
+
+    @SneakyThrows
+    @Override
+    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+
+        log.info("{}.loadUserByUsername Start!", this.getClass().getName());
+
+        log.info("userId: {}", userId);
+
+        UserInfoEntity rEntity = userInfoRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException(userId + " Not Found User"));
+
+        UserInfoDTO rDTO = UserInfoDTO.from(rEntity);
+
+        UserDetails res = new AuthInfo(rDTO);
+
+        log.info("{}.loadUserByUsername End!", this.getClass().getName());
+
+        return res;
+    }
+
 }
