@@ -1,6 +1,7 @@
 package com.example.maum.service.impl;
 
 import com.example.maum.dto.DiaryDTO;
+import com.example.maum.dto.MsgDTO;
 import com.example.maum.repository.DiaryRepository;
 import com.example.maum.repository.entity.DiaryEntity;
 import com.example.maum.service.IDiaryService;
@@ -31,16 +32,13 @@ import java.util.stream.Collectors;
 public class DiaryService implements IDiaryService {
 
     private final DiaryRepository diaryRepository;
-
-    // RestTemplate 대신 최신 권장 방식인 RestClient 생성
     private final RestClient restClient = RestClient.create();
 
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
 
-    /*
-    일기 작성
-    */
+    /* [Diary Management] */
+
     @Transactional
     @Override
     public int diaryInsert(DiaryDTO pDTO) throws Exception {
@@ -70,7 +68,6 @@ public class DiaryService implements IDiaryService {
                 requestMap.put("content", pDTO.content());
                 requestMap.put("disease_type", "depression");
 
-                // RestClient를 활용한 체이닝(Fluent) 방식의 API 호출
                 ResponseEntity<Map> response = restClient.post()
                         .uri(pythonApiUrl)
                         .body(requestMap)
@@ -82,22 +79,18 @@ public class DiaryService implements IDiaryService {
                     log.info("Analysis Result Received Successfully.");
 
                     try {
-                        // 1. 파이썬에서 보낸 데이터 추출
                         String summary = (String) responseBody.get("analysis_summary");
                         String mainEmotion = (String) responseBody.get("main_emotion");
                         String emotionColor = (String) responseBody.get("main_color");
 
-                        // 2. dep_res 내부 데이터 추출
                         Map<String, Object> depRes = (Map<String, Object>) responseBody.get("dep_res");
 
-                        // Integer 변환을 더 안전하게 처리하도록 보완
                         Integer depLvl = Integer.parseInt(String.valueOf(depRes.get("final_level")));
                         BigDecimal depScore = new BigDecimal(String.valueOf(depRes.get("raw_score")));
 
                         Object isSymptomObj = depRes.get("is_symptom");
                         Integer symptomYn = (isSymptomObj instanceof Boolean && (Boolean) isSymptomObj) ? 1 : 0;
 
-                        // 3. 엔티티 업데이트
                         pEntity.updateAnalysisResult(summary, mainEmotion, emotionColor, depLvl, depScore, symptomYn);
 
                         diaryRepository.save(pEntity);
@@ -105,7 +98,7 @@ public class DiaryService implements IDiaryService {
 
                     } catch (Exception parseEx) {
                         log.error("Failed to parse and save analysis result to DB: {}", parseEx.getMessage());
-                        parseEx.printStackTrace(); // 상세 에러 확인용
+                        parseEx.printStackTrace();
                     }
 
                 } else {
@@ -126,9 +119,25 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
-    /*
-    월별 일기 목록 조회
-    */
+
+    @Override
+    public MsgDTO diaryUpdate(DiaryDTO pDTO) throws Exception {
+
+        log.info("{}.diaryUpdate Start!", this.getClass().getName());
+
+        Integer userNo = pDTO.userNo();
+        Integer diaryNo = pDTO.diaryNo();
+        String title = pDTO.title();
+        String content = pDTO.content();
+
+        log.info("{}.diaryUpdate End!", this.getClass().getName());
+
+        return null;
+    }
+
+
+    /* [Diary Retrieval] */
+
     @Transactional(readOnly = true)
     @Cacheable(value = "diaryCache", key = "#pDTO.userNo() + '_' + #pDTO.createdAt()") // 중복된 요청을 빠르게 처리하기 위함 (캐시를 redis에 저장하게 수정)
     @Override
@@ -143,7 +152,6 @@ public class DiaryService implements IDiaryService {
             return new ArrayList<>();
         }
 
-        // 만약 yyyy-MM-dd 형태의 날짜가 들어온다면 dateStr.substring(0, 7) 로 잘라서 사용하세요.
         YearMonth yearMonth;
         try {
             yearMonth = YearMonth.parse(dateStr.length() > 7 ? dateStr.substring(0, 7) : dateStr);
@@ -172,9 +180,7 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
-    /*
-    일기 상세 조회
-    */
+
     @Transactional(readOnly = true)
     @Override
     public DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception {

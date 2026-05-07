@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @Slf4j
@@ -24,9 +25,8 @@ public class DiaryController {
 
     private final DiaryService diaryService;
 
-    /*
-    일기 저장
-    */
+    /* [Diary Management] */
+
     @PostMapping(value = "diaryInsert")
     public MsgDTO diaryInsert(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -78,9 +78,45 @@ public class DiaryController {
         return rDTO;
     }
 
-    /*
-    월별 일기 목록 불러오기
-    */
+
+    @PostMapping(value = "diaryUpdate")
+    public MsgDTO diaryUpdate(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.diaryUpdate Start!", this.getClass().getName());
+
+        if (jwt == null) {
+            log.warn("인증 정보가 없습니다.");
+            return MsgDTO.builder()
+                    .result(0)
+                    .msg("로그인이 필요한 서비스입니다.")
+                    .build();
+        }
+
+        Integer userNo = Integer.parseInt(jwt.getSubject());
+        Integer diaryNo = dDTO.diaryNo();
+        String title = CmmUtil.nvl(dDTO.title());
+        String content = CmmUtil.nvl(dDTO.content());
+
+        log.info("userNo: {}, diaryNo: {}, title: {}, content: {}", userNo, diaryNo, title, content);
+
+        DiaryDTO pDTO = DiaryDTO.builder()
+                .userNo(userNo)
+                .diaryNo(diaryNo)
+                .title(title)
+                .content(content)
+                .build();
+
+        MsgDTO rDTO = Optional.ofNullable(diaryService.diaryUpdate(pDTO))
+                .orElseGet(() -> MsgDTO.builder().result(0).msg("일기 수정에 실패하였습니다.").build());
+
+        log.info("{}.diaryUpdate End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+
+    /* [Diary Retrieval] */
+
     @GetMapping("/monthly")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getMonthlyDiaryList(DiaryDTO pDTO, @AuthenticationPrincipal Jwt jwt) {
 
@@ -123,23 +159,20 @@ public class DiaryController {
         }
     }
 
-    /*
-    일기 상세 보기
-    */
     @GetMapping("/detail")
     public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@RequestParam(value = "diaryNo") Integer diaryNo, @AuthenticationPrincipal Jwt jwt) {
 
         log.info("{}.getDiaryDetail Start!", this.getClass().getName());
 
-        ResponseEntity<CommonResponse<DiaryDTO>> response;
+        ResponseEntity<CommonResponse<DiaryDTO>> res;
 
         if (jwt == null) {
-            response = ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            res = ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(CommonResponse.<DiaryDTO>builder()
                             .httpStatus(HttpStatus.UNAUTHORIZED)
                             .message("로그인이 필요한 서비스입니다.")
                             .build());
-            return response;
+            return res;
         }
 
         Integer userNo = Integer.parseInt(jwt.getSubject());
@@ -152,7 +185,7 @@ public class DiaryController {
 
             DiaryDTO rDTO = diaryService.getDiaryDetail(pDTO);
 
-            response = ResponseEntity.ok(
+            res = ResponseEntity.ok(
                     CommonResponse.<DiaryDTO>builder()
                             .httpStatus(HttpStatus.OK)
                             .message("일기 조회 성공")
@@ -162,13 +195,13 @@ public class DiaryController {
 
         } catch (Exception e) {
             log.error("일기 상세 조회 중 오류 발생: ", e);
-            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            res = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(CommonResponse.<DiaryDTO>builder()
                             .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
                             .message(e.getMessage())
                             .build());
         }
 
-        return response;
+        return res;
     }
 }
