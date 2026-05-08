@@ -51,6 +51,45 @@ export const MonthText = styled.h2`
     text-align: center;
 `;
 
+export const FilterSection = styled.div`
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 25px;
+    padding: 0 20px;
+`;
+
+export const FilterChip = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: ${props => props.$isSelected ? props.$color : '#fff'};
+    color: ${props => props.$isSelected ? '#fff' : '#666'};
+    border: 1px solid ${props => props.$isSelected ? props.$color : '#e0e0e0'};
+    box-shadow: ${props => props.$isSelected ? '0 4px 10px rgba(0, 0, 0, 0.1)' : 'none'};
+
+    &:hover {
+        border-color: ${props => props.$color};
+        transform: translateY(-1px);
+    }
+`;
+
+export const ChipCircle = styled.div`
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: ${props => props.$isSelected ? '#fff' : props.$color};
+`;
+
 export const Controls = styled.div`
     width: 100%;
     max-width: 800px;

@@ -23,4 +23,6 @@ public interface IDiaryService {
     DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception;
 
     List<DiaryDTO> searchDiaryList(DiaryDTO pDTO) throws Exception;
+
+    List<DiaryDTO> getDiaryListByColors(Integer userNo, List<String> colors) throws Exception;
 }

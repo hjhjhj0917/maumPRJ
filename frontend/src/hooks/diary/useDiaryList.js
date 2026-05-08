@@ -1,6 +1,18 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMonthlyDiaries, searchDiaries } from '../../api/diaryApi.js';
+import { getMonthlyDiaries, searchDiaries, filterDiariesByColors } from '../../api/diaryApi.js';
+
+export const EMOTION_GROUPS = {
+    "기쁨": "#FFD700",
+    "신뢰": "#66CDAA",
+    "공포": "#4B0082",
+    "놀람": "#00BFFF",
+    "슬픔": "#1E3A8A",
+    "혐오": "#556B2F",
+    "분노": "#FF3B30",
+    "기대": "#FFA500",
+    "무감정": "#9E9E9E"
+};
 
 export const useDiaryList = () => {
     const navigate = useNavigate();
@@ -8,13 +20,15 @@ export const useDiaryList = () => {
     const [diaries, setDiaries] = useState([]);
     const [keyword, setKeyword] = useState('');
     const [searchResults, setSearchResults] = useState([]);
+    const [selectedColors, setSelectedColors] = useState([]);
+    const [filterResults, setFilterResults] = useState([]);
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
     const dateQuery = `${year}-${String(month).padStart(2, '0')}`;
 
     useEffect(() => {
-        if (!keyword.trim()) {
+        if (!keyword.trim() && selectedColors.length === 0) {
             const fetchDiaries = async () => {
                 try {
                     const data = await getMonthlyDiaries(dateQuery);
@@ -25,7 +39,7 @@ export const useDiaryList = () => {
             };
             fetchDiaries();
         }
-    }, [dateQuery, keyword]);
+    }, [dateQuery, keyword, selectedColors]);
 
     useEffect(() => {
         if (keyword.trim()) {
@@ -42,6 +56,22 @@ export const useDiaryList = () => {
             setSearchResults([]);
         }
     }, [keyword]);
+
+    useEffect(() => {
+        if (selectedColors.length > 0) {
+            const fetchFilterResults = async () => {
+                try {
+                    const data = await filterDiariesByColors(selectedColors);
+                    setFilterResults(data || []);
+                } catch (error) {
+                    setFilterResults([]);
+                }
+            };
+            fetchFilterResults();
+        } else {
+            setFilterResults([]);
+        }
+    }, [selectedColors]);
 
     const daysInMonth = new Date(year, month, 0).getDate();
 
@@ -78,9 +108,16 @@ export const useDiaryList = () => {
         navigate(`/diary/${diaryNo}`);
     };
 
+    const toggleColorFilter = (color) => {
+        setSelectedColors(prev =>
+            prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
+        );
+    };
+
     return {
         year, month, daysList,
         handlePrevMonth, handleNextMonth, handleDayClick,
-        keyword, setKeyword, searchResults, handleResultClick
+        keyword, setKeyword, searchResults, handleResultClick,
+        selectedColors, toggleColorFilter, filterResults
     };
 };

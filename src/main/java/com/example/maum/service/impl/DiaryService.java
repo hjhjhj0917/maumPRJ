@@ -305,9 +305,7 @@ public class DiaryService implements IDiaryService {
         List<DiaryEntity> entities = diaryRepository.findByUserNoAndTitleContainingOrderByCreatedAtDesc(
                 pDTO.userNo(), pDTO.title());
 
-        log.info("{}.searchDiaryList End!", this.getClass().getName());
-
-        return entities.stream()
+        List<DiaryDTO> rList = entities.stream()
                 .map(e -> DiaryDTO.builder()
                         .diaryNo(e.getDiaryNo())
                         .title(e.getTitle())
@@ -315,5 +313,29 @@ public class DiaryService implements IDiaryService {
                         .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
                         .build())
                 .collect(Collectors.toList());
+
+        log.info("{}.searchDiaryList End!", this.getClass().getName());
+
+        return rList;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<DiaryDTO> getDiaryListByColors(Integer userNo, List<String> colors) throws Exception {
+
+        log.info("{}.getDiaryListByColors Start!", this.getClass().getName());
+
+        List<DiaryDTO> rList = diaryRepository.findByUserNoAndEmotionColorInOrderByCreatedAtDesc(userNo, colors).stream()
+                .map(e -> DiaryDTO.builder()
+                        .diaryNo(e.getDiaryNo())
+                        .title(e.getTitle())
+                        .emotionColor(e.getEmotionColor())
+                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                        .build())
+                .collect(Collectors.toList());
+
+        log.info("{}.getDiaryListByColors End!", this.getClass().getName());
+
+        return rList;
     }
 }

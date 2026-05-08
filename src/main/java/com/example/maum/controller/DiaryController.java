@@ -192,6 +192,7 @@ public class DiaryController {
         }
     }
 
+
     @GetMapping("/detail")
     public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@RequestParam(value = "diaryNo") Integer diaryNo, @AuthenticationPrincipal Jwt jwt) {
 
@@ -238,6 +239,7 @@ public class DiaryController {
         return res;
     }
 
+
     @GetMapping("/search")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> searchDiaryList(@RequestParam(value = "keyword") String keyword, @AuthenticationPrincipal Jwt jwt) {
 
@@ -268,6 +270,37 @@ public class DiaryController {
         } catch (Exception e) {
             log.error("검색 중 에러 발생: ", e);
             log.info("{}.searchDiaryList End!", this.getClass().getName());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    @GetMapping("/filter")
+    public ResponseEntity<CommonResponse<List<DiaryDTO>>> filterDiaryList(@RequestParam(value = "colors") List<String> colors,
+            @AuthenticationPrincipal Jwt jwt) {
+
+        log.info("{}.filterDiaryList Start!", this.getClass().getName());
+
+        if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+
+        try {
+            Integer userNo = Integer.parseInt(jwt.getSubject());
+            // Service에 colors 리스트를 전달하여 조회
+            List<DiaryDTO> rList = diaryService.getDiaryListByColors(userNo, colors);
+
+            log.info("{}.filterDiaryList End!", this.getClass().getName());
+
+            return ResponseEntity.ok(
+                    CommonResponse.<List<DiaryDTO>>builder()
+                            .httpStatus(HttpStatus.OK)
+                            .message("필터 결과 조회 성공")
+                            .data(rList)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("필터 조회 중 에러: ", e);
+            log.info("{}.filterDiaryList End!", this.getClass().getName());
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

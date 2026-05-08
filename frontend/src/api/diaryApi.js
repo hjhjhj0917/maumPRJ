@@ -49,3 +49,10 @@ export const searchDiaries = async (keyword) => {
     });
     return response.data;
 };
+
+export const filterDiariesByColors = async (colors) => {
+    const response = await apiClient.get('/diary/filter', {
+        params: { colors: colors.join(',') }
+    });
+    return response.data;
+};

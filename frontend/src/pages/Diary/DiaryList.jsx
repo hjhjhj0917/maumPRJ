@@ -1,12 +1,13 @@
 import React from 'react';
-import { useDiaryList } from '../../hooks/diary/useDiaryList';
+import { useDiaryList, EMOTION_GROUPS } from '../../hooks/diary/useDiaryList';
 import * as S from '../../style/pages/diary/DiaryList.styles';
 
 const DiaryList = () => {
     const {
         year, month, daysList,
         handlePrevMonth, handleNextMonth, handleDayClick,
-        keyword, setKeyword, searchResults, handleResultClick
+        keyword, setKeyword, searchResults, handleResultClick,
+        selectedColors, toggleColorFilter, filterResults
     } = useDiaryList();
 
     return (
@@ -21,6 +22,22 @@ const DiaryList = () => {
                         <i className="fa-solid fa-chevron-right"></i>
                     </S.ArrowButton>
                 </S.MonthNav>
+
+                {!keyword && (
+                    <S.FilterSection>
+                        {Object.entries(EMOTION_GROUPS).map(([name, color]) => (
+                            <S.FilterChip
+                                key={name}
+                                $color={color}
+                                $isSelected={selectedColors.includes(color)}
+                                onClick={() => toggleColorFilter(color)}
+                            >
+                                <S.ChipCircle $color={color} $isSelected={selectedColors.includes(color)} />
+                                {name}
+                            </S.FilterChip>
+                        ))}
+                    </S.FilterSection>
+                )}
 
                 <S.Controls>
                     <S.SearchBox>
@@ -50,6 +67,18 @@ const DiaryList = () => {
                         ))
                     ) : (
                         <S.NoResultText>검색 결과가 없습니다.</S.NoResultText>
+                    )
+                ) : selectedColors.length > 0 ? (
+                    filterResults.length > 0 ? (
+                        filterResults.map((result) => (
+                            <S.ListItem key={result.diaryNo} onClick={() => handleResultClick(result.diaryNo)} $hasDiary={true}>
+                                <S.ResultDateText>{result.createdAt}</S.ResultDateText>
+                                <S.TitleText>{result.title}</S.TitleText>
+                                <S.ColorCircle $color={result.emotionColor || '#e0e0e0'} />
+                            </S.ListItem>
+                        ))
+                    ) : (
+                        <S.NoResultText>해당 감정의 일기가 없습니다.</S.NoResultText>
                     )
                 ) : (
                     daysList.map((item) => (
