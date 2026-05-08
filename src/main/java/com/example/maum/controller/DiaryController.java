@@ -84,7 +84,7 @@ public class DiaryController {
 
         log.info("{}.diaryUpdate Start!", this.getClass().getName());
 
-        if (jwt == null) {
+        if (jwt == null) { // 이거 그냥 로그인 정보 없으면 아예 페이지 조차 접근 못 하게 처리하는 방법 생각해 보기
             log.warn("인증 정보가 없습니다.");
             return MsgDTO.builder()
                     .result(0)
@@ -110,6 +110,39 @@ public class DiaryController {
                 .orElseGet(() -> MsgDTO.builder().result(0).msg("일기 수정에 실패하였습니다.").build());
 
         log.info("{}.diaryUpdate End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+
+    @PostMapping(value = "diaryDelete")
+    public MsgDTO diaryDelete(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.diaryDelete Start!", this.getClass().getName());
+
+        if (jwt == null) {
+            log.warn("인증 정보가 없습니다.");
+            return MsgDTO.builder()
+                    .result(0)
+                    .msg("로그인이 필요한 서비스입니다.")
+                    .build();
+        }
+
+
+        Integer userNo = Integer.parseInt(jwt.getSubject());
+        Integer diaryNo = dDTO.diaryNo();
+
+        log.info("userNo: {}, diaryNo: {}", userNo, diaryNo);
+
+        DiaryDTO pDTO = DiaryDTO.builder()
+                .userNo(userNo)
+                .diaryNo(diaryNo)
+                .build();
+
+        MsgDTO rDTO = Optional.ofNullable(diaryService.diaryDelete(pDTO))
+                .orElseGet(() -> MsgDTO.builder().result(0).msg("일기 삭제에 실패하였습니다.").build());
+
+        log.info("{}.diaryDelete End!", this.getClass().getName());
 
         return rDTO;
     }
@@ -203,5 +236,40 @@ public class DiaryController {
         }
 
         return res;
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<CommonResponse<List<DiaryDTO>>> searchDiaryList(@RequestParam(value = "keyword") String keyword, @AuthenticationPrincipal Jwt jwt) {
+
+        log.info("{}.searchDiaryList Start!", this.getClass().getName());
+
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        try {
+            Integer userNo = Integer.parseInt(jwt.getSubject());
+            DiaryDTO pDTO = DiaryDTO.builder()
+                    .userNo(userNo)
+                    .title(CmmUtil.nvl(keyword))
+                    .build();
+
+            List<DiaryDTO> rList = diaryService.searchDiaryList(pDTO);
+
+            log.info("{}.searchDiaryList End!", this.getClass().getName());
+
+            return ResponseEntity.ok(
+                    CommonResponse.<List<DiaryDTO>>builder()
+                            .httpStatus(HttpStatus.OK)
+                            .message("검색 결과 조회 성공")
+                            .data(rList)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("검색 중 에러 발생: ", e);
+            log.info("{}.searchDiaryList End!", this.getClass().getName());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

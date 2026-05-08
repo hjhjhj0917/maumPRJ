@@ -121,6 +121,7 @@ export const ListItem = styled.div`
     padding: 0 30px;
     border-radius: 30px;
     margin-bottom: 20px;
+    background-color: #fff;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -136,6 +137,13 @@ export const DayText = styled.span`
     font-weight: 600;
     color: #333;
     width: 60px;
+`;
+
+export const ResultDateText = styled.span`
+    font-size: 14px;
+    font-weight: 500;
+    color: #888;
+    width: 100px;
 `;
 
 export const TitleText = styled.span`
@@ -159,4 +167,11 @@ export const ColorCircle = styled.div`
     height: 24px;
     border-radius: 50%;
     background-color: ${props => props.$color};
+`;
+
+export const NoResultText = styled.div`
+    text-align: center;
+    padding: 50px 0;
+    color: #888;
+    font-size: 16px;
 `;

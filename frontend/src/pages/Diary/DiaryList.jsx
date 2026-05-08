@@ -4,12 +4,9 @@ import * as S from '../../style/pages/diary/DiaryList.styles';
 
 const DiaryList = () => {
     const {
-        year,
-        month,
-        daysList,
-        handlePrevMonth,
-        handleNextMonth,
-        handleDayClick
+        year, month, daysList,
+        handlePrevMonth, handleNextMonth, handleDayClick,
+        keyword, setKeyword, searchResults, handleResultClick
     } = useDiaryList();
 
     return (
@@ -27,7 +24,12 @@ const DiaryList = () => {
 
                 <S.Controls>
                     <S.SearchBox>
-                        <input type="text" placeholder="제목을 입력하세요" />
+                        <input
+                            type="text"
+                            placeholder="제목을 입력하세요"
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
+                        />
                         <i className="fa-solid fa-magnifying-glass"></i>
                     </S.SearchBox>
                     <S.FilterButton>
@@ -37,29 +39,41 @@ const DiaryList = () => {
             </S.StickyHeader>
 
             <S.ListWrapper>
-                {daysList.map((item) => (
-                    <S.ListItem
-                        key={item.day}
-                        onClick={() => handleDayClick(item)}
-                        // 스타일드 컴포넌트에서 레이아웃 분기를 위해 사용
-                        $hasDiary={!!item.diary}
-                    >
-                        <S.DayText>{item.day}일</S.DayText>
+                {keyword.trim() ? (
+                    searchResults.length > 0 ? (
+                        searchResults.map((result) => (
+                            <S.ListItem key={result.diaryNo} onClick={() => handleResultClick(result.diaryNo)} $hasDiary={true}>
+                                <S.ResultDateText>{result.createdAt}</S.ResultDateText>
+                                <S.TitleText>{result.title}</S.TitleText>
+                                <S.ColorCircle $color={result.emotionColor || '#e0e0e0'} />
+                            </S.ListItem>
+                        ))
+                    ) : (
+                        <S.NoResultText>검색 결과가 없습니다.</S.NoResultText>
+                    )
+                ) : (
+                    daysList.map((item) => (
+                        <S.ListItem
+                            key={item.day}
+                            onClick={() => handleDayClick(item)}
+                            $hasDiary={!!item.diary}
+                        >
+                            <S.DayText>{item.day}일</S.DayText>
 
-                        {item.diary ? (
-                            <S.TitleText>{item.diary.title}</S.TitleText>
-                        ) : (
-                            <S.AddIcon>
-                                <i className="fa-solid fa-plus"></i>
-                            </S.AddIcon>
-                        )}
+                            {item.diary ? (
+                                <S.TitleText>{item.diary.title}</S.TitleText>
+                            ) : (
+                                <S.AddIcon>
+                                    <i className="fa-solid fa-plus"></i>
+                                </S.AddIcon>
+                            )}
 
-                        {/* emotionColor 필드 매핑 확인 */}
-                        <S.ColorCircle
-                            $color={item.diary ? item.diary.emotionColor : '#e0e0e0'}
-                        />
-                    </S.ListItem>
-                ))}
+                            <S.ColorCircle
+                                $color={item.diary ? item.diary.emotionColor : '#e0e0e0'}
+                            />
+                        </S.ListItem>
+                    ))
+                )}
             </S.ListWrapper>
         </S.Container>
     );

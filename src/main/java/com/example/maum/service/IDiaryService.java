@@ -13,10 +13,14 @@ public interface IDiaryService {
 
     MsgDTO diaryUpdate(DiaryDTO pDTO) throws Exception;
 
+    MsgDTO diaryDelete(DiaryDTO pDTO) throws Exception;
+
 
     /* [Diary Retrieval] */
 
     List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception;
 
     DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception;
+
+    List<DiaryDTO> searchDiaryList(DiaryDTO pDTO) throws Exception;
 }

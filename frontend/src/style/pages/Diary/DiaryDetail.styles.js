@@ -72,25 +72,23 @@ export const DateText = styled.div`
     padding-bottom: 5px;
 `;
 
-/* 메인 레이아웃: 좌측 본문, 우측 사이드바 */
 export const MainContentWrapper = styled.div`
     display: flex;
     gap: 30px;
-    align-items: flex-start; /* 양쪽 높이가 달라도 위쪽 정렬 */
+    align-items: flex-start;
 
     @media (max-width: 900px) {
-        flex-direction: column; /* 화면이 작아지면 위아래로 배치 */
+        flex-direction: column;
     }
 `;
 
-/* 왼쪽 본문 영역 */
 export const ContentArea = styled.div`
-    flex: 1; /* 남은 공간을 모두 차지 */
+    flex: 1;
     background-color: #fff;
     border-radius: 28px;
     padding: 40px;
     min-height: 400px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05); /* 작성 폼보다 조금 더 부드러운 그림자 */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
     width: 100%;
     box-sizing: border-box;
 `;
@@ -99,14 +97,13 @@ export const ContentText = styled.div`
     color: #333;
     font-size: 17px;
     line-height: 1.8;
-    white-space: pre-wrap; /* \n 줄바꿈을 화면에 그대로 렌더링해주는 핵심 속성 */
+    white-space: pre-wrap;
     word-break: break-all;
 `;
 
-/* 오른쪽 사이드바 영역 */
 export const SidebarArea = styled.div`
-    width: 320px; /* 사이드바 고정 너비 */
-    flex-shrink: 0; /* 창이 좁아져도 사이드바 크기 유지 */
+    width: 320px;
+    flex-shrink: 0;
     background-color: #fff;
     border-radius: 28px;
     padding: 30px;
@@ -117,7 +114,7 @@ export const SidebarArea = styled.div`
     box-sizing: border-box;
 
     @media (max-width: 900px) {
-        width: 100%; /* 모바일에서는 100% 꽉 차게 변경 */
+        width: 100%;
     }
 `;
 
@@ -132,7 +129,7 @@ export const SidebarTitle = styled.h3`
     border-bottom: 1px solid #f0f0f0;
 
     i {
-        color: #FFD166; /* 작성완료 버튼 색상 활용 */
+        color: #FFD166;
     }
 `;
 
@@ -177,7 +174,7 @@ export const SummaryText = styled.p`
     background-color: #fcfcfc;
     padding: 15px;
     border-radius: 12px;
-    border-left: 4px solid #FFD166; /* 강조 포인트 */
+    border-left: 4px solid #FFD166;
 `;
 
 export const LevelText = styled.div`
@@ -191,4 +188,83 @@ export const LoadingText = styled.div`
     padding-top: 100px;
     font-size: 18px;
     color: #8e918f;
+`;
+
+
+export const ButtonGroup = styled.div`
+    display: flex;
+    gap: 10px;
+`;
+
+export const ActionButton = styled.button`
+    background-color: #fff;
+    border: 1px solid #d1d4d2;
+    color: #555;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: #f8f9fa;
+        color: #333;
+    }
+`;
+
+export const SaveButton = styled(ActionButton)`
+    background-color: #FFD166;
+    border-color: #FFD166;
+    color: #333;
+    font-weight: 600;
+
+    &:hover {
+        background-color: #ffc233;
+    }
+`;
+
+export const TitleInput = styled.input`
+    width: 100%;
+    font-size: 40px;
+    font-weight: 600;
+    color: #333;
+    border: none;
+    border-bottom: 2px solid #FFD166;
+    padding-bottom: 5px;
+    outline: none;
+    background: transparent;
+
+    &::placeholder {
+        color: #ccc;
+    }
+`;
+
+export const ContentTextarea = styled.textarea`
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    font-size: 17px;
+    line-height: 1.8;
+    color: #333;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 15px;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+    box-sizing: border-box;
+
+    &:focus {
+        border-color: #FFD166;
+    }
+`;
+
+export const DeleteButton = styled(ActionButton)`
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+
+    &:hover {
+        background-color: #ff6b6b;
+        color: #fff;
+    }
 `;

@@ -37,6 +37,52 @@ public class DiaryService implements IDiaryService {
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
 
+    /* [Diary Analyze] */
+
+    private void requestAnalysisAndUpdate(DiaryEntity entity, String content) {
+        try {
+            Map<String, String> requestMap = new HashMap<>();
+            requestMap.put("content", content);
+            requestMap.put("disease_type", "depression");
+
+            ResponseEntity<Map> response = restClient.post()
+                    .uri(pythonApiUrl)
+                    .body(requestMap)
+                    .retrieve()
+                    .toEntity(Map.class);
+
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                Map<String, Object> responseBody = response.getBody();
+                log.info("파이썬 분석 결과 수신 성공.");
+
+                try {
+                    String summary = (String) responseBody.get("analysis_summary");
+                    String mainEmotion = (String) responseBody.get("main_emotion");
+                    String emotionColor = (String) responseBody.get("main_color");
+
+                    Map<String, Object> depRes = (Map<String, Object>) responseBody.get("dep_res");
+                    Integer depLvl = Integer.parseInt(String.valueOf(depRes.get("final_level")));
+                    BigDecimal depScore = new BigDecimal(String.valueOf(depRes.get("raw_score")));
+                    Object isSymptomObj = depRes.get("is_symptom");
+                    Integer symptomYn = (isSymptomObj instanceof Boolean && (Boolean) isSymptomObj) ? 1 : 0;
+
+                    entity.updateAnalysisResult(summary, mainEmotion, emotionColor, depLvl, depScore, symptomYn);
+
+                    diaryRepository.save(entity);
+                    log.info("분석 결과 DB 반영 완료 (Color: {})", emotionColor);
+
+                } catch (Exception parseEx) {
+                    log.error("분석 결과 파싱 실패: {}", parseEx.getMessage());
+                }
+            } else {
+                log.error("파이썬 분석 요청 실패. Status: {}", response.getStatusCode());
+            }
+        } catch (Exception e) {
+            log.error("파이썬 서버 통신 에러: {}", e.getMessage());
+        }
+    }
+
+
     /* [Diary Management] */
 
     @Transactional
@@ -49,7 +95,6 @@ public class DiaryService implements IDiaryService {
 
         try {
             String createdAt = CmmUtil.nvl(pDTO.createdAt()).trim();
-
             LocalDate parsedDate = DateUtil.parseLocalDate(createdAt, "yyyy-MM-dd");
 
             DiaryEntity pEntity = DiaryEntity.builder()
@@ -59,55 +104,10 @@ public class DiaryService implements IDiaryService {
                     .createdAt(parsedDate)
                     .build();
 
-            diaryRepository.save(pEntity);
-
+            pEntity = diaryRepository.save(pEntity);
             res = 1;
 
-            try {
-                Map<String, String> requestMap = new HashMap<>();
-                requestMap.put("content", pDTO.content());
-                requestMap.put("disease_type", "depression");
-
-                ResponseEntity<Map> response = restClient.post()
-                        .uri(pythonApiUrl)
-                        .body(requestMap)
-                        .retrieve()
-                        .toEntity(Map.class);
-
-                if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                    Map<String, Object> responseBody = response.getBody();
-                    log.info("Analysis Result Received Successfully.");
-
-                    try {
-                        String summary = (String) responseBody.get("analysis_summary");
-                        String mainEmotion = (String) responseBody.get("main_emotion");
-                        String emotionColor = (String) responseBody.get("main_color");
-
-                        Map<String, Object> depRes = (Map<String, Object>) responseBody.get("dep_res");
-
-                        Integer depLvl = Integer.parseInt(String.valueOf(depRes.get("final_level")));
-                        BigDecimal depScore = new BigDecimal(String.valueOf(depRes.get("raw_score")));
-
-                        Object isSymptomObj = depRes.get("is_symptom");
-                        Integer symptomYn = (isSymptomObj instanceof Boolean && (Boolean) isSymptomObj) ? 1 : 0;
-
-                        pEntity.updateAnalysisResult(summary, mainEmotion, emotionColor, depLvl, depScore, symptomYn);
-
-                        diaryRepository.save(pEntity);
-                        log.info("Analysis Result (including Color: {}) Successfully Saved to DB.", emotionColor);
-
-                    } catch (Exception parseEx) {
-                        log.error("Failed to parse and save analysis result to DB: {}", parseEx.getMessage());
-                        parseEx.printStackTrace();
-                    }
-
-                } else {
-                    log.error("Analysis Request Failed. Status Code: {}", response.getStatusCode());
-                }
-
-            } catch (Exception e) {
-                log.error("Python Server Communication Error: {}", e.getMessage());
-            }
+            requestAnalysisAndUpdate(pEntity, pDTO.content());
 
         } catch (Exception e) {
             res = 2;
@@ -120,19 +120,95 @@ public class DiaryService implements IDiaryService {
     }
 
 
+    @Transactional
     @Override
     public MsgDTO diaryUpdate(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.diaryUpdate Start!", this.getClass().getName());
 
+        int res = 0;
+        String msg = "일기 수정에 실패하였습니다.";
+
         Integer userNo = pDTO.userNo();
         Integer diaryNo = pDTO.diaryNo();
-        String title = pDTO.title();
-        String content = pDTO.content();
+        String title = CmmUtil.nvl(pDTO.title());
+        String content = CmmUtil.nvl(pDTO.content());
+
+        Optional<DiaryEntity> rEntity = diaryRepository.findById(diaryNo);
+
+        if (rEntity.isPresent()) {
+            DiaryEntity entity = rEntity.get();
+
+            if (entity.getUserNo().equals(userNo)) {
+
+                entity.updateDiary(title, content);
+                diaryRepository.save(entity);
+
+                requestAnalysisAndUpdate(entity, content);
+
+                res = 1;
+                msg = "일기가 성공적으로 수정 및 재분석되었습니다.";
+            } else {
+                msg = "본인의 일기만 수정할 수 있습니다.";
+            }
+        } else {
+            msg = "존재하지 않는 일기입니다.";
+        }
+
+        MsgDTO rDTO = MsgDTO.builder()
+                .result(res)
+                .msg(msg)
+                .build();
 
         log.info("{}.diaryUpdate End!", this.getClass().getName());
 
-        return null;
+        return rDTO;
+    }
+
+
+    @Transactional
+    @Override
+    public MsgDTO diaryDelete(DiaryDTO pDTO) throws Exception {
+
+        log.info("{}.diaryDelete Start!", this.getClass().getName());
+
+        int res = 0;
+        String msg = "일기 삭제에 실패하였습니다.";
+
+        Integer userNo = pDTO.userNo();
+        Integer diaryNo = pDTO.diaryNo();
+
+        log.info("삭제 시도 - diaryNo: {}, userNo: {}", diaryNo, userNo);
+
+        Optional<DiaryEntity> rEntity = diaryRepository.findById(diaryNo);
+
+        if (rEntity.isPresent()) {
+            DiaryEntity entity = rEntity.get();
+
+            if (entity.getUserNo().equals(userNo)) {
+
+                diaryRepository.delete(entity);
+
+                res = 1;
+                msg = "일기가 성공적으로 삭제되었습니다.";
+                log.info("일기 삭제 성공 - diaryNo: {}", diaryNo);
+
+            } else {
+                msg = "본인의 일기만 삭제할 수 있습니다.";
+                log.warn("권한 없는 삭제 시도 감지 - 요청자: {}, 실제작성자: {}", userNo, entity.getUserNo());
+            }
+        } else {
+            msg = "이미 삭제되었거나 존재하지 않는 일기입니다.";
+        }
+
+        MsgDTO rDTO = MsgDTO.builder()
+                .result(res)
+                .msg(msg)
+                .build();
+
+        log.info("{}.diaryDelete End!", this.getClass().getName());
+
+        return rDTO;
     }
 
 
@@ -217,5 +293,27 @@ public class DiaryService implements IDiaryService {
         log.info("{}.getDiaryDetail End!", this.getClass().getName());
 
         return rDTO;
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<DiaryDTO> searchDiaryList(DiaryDTO pDTO) throws Exception {
+
+        log.info("{}.searchDiaryList Start!", this.getClass().getName());
+
+        List<DiaryEntity> entities = diaryRepository.findByUserNoAndTitleContainingOrderByCreatedAtDesc(
+                pDTO.userNo(), pDTO.title());
+
+        log.info("{}.searchDiaryList End!", this.getClass().getName());
+
+        return entities.stream()
+                .map(e -> DiaryDTO.builder()
+                        .diaryNo(e.getDiaryNo())
+                        .title(e.getTitle())
+                        .emotionColor(e.getEmotionColor())
+                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                        .build())
+                .collect(Collectors.toList());
     }
 }

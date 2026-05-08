@@ -3,10 +3,14 @@ import { useDiaryDetail } from '../../hooks/diary/useDiaryDetail';
 import * as S from '../../style/pages/diary/DiaryDetail.styles';
 
 const DiaryDetail = () => {
-    const { diary, loading, handleGoBack } = useDiaryDetail();
+    const {
+        diary, loading, handleGoBack,
+        isEditing, editTitle, setEditTitle, editContent, setEditContent,
+        handleEditClick, handleCancelEdit, handleSaveClick, handleDeleteClick
+    } = useDiaryDetail();
 
     if (loading) {
-        return <S.LoadingText>일기를 불러오는 중입니다...</S.LoadingText>;
+        return <S.LoadingText>AI가 감정을 분석하며 일기를 처리하는 중입니다...</S.LoadingText>;
     }
 
     if (!diary) return null;
@@ -18,23 +22,50 @@ const DiaryDetail = () => {
                     <S.BackButton onClick={handleGoBack}>
                         <i className="fa-solid fa-arrow-left"></i> 목록으로
                     </S.BackButton>
-                    {/* 필요하다면 여기에 수정/삭제 버튼 추가 가능 */}
+
+                    <S.ButtonGroup>
+                        {isEditing ? (
+                            <>
+                                <S.SaveButton onClick={handleSaveClick}>저장</S.SaveButton>
+                                <S.ActionButton onClick={handleCancelEdit}>취소</S.ActionButton>
+                            </>
+                        ) : (
+                            <>
+                                <S.ActionButton onClick={handleEditClick}>수정</S.ActionButton>
+                                <S.DeleteButton onClick={handleDeleteClick}>삭제</S.DeleteButton>
+                            </>
+                        )}
+                    </S.ButtonGroup>
                 </S.TopActions>
 
                 <S.TitleDateRow>
-                    <S.TitleText>{diary.title}</S.TitleText>
+                    {isEditing ? (
+                        <S.TitleInput
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            placeholder="제목을 입력하세요"
+                        />
+                    ) : (
+                        <S.TitleText>{diary.title}</S.TitleText>
+                    )}
                     <S.DateText>{diary.createdAt.substring(0, 10)}</S.DateText>
                 </S.TitleDateRow>
             </S.HeaderSection>
 
             <S.MainContentWrapper>
-                {/* 왼쪽: 일기 본문 영역 */}
                 <S.ContentArea>
-                    <S.ContentText>{diary.content}</S.ContentText>
+                    {isEditing ? (
+                        <S.ContentTextarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            placeholder="일기 내용을 입력하세요"
+                        />
+                    ) : (
+                        <S.ContentText>{diary.content}</S.ContentText>
+                    )}
                 </S.ContentArea>
 
-                {/* 오른쪽: AI 분석 결과 사이드바 */}
-                {diary.summary && (
+                {diary.summary && !isEditing && (
                     <S.SidebarArea>
                         <S.SidebarTitle>
                             <i className="fa-solid fa-wand-magic-sparkles"></i> AI 감정 분석
@@ -53,7 +84,6 @@ const DiaryDetail = () => {
                             <S.SummaryText>"{diary.summary}"</S.SummaryText>
                         </S.AnalysisCard>
 
-                        {/* 우울증 지수 등이 필요하다면 추가 */}
                         {diary.depLvl != null && (
                             <S.AnalysisCard>
                                 <S.AnalysisLabel>마음 상태 지수</S.AnalysisLabel>

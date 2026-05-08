@@ -174,10 +174,7 @@ public class UserInfoService implements IUserInfoService {
         ResponseCookie refreshCookie = ResponseCookie.from(refreshCookieName, "")
                 .maxAge(0).path("/").httpOnly(true).secure(true).sameSite("Lax").build();
 
-        ResponseCookie loginFlagCookie = ResponseCookie.from("isLoggedIn", "")
-                .maxAge(0).path("/").httpOnly(false).secure(true).sameSite("Lax").build();
-
-        List<ResponseCookie> rList = List.of(accessCookie, refreshCookie, loginFlagCookie);
+        List<ResponseCookie> rList = List.of(accessCookie, refreshCookie);
 
         log.info("{}.logout End!", this.getClass().getName());
 

@@ -12,8 +12,18 @@ apiClient.interceptors.response.use(
     (response) => response.data,
     (error) => {
         if (error.response && error.response.status === 401) {
-            console.error('인증 에러: 로그인이 필요하거나 토큰이 만료되었습니다.');
-            window.location.href = '/login';
+            const currentPath = window.location.pathname;
+            const publicPaths = [
+                '/',
+                '/account/login',
+                '/account/register',
+                '/account/findId',
+                '/account/findPw'
+            ];
+
+            if (!publicPaths.includes(currentPath)) {
+                window.location.href = '/account/login';
+            }
         }
         return Promise.reject(error);
     }

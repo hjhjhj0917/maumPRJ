@@ -65,4 +65,9 @@ public class DiaryEntity implements Serializable {
         this.depScore = depScore;
         this.symptomYn = symptomYn;
     }
+
+    public void updateDiary(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

@@ -11,4 +11,6 @@ import java.util.List;
 public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
 
     List<DiaryEntity> findAllByUserNoAndCreatedAtBetween(Integer userNo, LocalDate startDate, LocalDate endDate);
+
+    List<DiaryEntity> findByUserNoAndTitleContainingOrderByCreatedAtDesc(Integer userNo, String title);
 }
