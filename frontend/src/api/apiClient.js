@@ -8,10 +8,24 @@ const apiClient = axios.create({
     }
 });
 
+let isTokenRefreshing = false;
+let refreshSubscribers = [];
+
+const onTokenRefreshed = () => {
+    refreshSubscribers.map((callback) => callback());
+    refreshSubscribers = [];
+};
+
+const addRefreshSubscriber = (callback) => {
+    refreshSubscribers.push(callback);
+};
+
 apiClient.interceptors.response.use(
     (response) => response.data,
-    (error) => {
-        if (error.response && error.response.status === 401) {
+    async (error) => {
+        const originalRequest = error.config;
+
+        if (error.response && error.response.status === 401 && !originalRequest._retry) {
             const currentPath = window.location.pathname;
             const publicPaths = [
                 '/',
@@ -21,10 +35,41 @@ apiClient.interceptors.response.use(
                 '/account/findPw'
             ];
 
-            if (!publicPaths.includes(currentPath)) {
-                window.location.href = '/account/login';
+            if (publicPaths.includes(currentPath)) {
+                return Promise.reject(error);
             }
+
+            originalRequest._retry = true;
+
+            if (!isTokenRefreshing) {
+                isTokenRefreshing = true;
+
+                try {
+                    await axios.post('/api/v1/login/refresh', {}, {
+                        withCredentials: true
+                    });
+
+                    isTokenRefreshing = false;
+                    onTokenRefreshed();
+
+                    return apiClient(originalRequest);
+
+                } catch (refreshError) {
+                    isTokenRefreshing = false;
+                    refreshSubscribers = [];
+
+                    window.location.href = '/account/login';
+                    return Promise.reject(refreshError);
+                }
+            }
+
+            return new Promise((resolve) => {
+                addRefreshSubscriber(() => {
+                    resolve(apiClient(originalRequest));
+                });
+            });
         }
+
         return Promise.reject(error);
     }
 );

@@ -15,10 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -106,5 +103,36 @@ public class LoginController {
         return ResponseEntity.ok(
                 CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto)
         );
+    }
+
+
+    @PostMapping(value = "/refresh")
+    public ResponseEntity<MsgDTO> refreshToken(
+            @CookieValue(value = "jwtRefreshToken", required = false) String refreshToken,
+            HttpServletResponse response) {
+
+        log.info("Token Refresh Request Start!");
+
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(MsgDTO.builder().result(0).msg("세션이 만료되었습니다.").build());
+        }
+
+        try {
+            int res = jwtTokenService.reissueTokens(refreshToken, response);
+
+            if (res == 1) {
+                return ResponseEntity.ok(
+                        MsgDTO.builder().result(1).msg("세션이 연장되었습니다.").build()
+                );
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(MsgDTO.builder().result(0).msg("유효하지 않은 세션입니다.").build());
+            }
+        } catch (Exception e) {
+            log.error("Refresh Controller Error : {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(MsgDTO.builder().result(0).msg("인증 처리 중 오류가 발생했습니다.").build());
+        }
     }
 }

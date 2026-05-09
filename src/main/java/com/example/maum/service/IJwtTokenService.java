@@ -11,6 +11,8 @@ public interface IJwtTokenService {
 
     void writeTokenAsCookies(HttpServletResponse res, String accessToken, String refreshToken);
 
+    int reissueTokens(String refreshToken, HttpServletResponse response) throws Exception;
+
     default void issueTokens(UserInfoDTO user, HttpServletResponse res) {
         String at = generateAccessToken(user);
         String rt = generateRefreshToken(user);

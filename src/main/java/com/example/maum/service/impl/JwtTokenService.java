@@ -4,13 +4,11 @@ import com.example.maum.dto.UserInfoDTO;
 import com.example.maum.service.IJwtTokenService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
-import org.springframework.security.oauth2.jwt.JwsHeader;
-import org.springframework.security.oauth2.jwt.JwtClaimsSet;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -19,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class JwtTokenService implements IJwtTokenService {
 
@@ -30,6 +29,7 @@ public class JwtTokenService implements IJwtTokenService {
     private static final String CLAIM_USERID = "userId";
 
     private final JwtEncoder jwtEncoder;
+    private final JwtDecoder jwtDecoder;
     private final RedisService redisService;
 
     @Value("${secure.jwt.token.creator}")
@@ -67,6 +67,7 @@ public class JwtTokenService implements IJwtTokenService {
         return jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
     }
 
+
     private static List<String> splitRoles(String roles) {
         if (roles == null || roles.isBlank()) return List.of("USER");
         return Arrays.stream(roles.split(","))
@@ -74,6 +75,7 @@ public class JwtTokenService implements IJwtTokenService {
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
     }
+
 
     /*
     Access Token 생성
@@ -83,6 +85,7 @@ public class JwtTokenService implements IJwtTokenService {
         return encode(user, accessTtlSec, TYPE_ACCESS);
     }
 
+
     /*
     Refresh Token 생성
     */
@@ -90,6 +93,49 @@ public class JwtTokenService implements IJwtTokenService {
     public String generateRefreshToken(UserInfoDTO user) {
         return encode(user, refreshTtlSec, TYPE_REFRESH);
     }
+
+
+    @Override
+    public int reissueTokens(String refreshToken, HttpServletResponse response) throws Exception {
+
+        int res = 0;
+
+        try {
+            Jwt jwt = jwtDecoder.decode(refreshToken);
+            String type = jwt.getClaimAsString(CLAIM_TYPE);
+
+            if (TYPE_REFRESH.equals(type)) {
+                String userNo = jwt.getSubject();
+                String redisKey = "RT:" + userNo;
+                String savedToken = redisService.getValues(redisKey);
+
+                if (savedToken != null && savedToken.equals(refreshToken)) {
+
+                    UserInfoDTO user = UserInfoDTO.builder()
+                            .userNo(userNo)
+                            .userId(jwt.getClaimAsString(CLAIM_USERID))
+                            .userName(jwt.getClaimAsString(CLAIM_USERNAME))
+                            .roles(String.join(",", jwt.getClaimAsStringList(CLAIM_ROLES)))
+                            .build();
+
+                    issueTokens(user, response);
+
+                    res = 1;
+                } else {
+                    log.warn("Redis에 저장된 토큰과 일치하지 않거나 만료되었습니다.");
+                }
+            } else {
+                log.warn("유효하지 않은 토큰 타입입니다.");
+            }
+
+        } catch (Exception e) {
+            log.error("Token Reissue Error: {}", e.getMessage());
+            res = 0;
+        }
+
+        return res;
+    }
+
 
     /*
     Access/Refresh Token 각각 HttpOnly 쿠키로 저장
