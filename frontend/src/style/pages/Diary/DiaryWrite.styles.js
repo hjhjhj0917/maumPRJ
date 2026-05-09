@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 
 export const WritePageContainer = styled.div`
     padding: 90px 50px 0 50px;
@@ -142,8 +142,61 @@ export const SubmitButton = styled.button`
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.2s;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: #f7c244;
+    }
+
+    &:disabled {
+        background-color: #e0e0e0;
+        color: #a0a0a0;
+        cursor: not-allowed;
+    }
+`;
+
+const spin = keyframes`
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+`;
+
+export const LoadingOverlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+`;
+
+export const Spinner = styled.div`
+    width: 60px;
+    height: 60px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #FFD166;
+    border-radius: 50%;
+    animation: ${spin} 1s linear infinite;
+    margin-bottom: 24px;
+`;
+
+export const LoadingText = styled.div`
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    line-height: 1.5;
+
+    span {
+        display: block;
+        font-size: 15px;
+        font-weight: 400;
+        color: #888;
+        margin-top: 10px;
     }
 `;

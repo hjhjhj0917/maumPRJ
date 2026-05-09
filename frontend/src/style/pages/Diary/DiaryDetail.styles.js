@@ -1,4 +1,50 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
+
+const spin = keyframes`
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+`;
+
+export const LoadingOverlay = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+`;
+
+export const Spinner = styled.div`
+    width: 60px;
+    height: 60px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #FFD166;
+    border-radius: 50%;
+    animation: ${spin} 1s linear infinite;
+    margin-bottom: 24px;
+`;
+
+export const LoadingText = styled.div`
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    line-height: 1.5;
+
+    span {
+        display: block;
+        font-size: 15px;
+        font-weight: 400;
+        color: #888;
+        margin-top: 10px;
+    }
+`;
 
 export const DetailPageContainer = styled.div`
     padding: 90px 50px 50px 50px;
@@ -40,6 +86,11 @@ export const BackButton = styled.button`
 
     &:hover {
         color: #333;
+    }
+
+    &:disabled {
+        color: #ccc;
+        cursor: not-allowed;
     }
 `;
 
@@ -183,14 +234,6 @@ export const LevelText = styled.div`
     color: #e74c3c;
 `;
 
-export const LoadingText = styled.div`
-    text-align: center;
-    padding-top: 100px;
-    font-size: 18px;
-    color: #8e918f;
-`;
-
-
 export const ButtonGroup = styled.div`
     display: flex;
     gap: 10px;
@@ -206,9 +249,16 @@ export const ActionButton = styled.button`
     cursor: pointer;
     transition: all 0.2s;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: #f8f9fa;
         color: #333;
+    }
+
+    &:disabled {
+        background-color: #e0e0e0;
+        color: #a0a0a0;
+        border-color: #e0e0e0;
+        cursor: not-allowed;
     }
 `;
 
@@ -218,7 +268,7 @@ export const SaveButton = styled(ActionButton)`
     color: #333;
     font-weight: 600;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: #ffc233;
     }
 `;
@@ -263,7 +313,7 @@ export const DeleteButton = styled(ActionButton)`
     border-color: #ff6b6b;
     color: #ff6b6b;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background-color: #ff6b6b;
         color: #fff;
     }

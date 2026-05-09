@@ -13,6 +13,8 @@ export const useDiaryWriteForm = () => {
     const [content, setContent] = useState('');
     const [showDatePicker, setShowDatePicker] = useState(false);
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const [date, setDate] = useState(() => {
         if (queryDate) {
             const [y, m, d] = queryDate.split('-').map(Number);
@@ -33,20 +35,21 @@ export const useDiaryWriteForm = () => {
         if (!content.trim()) return alert('내용을 입력해주세요.');
 
         try {
-            // 1. Axios 기반 API 호출
+            setIsLoading(true);
+
             const res = await insertDiary(title, content, apiDate);
 
-            // 2. 백엔드 MsgDTO의 result 값 확인 (1: 성공)
             if (res.result === 1) {
                 alert(res.msg || '일기가 성공적으로 저장되었습니다.');
                 navigate('/diary/list');
             } else {
                 alert(res.msg || '저장에 실패했습니다.');
+                setIsLoading(false);
             }
         } catch (error) {
-            // 3. 서버에서 보낸 에러 메시지 추출
-            const errorMsg = error.response?.data?.msg || "서비 통신 중 오류가 발생했습니다.";
+            const errorMsg = error.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";
             alert(errorMsg);
+            setIsLoading(false);
         }
     };
 
@@ -56,6 +59,7 @@ export const useDiaryWriteForm = () => {
         showDatePicker, setShowDatePicker,
         date, setDate,
         formattedDate,
-        handleSubmit
+        handleSubmit,
+        isLoading
     };
 };

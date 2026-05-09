@@ -74,7 +74,6 @@ export const useDiaryDetail = () => {
                 setLoading(false);
             }
         } catch (error) {
-            console.error("Update Error:", error);
             alert("서버 통신 중 오류가 발생했습니다.");
             setLoading(false);
         }
@@ -96,7 +95,6 @@ export const useDiaryDetail = () => {
                     setLoading(false);
                 }
             } catch (error) {
-                console.error("Delete Error:", error);
                 alert("서버 통신 중 오류가 발생했습니다.");
                 setLoading(false);
             }

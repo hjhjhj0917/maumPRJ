@@ -10,56 +10,74 @@ const DiaryWrite = () => {
         showDatePicker, setShowDatePicker,
         date, setDate,
         formattedDate,
-        handleSubmit
+        handleSubmit,
+        isLoading
     } = useDiaryWriteForm();
 
     return (
-        <S.WritePageContainer>
-            <S.HeaderSection>
-                <S.TitleDateRow>
-                    <S.TitleInput
-                        type="text"
-                        placeholder="제목을 입력하세요"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
+        <>
+            {isLoading && (
+                <S.LoadingOverlay>
+                    <S.Spinner />
+                    <S.LoadingText>
+                        마음 AI가 당신의 하루를 분석하고 있어요...
+                        <span>깊이 있는 이해를 위해 약간의 시간이 소요됩니다.</span>
+                    </S.LoadingText>
+                </S.LoadingOverlay>
+            )}
+
+            <S.WritePageContainer>
+                <S.HeaderSection>
+                    <S.TitleDateRow>
+                        <S.TitleInput
+                            type="text"
+                            placeholder="제목을 입력하세요"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            disabled={isLoading}
+                        />
+                        <S.DateWrapper>
+                            <S.DateSelector onClick={() => !isLoading && setShowDatePicker(true)}>
+                                {formattedDate}
+                            </S.DateSelector>
+
+                            {showDatePicker && !isLoading && (
+                                <>
+                                    <S.PickerOverlay onClick={() => setShowDatePicker(false)} />
+                                    <S.PickerContainer>
+                                        <RollerDatePicker
+                                            initialDate={date}
+                                            onClose={() => setShowDatePicker(false)}
+                                            onConfirm={(selectedDate) => {
+                                                setDate(selectedDate);
+                                                setShowDatePicker(false);
+                                            }}
+                                        />
+                                    </S.PickerContainer>
+                                </>
+                            )}
+                        </S.DateWrapper>
+                    </S.TitleDateRow>
+                </S.HeaderSection>
+
+                <S.EditorWrapper>
+                    <textarea
+                        placeholder="이곳에 당신의 하루를 자유롭게 기록해 보세요..."
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        disabled={isLoading}
                     />
-                    <S.DateWrapper>
-                        {/* 클릭 시 날짜 선택기가 열립니다. */}
-                        <S.DateSelector onClick={() => setShowDatePicker(true)}>
-                            {formattedDate}
-                        </S.DateSelector>
-
-                        {showDatePicker && (
-                            <>
-                                <S.PickerOverlay onClick={() => setShowDatePicker(false)} />
-                                <S.PickerContainer>
-                                    <RollerDatePicker
-                                        initialDate={date}
-                                        onClose={() => setShowDatePicker(false)}
-                                        onConfirm={(selectedDate) => {
-                                            setDate(selectedDate);
-                                            setShowDatePicker(false);
-                                        }}
-                                    />
-                                </S.PickerContainer>
-                            </>
-                        )}
-                    </S.DateWrapper>
-                </S.TitleDateRow>
-                {/*<p>오늘 하루는 어떠셨나요? 마음을 들려주세요.</p>*/}
-            </S.HeaderSection>
-
-            <S.EditorWrapper>
-                <textarea
-                    placeholder="이곳에 당신의 하루를 자유롭게 기록해 보세요..."
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                />
-                <S.FooterActions>
-                    <S.SubmitButton onClick={handleSubmit}>작성 완료</S.SubmitButton>
-                </S.FooterActions>
-            </S.EditorWrapper>
-        </S.WritePageContainer>
+                    <S.FooterActions>
+                        <S.SubmitButton
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? '분석 중...' : '작성 완료'}
+                        </S.SubmitButton>
+                    </S.FooterActions>
+                </S.EditorWrapper>
+            </S.WritePageContainer>
+        </>
     );
 };
 
