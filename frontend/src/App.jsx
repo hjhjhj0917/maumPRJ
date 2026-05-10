@@ -14,9 +14,9 @@ function App() {
         <BrowserRouter>
             <GlobalStyle />
             <Routes>
+                <Route path="/" element={<Index />} />
                 {/* 그룹 1: 사이드바 없이 [헤더만] 필요한 페이지들 */}
                 <Route element={<HeaderLayout />}>
-                    <Route path="/" element={<Index />} />
                     <Route path="/account/*" element={<AccountRoutes />} />
                 </Route>
 

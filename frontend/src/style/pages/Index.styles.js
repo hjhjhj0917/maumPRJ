@@ -1,227 +1,430 @@
-import styled from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 
-export const ViewportWrapper = styled.div`
+const floatAnimation = keyframes`
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+`;
+
+export const PageWrapper = styled.div`
     width: 100%;
-    height: 100vh;
-    overflow: hidden;
-    position: relative;
+    min-height: 100vh;
     background-color: #ffffff;
+    color: #000000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+`;
+
+export const Header = styled.header`
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    transition: all 0.3s ease;
+    background: ${props => props.$scrolled ? 'rgba(255, 255, 255, 0.9)' : 'transparent'};
+    backdrop-filter: ${props => props.$scrolled ? 'blur(10px)' : 'none'};
+    border-bottom: ${props => props.$scrolled ? '1px solid #eaeaea' : 'none'};
 
     @media (max-width: 768px) {
-        height: auto;
-        overflow: auto;
+        padding: 20px;
     }
 `;
 
-export const MainContent = styled.div`
-    width: 100%;
-    height: 100%;
+export const Logo = styled.div`
     display: flex;
-    flex-direction: column;
-    transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1.000);
-    transform: ${props => props.$isMobile ? 'none' : `translateY(-${props.$index * 100}vh)`};
+    align-items: center;
+    font-size: 22px;
+    font-weight: 500;
+
+    img {
+        height: 40px;
+        width: auto;
+        object-fit: contain;
+    }
+`;
+
+export const NavLinks = styled.nav`
+    display: flex;
+    gap: 30px;
+
+    a {
+        color: #666666;
+        text-decoration: none;
+        font-size: 15px;
+        transition: color 0.2s;
+
+        &:hover {
+            color: #000000;
+        }
+    }
 
     @media (max-width: 768px) {
-        display: block;
-        transform: none;
+        display: none;
+    }
+`;
+
+export const AuthButtons = styled.div`
+    display: flex;
+    gap: 15px;
+`;
+
+export const Button = styled.button`
+    background: ${props => props.$primary ? '#000000' : 'transparent'};
+    color: ${props => props.$primary ? '#ffffff' : '#000000'};
+    border: ${props => props.$primary ? 'none' : '1px solid #eaeaea'};
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 10;
+
+    &:hover {
+        background: ${props => props.$primary ? '#333333' : 'rgba(0,0,0,0.05)'};
+    }
+`;
+
+export const HeroSection = styled.section`
+    padding: 180px 20px 100px;
+    text-align: center;
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 80vh;
+`;
+
+export const InteractiveCanvas = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+`;
+
+export const DraggableItem = styled.div`
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    will-change: transform;
+`;
+
+export const FloatingElement = styled.div`
+    animation: ${props => !props.$isDragging && css`${floatAnimation} ${props.$duration || '6s'} ease-in-out infinite`};
+    animation-delay: ${props => props.$delay || '0s'};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
+export const HeroPill = styled.div`
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
+    background: ${props => props.$color || '#fff'};
+    white-space: nowrap;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+`;
+
+export const HeroContent = styled.div`
+    position: relative;
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    > * {
+        pointer-events: auto;
+    }
+`;
+
+export const Title = styled.h1`
+    font-size: clamp(40px, 8vw, 85px);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin-bottom: 24px;
+    max-width: 800px;
+`;
+
+export const Subtitle = styled.p`
+    font-size: clamp(16px, 2vw, 20px);
+    color: #666666;
+    line-height: 1.5;
+    max-width: 600px;
+    margin-bottom: 40px;
+`;
+
+export const LogoTicker = styled.div`
+    display: flex;
+    gap: 40px;
+    margin-top: 80px;
+    opacity: 0.5;
+    flex-wrap: wrap;
+    justify-content: center;
+
+    i {
+        font-size: 24px;
     }
 `;
 
 export const Section = styled.section`
-    width: 100%;
-    height: 100vh;
-    flex-shrink: 0;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    background-color: ${props => props.$bg || '#ffffff'};
+    padding: 100px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: ${props => props.$center ? 'center' : 'left'};
+`;
 
-    @media (max-width: 768px) {
-        height: auto;
-        min-height: 100vh;
-        padding: 60px 0;
+export const SectionHeader = styled.div`
+    margin-bottom: 60px;
+    text-align: center;
+`;
+
+export const SectionTitle = styled.h2`
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 600;
+    letter-spacing: -1px;
+    margin-bottom: 16px;
+`;
+
+export const Grid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+`;
+
+export const Card = styled.div`
+    background: #fafafa;
+    border: 1px solid #eaeaea;
+    border-radius: 20px;
+    padding: 30px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+
+    &:hover {
+        border-color: #cccccc;
+    }
+
+    h3 {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    p {
+        color: #666666;
+        font-size: 15px;
+        line-height: 1.5;
     }
 `;
 
-export const HeroGrid = styled.div`
-    display: grid;
-    grid-template-columns: 1.2fr 0.8fr;
+export const StatsGrid = styled.div`
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 40px;
+    padding: 60px 0;
+`;
+
+export const StatBox = styled.div`
+    text-align: center;
+
+    .number {
+        font-size: clamp(40px, 6vw, 64px);
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .label {
+        color: #666666;
+        font-size: 18px;
+    }
+`;
+
+export const EmailForm = styled.div`
+    display: flex;
+    gap: 10px;
+    max-width: 400px;
+    margin: 40px auto 0;
+
+    input {
+        flex: 1;
+        padding: 16px 20px;
+        border-radius: 12px;
+        border: 1px solid #dddddd;
+        background: #fafafa;
+        color: #000000;
+        font-size: 16px;
+        outline: none;
+        transition: border-color 0.2s;
+
+        &:focus {
+            border-color: #999999;
+        }
+    }
+
+    button {
+        padding: 16px 24px;
+        border-radius: 12px;
+        border: none;
+        background: #000000;
+        color: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+
+        &:hover {
+            background: #333333;
+        }
+    }
+`;
+
+export const CommunityGrid = styled.div`
     width: 100%;
-    max-width: 1200px;
-    padding: 0 40px;
+    height: 400px;
+    background: #fafafa;
+    border-radius: 24px;
+    margin: 40px 0;
+    border: 1px solid #eaeaea;
+    display: flex;
     align-items: center;
-    margin-top: -50px;
+    justify-content: center;
+    color: #999999;
+    font-size: 24px;
+`;
+
+export const BentoGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: minmax(250px, auto);
+    gap: 24px;
 
     @media (max-width: 768px) {
         grid-template-columns: 1fr;
-        text-align: center;
-        gap: 40px;
-        margin-top: 20px;
     }
-`;
 
-export const HeroTextContent = styled.div`
-    
-    h1 {
-        font-size: 65px;
-        font-weight: 500;
-        line-height: 1.1;
-        color: #333;
-        margin-top: -100px;
-        margin-bottom: 45px;
-        letter-spacing: -2px;
-
-        &:first-of-type {
-            color: #FFD166;
+    .large {
+        grid-column: span 2;
+        @media (max-width: 768px) {
+            grid-column: span 1;
         }
     }
-    p {
-        font-size: 16px;
-        color: #666;
-        line-height: 1.6;
-        margin-bottom: 20px;
-    }
-    .how-it-works {
-        display: inline-block;
-        color: #111;
-        text-decoration: underline;
-        font-weight: 600;
-        font-size: 16px;
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        text-align: left;
-    }
+`;
 
-    @media (max-width: 768px) {
-        h1 { font-size: 40px; }
+export const PricingGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-top: 40px;
+
+    @media (max-width: 900px) {
+        grid-template-columns: 1fr;
     }
 `;
 
-export const HeroCtaContent = styled.div`
-    display: flex;
-    justify-content: flex-end;
-    @media (max-width: 768px) { justify-content: center; }
-`;
-
-export const MetaButton = styled.div`
-    background-color: #333;
-    color: #fff;
-    padding: 14px 28px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 400;
-    cursor: pointer;
-    transition: background-color 0.2s;
-
-    &:hover {
-        background-color: #444;
-    }
-`;
-
-export const HeroFeatures = styled.div`
-    position: absolute;
-    bottom: 80px;
-    width: 100%;
-    max-width: 1200px;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 40px;
-
-    @media (max-width: 768px) {
-        position: relative;
-        bottom: 0;
-        margin-top: 60px;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 40px;
-    }
-`;
-
-export const FeatureItem = styled.div`
+export const PriceCard = styled(Card)`
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    .icon-box {
-        width: 70px;
-        height: 70px;
-        background: #555;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+
+    .tier {
         font-size: 24px;
-        color: #FFD166;
+        margin-bottom: 8px;
     }
-    span { font-weight: 500; color: #666; font-size: 14px; }
+
+    .price {
+        font-size: 56px;
+        font-weight: 600;
+        margin-bottom: 24px;
+
+        span {
+            font-size: 16px;
+            color: #666666;
+        }
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 40px 0;
+        flex: 1;
+
+        li {
+            color: #444444;
+            margin-bottom: 16px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            &:before {
+                content: '✓';
+                color: #000000;
+            }
+        }
+    }
 `;
 
-export const SplitContainer = styled.div`
-    display: flex;
+export const FullWidthButton = styled(Button)`
     width: 100%;
-    height: 100%;
-    @media (max-width: 768px) { flex-direction: column; }
+    padding: 16px;
 `;
 
-export const SplitPanel = styled.div`
-    flex: 1;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-decoration: none;
-    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-    background-color: #666;
-    overflow: hidden;
-    cursor: pointer;
+export const Footer = styled.footer`
+    border-top: 1px solid #eaeaea;
+    padding: 80px 20px 40px;
+    margin-top: 100px;
+`;
 
-    &:hover {
-        flex: 1.5;
-        background-color: #444;
+export const FooterGrid = styled.div`
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+
+    @media (max-width: 768px) {
+        grid-template-columns: repeat(2, 1fr);
     }
 
     h4 {
-        color: white;
-        font-size: 1.5rem;
-        z-index: 2;
-        letter-spacing: 2px;
+        margin-bottom: 20px;
+        font-size: 16px;
     }
-`;
 
-export const FooterWrapper = styled.div`
-    width: 100%;
-    height: 100vh;
-    flex-shrink: 0;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    @media (max-width: 768px) {
-        height: auto;
+    ul {
+        list-style: none;
+        padding: 0;
+
+        li {
+            margin-bottom: 12px;
+
+            a {
+                color: #666666;
+                text-decoration: none;
+                font-size: 14px;
+                transition: color 0.2s;
+
+                &:hover {
+                    color: #000000;
+                }
+            }
+        }
     }
-`;
-
-export const StatsSection = styled.div`
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 80px;
-    width: 100%;
-    @media (max-width: 768px) { flex-direction: column; padding: 60px 0; }
-`;
-
-export const StatItem = styled.div`
-    text-align: center;
-    .num { font-size: 4.5rem; font-weight: 700; color: #FFD166; margin-bottom: 10px; }
-    .label { font-size: 1.2rem; color: #555; font-weight: 600; }
 `;

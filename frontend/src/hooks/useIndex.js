@@ -1,86 +1,131 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+
+export const useDraggable = (initialX, initialY) => {
+    const [position, setPosition] = useState({ x: initialX, y: initialY });
+    const [isDragging, setIsDragging] = useState(false);
+    const dragInfo = useRef({ startX: 0, startY: 0, elStartX: 0, elStartY: 0 });
+
+    const onPointerDown = useCallback((e) => {
+        e.preventDefault();
+        e.target.setPointerCapture(e.pointerId);
+        setIsDragging(true);
+        dragInfo.current = {
+            startX: e.clientX,
+            startY: e.clientY,
+            elStartX: position.x,
+            elStartY: position.y,
+        };
+    }, [position]);
+
+    const onPointerMove = useCallback((e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - dragInfo.current.startX;
+        const dy = e.clientY - dragInfo.current.startY;
+        setPosition({
+            x: dragInfo.current.elStartX + dx,
+            y: dragInfo.current.elStartY + dy,
+        });
+    }, [isDragging]);
+
+    const onPointerUp = useCallback((e) => {
+        e.target.releasePointerCapture(e.pointerId);
+        setIsDragging(false);
+    }, []);
+
+    return {
+        style: {
+            transform: `translate(${position.x}px, ${position.y}px)`,
+            cursor: isDragging ? 'grabbing' : 'grab',
+            zIndex: isDragging ? 50 : 1,
+            position: 'absolute'
+        },
+        onPointerDown,
+        onPointerMove,
+        onPointerUp,
+        isDragging
+    };
+};
 
 export const useIndex = () => {
-    const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-    const [stats, setStats] = useState({ records: 0, comforted: 0, hours: 0 });
+    const [scrolled, setScrolled] = useState(false);
 
-    const isScrolling = useRef(false);
-    const indexRef = useRef(0);
-    const statsRef = useRef(null);
-    const hasAnimated = useRef(false);
+    const [stats, setStats] = useState({
+        lessons: 0,
+        workshops: 0,
+        challenges: 0,
+        friends: 0,
+        members: 0,
+        nationalities: 0
+    });
 
-    const totalSections = 3;
-
-    const changeSection = (newIndex) => {
-        isScrolling.current = true;
-        setCurrentSectionIndex(newIndex);
-        indexRef.current = newIndex;
-        setTimeout(() => { isScrolling.current = false; }, 800);
-    };
-
-    const scrollToSection = (targetIndex) => {
-        if (targetIndex >= 0 && targetIndex < totalSections) {
-            changeSection(targetIndex);
-        }
-    };
+    const statsRef1 = useRef(null);
+    const statsRef2 = useRef(null);
+    const hasAnimated1 = useRef(false);
+    const hasAnimated2 = useRef(false);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        const handleScroll = () => setScrolled(window.scrollY > 50);
+
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        window.addEventListener('scroll', handleScroll);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('scroll', handleScroll);
+        };
     }, []);
 
     useEffect(() => {
-        const handleWheel = (e) => {
-            if (isMobile || isScrolling.current) return;
-            if (e.deltaY > 0 && indexRef.current < totalSections - 1) changeSection(indexRef.current + 1);
-            else if (e.deltaY < 0 && indexRef.current > 0) changeSection(indexRef.current - 1);
-        };
-
-        const handleKeyDown = (e) => {
-            if (isMobile || isScrolling.current) return;
-            if (e.key === "ArrowDown" && indexRef.current < totalSections - 1) changeSection(indexRef.current + 1);
-            else if (e.key === "ArrowUp" && indexRef.current > 0) changeSection(indexRef.current - 1);
-        };
-
-        window.addEventListener("wheel", handleWheel, { passive: false });
-        window.addEventListener("keydown", handleKeyDown);
-        return () => {
-            window.removeEventListener("wheel", handleWheel);
-            window.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [isMobile]);
-
-    useEffect(() => {
-        const animateValue = (key, target) => {
+        const animateValue = (key, target, duration = 2000) => {
             let startTimestamp = null;
-            const duration = 2000;
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
                 const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+
                 setStats(prev => ({ ...prev, [key]: Math.floor(easeOutQuart * target) }));
-                if (progress < 1) window.requestAnimationFrame(step);
-                else setStats(prev => ({ ...prev, [key]: target }));
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    setStats(prev => ({ ...prev, [key]: target }));
+                }
             };
             window.requestAnimationFrame(step);
         };
 
-        const observer = new IntersectionObserver((entries) => {
+        const observer1 = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting && !hasAnimated.current) {
-                    hasAnimated.current = true;
-                    animateValue('records', 1204);
-                    animateValue('comforted', 582);
-                    animateValue('hours', 365);
+                if (entry.isIntersecting && !hasAnimated1.current) {
+                    hasAnimated1.current = true;
+                    animateValue('lessons', 42);
+                    animateValue('workshops', 36);
+                    animateValue('challenges', 12);
                 }
             });
         }, { threshold: 0.5 });
 
-        if (statsRef.current) observer.observe(statsRef.current);
-        return () => { if (statsRef.current) observer.unobserve(statsRef.current); };
+        const observer2 = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !hasAnimated2.current) {
+                    hasAnimated2.current = true;
+                    animateValue('friends', 15000);
+                    animateValue('members', 1250);
+                    animateValue('nationalities', 20);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        if (statsRef1.current) observer1.observe(statsRef1.current);
+        if (statsRef2.current) observer2.observe(statsRef2.current);
+
+        return () => {
+            if (statsRef1.current) observer1.unobserve(statsRef1.current);
+            if (statsRef2.current) observer2.unobserve(statsRef2.current);
+        };
     }, []);
 
-    return { currentSectionIndex, isMobile, stats, statsRef, scrollToSection };
+    return { isMobile, scrolled, stats, statsRef1, statsRef2 };
 };
