@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 export const SidebarWrapper = styled.aside`
-    width: ${props => (props.$isOpen ? '280px' : '68px')};
+    width: ${props => (props.$isOpen ? '240px' : '68px')};
     height: 100vh;
     background-color: #f4f7f9;
     display: flex;

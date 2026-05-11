@@ -29,7 +29,7 @@ export const LogoContainer = styled(Link)`
 `;
 
 export const LogoImage = styled.img`
-    height: 46px;
+    height: 40px;
     width: auto;
     object-fit: contain;
     display: block;

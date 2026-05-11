@@ -2,7 +2,7 @@ import styled, { keyframes, css } from 'styled-components';
 
 const floatAnimation = keyframes`
     0% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(5deg); }
+    50% { transform: translateY(-15px) rotate(2deg); }
     100% { transform: translateY(0px) rotate(0deg); }
 `;
 
@@ -24,7 +24,7 @@ export const Header = styled.header`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 100;
+    z-index: 1000;
     transition: all 0.3s ease;
     background: ${props => props.$scrolled ? 'rgba(255, 255, 255, 0.9)' : 'transparent'};
     backdrop-filter: ${props => props.$scrolled ? 'blur(10px)' : 'none'};
@@ -44,7 +44,7 @@ export const Logo = styled.div`
     img {
         height: 40px;
         width: auto;
-        object-fit: contain;
+        margin-right: 8px;
     }
 `;
 
@@ -83,8 +83,6 @@ export const Button = styled.button`
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
-    position: relative;
-    z-index: 10;
 
     &:hover {
         background: ${props => props.$primary ? '#333333' : 'rgba(0,0,0,0.05)'};
@@ -95,12 +93,12 @@ export const HeroSection = styled.section`
     padding: 180px 20px 100px;
     text-align: center;
     position: relative;
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 80vh;
+    min-height: 90vh;
 `;
 
 export const InteractiveCanvas = styled.div`
@@ -110,10 +108,7 @@ export const InteractiveCanvas = styled.div`
     width: 100%;
     height: 100%;
     pointer-events: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    z-index: 50;
 `;
 
 export const DraggableItem = styled.div`
@@ -121,38 +116,36 @@ export const DraggableItem = styled.div`
     touch-action: none;
     user-select: none;
     will-change: transform;
+    left: 50%;
+    top: 50%;
 `;
 
 export const FloatingElement = styled.div`
     animation: ${props => !props.$isDragging && css`${floatAnimation} ${props.$duration || '6s'} ease-in-out infinite`};
     animation-delay: ${props => props.$delay || '0s'};
-    display: flex;
-    align-items: center;
-    justify-content: center;
 `;
 
 export const HeroPill = styled.div`
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #000;
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 700;
+    color: ${props => props.$isDark ? '#ffffff' : '#000000'};
     background: ${props => props.$color || '#fff'};
     white-space: nowrap;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: grab;
+
+    &:active {
+        cursor: grabbing;
+    }
 `;
 
 export const HeroContent = styled.div`
     position: relative;
     z-index: 10;
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    > * {
-        pointer-events: auto;
-    }
+    max-width: 900px;
 `;
 
 export const Title = styled.h1`
@@ -161,39 +154,37 @@ export const Title = styled.h1`
     line-height: 1.1;
     letter-spacing: -2px;
     margin-bottom: 24px;
-    max-width: 800px;
 `;
 
 export const Subtitle = styled.p`
     font-size: clamp(16px, 2vw, 20px);
     color: #666666;
-    line-height: 1.5;
-    max-width: 600px;
-    margin-bottom: 40px;
+    line-height: 1.6;
+    max-width: 650px;
+    margin: 0 auto 40px;
 `;
 
 export const LogoTicker = styled.div`
     display: flex;
     gap: 40px;
     margin-top: 80px;
-    opacity: 0.5;
-    flex-wrap: wrap;
+    opacity: 0.4;
     justify-content: center;
 
     i {
-        font-size: 24px;
+        font-size: 28px;
     }
 `;
 
 export const Section = styled.section`
-    padding: 100px 20px;
+    padding: 120px 20px;
     max-width: 1200px;
     margin: 0 auto;
     text-align: ${props => props.$center ? 'center' : 'left'};
 `;
 
 export const SectionHeader = styled.div`
-    margin-bottom: 60px;
+    margin-bottom: 80px;
     text-align: center;
 `;
 
@@ -201,37 +192,38 @@ export const SectionTitle = styled.h2`
     font-size: clamp(32px, 5vw, 48px);
     font-weight: 600;
     letter-spacing: -1px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 `;
 
 export const Grid = styled.div`
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
 `;
 
 export const Card = styled.div`
-    background: #fafafa;
-    border: 1px solid #eaeaea;
-    border-radius: 20px;
-    padding: 30px;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.2s, border-color 0.2s;
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    border-radius: 24px;
+    padding: 40px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
 
     &:hover {
-        border-color: #cccccc;
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        border-color: #e0e0e0;
     }
 
     h3 {
-        font-size: 20px;
-        margin-bottom: 12px;
+        font-size: 22px;
+        margin-bottom: 16px;
     }
 
     p {
         color: #666666;
-        font-size: 15px;
-        line-height: 1.5;
+        font-size: 16px;
+        line-height: 1.6;
     }
 `;
 
@@ -240,81 +232,82 @@ export const StatsGrid = styled.div`
     justify-content: space-around;
     flex-wrap: wrap;
     gap: 40px;
-    padding: 60px 0;
+    padding: 80px 0;
 `;
 
 export const StatBox = styled.div`
     text-align: center;
 
     .number {
-        font-size: clamp(40px, 6vw, 64px);
-        font-weight: 600;
-        margin-bottom: 8px;
+        font-size: clamp(48px, 7vw, 72px);
+        font-weight: 700;
+        margin-bottom: 12px;
+        background: linear-gradient(135deg, #000, #444);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
     .label {
-        color: #666666;
+        color: #888888;
         font-size: 18px;
+        font-weight: 500;
     }
 `;
 
 export const EmailForm = styled.div`
     display: flex;
-    gap: 10px;
-    max-width: 400px;
-    margin: 40px auto 0;
+    gap: 12px;
+    max-width: 450px;
+    margin: 50px auto 0;
 
     input {
         flex: 1;
-        padding: 16px 20px;
-        border-radius: 12px;
-        border: 1px solid #dddddd;
-        background: #fafafa;
-        color: #000000;
+        padding: 18px 24px;
+        border-radius: 14px;
+        border: 1px solid #eeeeee;
+        background: #fdfdfd;
         font-size: 16px;
         outline: none;
-        transition: border-color 0.2s;
 
         &:focus {
-            border-color: #999999;
+            border-color: #000000;
         }
     }
 
     button {
-        padding: 16px 24px;
-        border-radius: 12px;
+        padding: 18px 30px;
+        border-radius: 14px;
         border: none;
         background: #000000;
         color: #ffffff;
         font-weight: 600;
         cursor: pointer;
-        transition: background 0.2s;
 
         &:hover {
-            background: #333333;
+            background: #222;
         }
     }
 `;
 
 export const CommunityGrid = styled.div`
     width: 100%;
-    height: 400px;
-    background: #fafafa;
-    border-radius: 24px;
-    margin: 40px 0;
-    border: 1px solid #eaeaea;
+    height: 450px;
+    background: #fcfcfc;
+    border-radius: 32px;
+    margin: 50px 0;
+    border: 1px solid #f0f0f0;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #999999;
+    color: #bbbbbb;
     font-size: 24px;
+    font-weight: 500;
 `;
 
 export const BentoGrid = styled.div`
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: minmax(250px, auto);
-    gap: 24px;
+    gap: 30px;
 
     @media (max-width: 768px) {
         grid-template-columns: 1fr;
@@ -328,68 +321,11 @@ export const BentoGrid = styled.div`
     }
 `;
 
-export const PricingGrid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    margin-top: 40px;
-
-    @media (max-width: 900px) {
-        grid-template-columns: 1fr;
-    }
-`;
-
-export const PriceCard = styled(Card)`
-    display: flex;
-    flex-direction: column;
-
-    .tier {
-        font-size: 24px;
-        margin-bottom: 8px;
-    }
-
-    .price {
-        font-size: 56px;
-        font-weight: 600;
-        margin-bottom: 24px;
-
-        span {
-            font-size: 16px;
-            color: #666666;
-        }
-    }
-
-    ul {
-        list-style: none;
-        padding: 0;
-        margin: 0 0 40px 0;
-        flex: 1;
-
-        li {
-            color: #444444;
-            margin-bottom: 16px;
-            font-size: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
-            &:before {
-                content: '✓';
-                color: #000000;
-            }
-        }
-    }
-`;
-
-export const FullWidthButton = styled(Button)`
-    width: 100%;
-    padding: 16px;
-`;
-
 export const Footer = styled.footer`
-    border-top: 1px solid #eaeaea;
-    padding: 80px 20px 40px;
-    margin-top: 100px;
+    border-top: 1px solid #f0f0f0;
+    padding: 100px 20px 60px;
+    margin-top: 120px;
+    background: #fafafa;
 `;
 
 export const FooterGrid = styled.div`
@@ -397,15 +333,16 @@ export const FooterGrid = styled.div`
     margin: 0 auto;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 40px;
+    gap: 60px;
 
     @media (max-width: 768px) {
         grid-template-columns: repeat(2, 1fr);
     }
 
     h4 {
-        margin-bottom: 20px;
-        font-size: 16px;
+        margin-bottom: 25px;
+        font-size: 17px;
+        font-weight: 600;
     }
 
     ul {
@@ -413,13 +350,12 @@ export const FooterGrid = styled.div`
         padding: 0;
 
         li {
-            margin-bottom: 12px;
+            margin-bottom: 15px;
 
             a {
-                color: #666666;
+                color: #777777;
                 text-decoration: none;
-                font-size: 14px;
-                transition: color 0.2s;
+                font-size: 15px;
 
                 &:hover {
                     color: #000000;

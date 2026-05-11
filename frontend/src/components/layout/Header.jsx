@@ -17,11 +17,11 @@ const Header = () => {
         <S.HeaderContainer>
             {user ? (
                 <S.LogoContainer as="div">
-                    <S.LogoImage src={logoImg} alt="MAUM" />
+                    <S.LogoImage src={logoImg} alt="MAUM" />MauM
                 </S.LogoContainer>
             ) : (
                 <S.LogoContainer to="/">
-                    <S.LogoImage src={logoImg} alt="MAUM" />
+                    <S.LogoImage src={logoImg} alt="MAUM" />MauM
                 </S.LogoContainer>
             )}
 

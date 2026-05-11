@@ -6,7 +6,7 @@ export const useDraggable = (initialX, initialY) => {
     const dragInfo = useRef({ startX: 0, startY: 0, elStartX: 0, elStartY: 0 });
 
     const onPointerDown = useCallback((e) => {
-        e.preventDefault();
+        e.stopPropagation();
         e.target.setPointerCapture(e.pointerId);
         setIsDragging(true);
         dragInfo.current = {
@@ -33,15 +33,17 @@ export const useDraggable = (initialX, initialY) => {
     }, []);
 
     return {
-        style: {
-            transform: `translate(${position.x}px, ${position.y}px)`,
-            cursor: isDragging ? 'grabbing' : 'grab',
-            zIndex: isDragging ? 50 : 1,
-            position: 'absolute'
+        dragProps: {
+            style: {
+                transform: `translate(${position.x}px, ${position.y}px)`,
+                cursor: isDragging ? 'grabbing' : 'grab',
+                zIndex: isDragging ? 1000 : 60,
+                position: 'absolute'
+            },
+            onPointerDown,
+            onPointerMove,
+            onPointerUp
         },
-        onPointerDown,
-        onPointerMove,
-        onPointerUp,
         isDragging
     };
 };

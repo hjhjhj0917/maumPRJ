@@ -41,7 +41,11 @@ public class DiaryService implements IDiaryService {
 
     private void requestAnalysisAndUpdate(DiaryEntity entity, String content) {
         try {
-            Map<String, String> requestMap = new HashMap<>();
+            Map<String, Object> requestMap = new HashMap<>();
+
+            requestMap.put("diary_no", entity.getDiaryNo());
+            requestMap.put("user_no", entity.getUserNo());
+            requestMap.put("title", entity.getTitle());
             requestMap.put("content", content);
             requestMap.put("disease_type", "depression");
 
