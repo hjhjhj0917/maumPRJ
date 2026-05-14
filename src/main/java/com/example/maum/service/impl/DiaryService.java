@@ -50,7 +50,7 @@ public class DiaryService implements IDiaryService {
             requestMap.put("disease_type", "depression");
 
             ResponseEntity<Map> response = restClient.post()
-                    .uri(pythonApiUrl)
+                    .uri(pythonApiUrl + "/api/analyze")
                     .body(requestMap)
                     .retrieve()
                     .toEntity(Map.class);
