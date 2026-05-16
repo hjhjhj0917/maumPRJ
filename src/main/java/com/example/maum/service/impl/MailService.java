@@ -32,9 +32,9 @@ public class MailService implements IMailService {
             pDTO = new MailDTO();
         }
 
-        String toMail = CmmUtil.nvl(pDTO.getReceiver()); // 받는사람
-        String title = CmmUtil.nvl(pDTO.getTitle()); // 메일제목
-        String contents = CmmUtil.nvl(pDTO.getContent()); // 메일제목
+        String toMail = CmmUtil.nvl(pDTO.getReceiver());
+        String title = CmmUtil.nvl(pDTO.getTitle());
+        String contents = CmmUtil.nvl(pDTO.getContent());
 
         log.info("toMail : " + toMail);
         log.info("title : " + title);
@@ -46,10 +46,10 @@ public class MailService implements IMailService {
 
         try {
 
-            messageHelper.setTo(toMail); // 받는 사람
-            messageHelper.setFrom(fromMail); // 보내는 사람
-            messageHelper.setSubject(title); // 메일 제목
-            messageHelper.setText(contents); // 메일 내용
+            messageHelper.setTo(toMail);
+            messageHelper.setFrom(fromMail);
+            messageHelper.setSubject(title);
+            messageHelper.setText(contents);
 
             mailSender.send(message);
 

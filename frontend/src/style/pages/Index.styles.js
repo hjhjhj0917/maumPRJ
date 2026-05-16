@@ -26,7 +26,7 @@ export const Header = styled.header`
     align-items: center;
     z-index: 1000;
     transition: all 0.3s ease;
-    background: ${props => props.$scrolled ? 'rgba(255, 255, 255, 0.9)' : 'transparent'};
+    background: ${props => props.$scrolled ? 'rgba(255, 255, 255, 0.7)' : 'transparent'};
     backdrop-filter: ${props => props.$scrolled ? 'blur(10px)' : 'none'};
     border-bottom: ${props => props.$scrolled ? '1px solid #eaeaea' : 'none'};
 
