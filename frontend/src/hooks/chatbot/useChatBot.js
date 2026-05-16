@@ -2,9 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { streamChatApi } from '../../api/chatApi';
 
 export const useChatBot = () => {
-    const [messages, setMessages] = useState([
-        { role: 'bot', content: '안녕하세요! 당신의 이야기를 듣고 싶은 마음입니다. 오늘 하루는 어떠셨나요?' }
-    ]);
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [isStreaming, setIsStreaming] = useState(false);
     const messagesEndRef = useRef(null);
