@@ -102,7 +102,7 @@ export const NavItem = styled.div`
     }
 
     i {
-        color: ${props => props.$isOpen ? '#FFD166' : '#888'};
+        color: ${props => props.$isOpen ? '#333' : '#888'};
         font-size: 15px;
         min-width: 20px;
         text-align: center;

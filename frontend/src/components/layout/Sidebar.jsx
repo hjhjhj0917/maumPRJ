@@ -34,7 +34,7 @@ const Sidebar = ({
                         <i className="fa-solid fa-bars-staggered"></i>
                         {isOpen && <span>일기 목록</span>}
                     </S.NavItem>
-                    <S.NavItem $isOpen={isOpen} $active={isActive('/counseling')} onClick={isOpen ? () => navigate('/counseling') : undefined}>
+                    <S.NavItem $isOpen={isOpen} $active={isActive('/counseling')} onClick={isOpen ? () => navigate('/map') : undefined}>
                         <i className="fa-solid fa-map-location-dot"></i>
                         {isOpen && <span>주변 상담소</span>}
                     </S.NavItem>
