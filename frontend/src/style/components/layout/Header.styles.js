@@ -5,19 +5,20 @@ export const HeaderContainer = styled.header`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 11px 50px;
+    padding: 20px 40px;
     width: 100%;
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 100;
+    z-index: 1000;
     background-color: transparent;
     box-shadow: none;
     border-bottom: none;
     transition: all 0.3s ease;
+    box-sizing: border-box;
 
     @media (max-width: 768px) {
-        padding: 15px 20px;
+        padding: 20px;
     }
 `;
 
@@ -26,6 +27,9 @@ export const LogoContainer = styled(Link)`
     align-items: center;
     text-decoration: none;
     z-index: 1001;
+    font-size: 22px;
+    font-weight: 500;
+    color: #000000;
 `;
 
 export const LogoImage = styled.img`
@@ -33,6 +37,7 @@ export const LogoImage = styled.img`
     width: auto;
     object-fit: contain;
     display: block;
+    margin-right: 8px;
 `;
 
 export const MenuToggle = styled.div`
@@ -47,7 +52,7 @@ export const MenuToggle = styled.div`
 export const Bar = styled.span`
     width: 25px;
     height: 3px;
-    background-color: #fff;
+    background-color: #333333;
     border-radius: 3px;
 `;
 
@@ -56,6 +61,8 @@ export const NavMenu = styled.ul`
     list-style: none;
     align-items: center;
     gap: 30px;
+    margin: 0;
+    padding: 0;
 
     @media (max-width: 768px) {
         display: ${props => props.$isOpen ? 'flex' : 'none'};
@@ -64,9 +71,11 @@ export const NavMenu = styled.ul`
         left: 0;
         width: 100%;
         flex-direction: column;
-        background-color: rgba(30, 31, 32, 0.9);
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
         padding: 20px;
-        gap: 0;
+        gap: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
 `;
 
@@ -78,11 +87,11 @@ export const NavItem = styled.li`
 
 export const NavLink = styled(Link)`
     text-decoration: none;
-    color: #333;
+    color: #333333;
     font-weight: 500;
-    font-size: 13px;
+    font-size: 14px;
     transition: color 0.3s;
-    &:hover { color: #FFD166; }
+    &:hover { color: #c37975; }
 `;
 
 export const UserProfileContainer = styled.div`
@@ -105,6 +114,6 @@ export const ProfileImg = styled.img`
 export const UserName = styled.span`
     font-size: 14px;
     font-weight: 500;
-    color: #000;
+    color: #000000;
     margin-left: 10px;
 `;

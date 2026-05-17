@@ -119,7 +119,7 @@ export const LoginCard = styled.div`
 export const LoginLogoTitle = styled.img`
     display: block;
     margin: 0 auto 50px;
-    max-width: 170px;
+    max-width: 120px;
     height: auto;
 `;
 
