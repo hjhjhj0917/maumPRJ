@@ -106,24 +106,34 @@ export const OverlayContainer = styled.div`
     left: 50%;
     transform: translateX(-50%);
     background-color: white;
-    border-radius: 8px;
+    border-radius: 100px;
     border: 1px solid #ccc;
     box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
-    padding: 15px;
+    padding: 30px;
+    padding-left: 40px;
     min-width: 280px;
     width: max-content;
+    height: 140px;
     max-width: 450px;
     z-index: 5;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+`;
+
+export const OverlayLeftSection = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 `;
 
 export const OverlayHeader = styled.div`
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: flex-start;
     margin-bottom: 10px;
-    border-bottom: 1px solid #eee;
     padding-bottom: 8px;
-    gap: 15px;
 `;
 
 export const OverlayTitle = styled.h3`
@@ -143,19 +153,6 @@ export const CategoryBadge = styled.span`
     font-size: 11px;
     border-radius: 4px;
     margin-top: 4px;
-`;
-
-export const CloseButton = styled.button`
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: #999;
-    padding: 0;
-
-    &:hover {
-        color: #555;
-    }
 `;
 
 export const OverlayBody = styled.div`
@@ -193,22 +190,49 @@ export const InfoText = styled.div`
     }
 `;
 
-export const RouteButton = styled.a`
+export const OverlayRightSection = styled.div`
+    width: auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 6px;
-    background-color: #ffc130;
-    color: #333;
+`;
+
+export const CloseButton = styled.button`
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+
+    &:hover {
+        color: #555;
+    }
+`;
+
+export const RouteButtonRound = styled.a`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #FFC130;
+    color: black;
     text-decoration: none;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: bold;
-    text-align: center;
-    margin-top: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    font-size: 20px;
+    transition: all 0.2s;
 
     &:hover {
         background-color: #e6ae2b;
+        transform: translateY(-2px);
+    }
+    
+    i {
+        width: 20px;
     }
 `;
