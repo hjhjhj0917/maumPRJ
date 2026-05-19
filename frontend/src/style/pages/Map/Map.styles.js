@@ -40,11 +40,23 @@ export const LoadingErrorText = styled.div`
     color: ${(props) => (props.$isError ? '#d9534f' : '#666')};
 `;
 
-export const MyLocationButton = styled.button`
+export const ControlsContainer = styled.div`
     position: absolute;
     bottom: 30px;
     right: 30px;
     z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+`;
+
+export const ButtonsWrapper = styled.div`
+    display: flex;
+    gap: 12px;
+`;
+
+export const MyLocationButton = styled.button`
     width: 50px;
     height: 50px;
     display: flex;
@@ -57,21 +69,81 @@ export const MyLocationButton = styled.button`
     border-radius: 50%;
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     cursor: pointer;
+    flex-shrink: 0;
 
     &:hover {
         background-color: #f0f0f0;
     }
 `;
 
-export const SearchContainer = styled.form`
+export const FilterPanel = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    background-color: white;
+    padding: 15px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    max-width: 320px;
+    opacity: ${(props) => (props.$isOpen ? 1 : 0)};
+    visibility: ${(props) => (props.$isOpen ? 'visible' : 'hidden')};
+    transform: ${(props) => (props.$isOpen ? 'translateY(0)' : 'translateY(10px)')};
+    transition: all 0.3s ease;
+    pointer-events: ${(props) => (props.$isOpen ? 'auto' : 'none')};
+`;
+
+export const FilterToggleButton = styled.button`
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    color: #333;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:hover {
+        background-color: #f0f0f0;
+    }
+`;
+
+export const FilterChip = styled.button`
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px solid ${(props) => (props.$isActive ? '#FFC130' : '#e9ecef')};
+    background-color: ${(props) => (props.$isActive ? '#FFC130' : 'white')};
+    color: ${(props) => (props.$isActive ? '#212529' : '#495057')};
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background-color: ${(props) => (props.$isActive ? '#e6ae2b' : '#f8f9fa')};
+    }
+`;
+
+export const SearchWrapper = styled.div`
     position: absolute;
     top: 50px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
-    display: flex;
     width: 90%;
     max-width: 600px;
+    display: flex;
+    flex-direction: column;
+`;
+
+export const SearchContainer = styled.form`
+    display: flex;
+    width: 100%;
     background-color: white;
     border-radius: 25px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
@@ -100,6 +172,79 @@ export const SearchButton = styled.button`
     }
 `;
 
+export const DropdownContainer = styled.ul`
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-top: 10px;
+    padding: 5px;
+    list-style: none;
+    max-height: 250px;
+    overflow-y: auto;
+    width: 100%;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 12px;
+        margin-top: 12px;
+        margin-bottom: 12px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: #ced4da;
+        border-radius: 12px;
+        border: 2px solid white;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: #adb5bd;
+    }
+`;
+
+export const DropdownItem = styled.li`
+    padding: 12px 20px;
+    border-bottom: 1px solid #f1f3f5;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background-color: #f8f9fa;
+    }
+`;
+
+export const DropdownItemHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+`;
+
+export const DropdownItemName = styled.span`
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+`;
+
+export const DropdownItemDistance = styled.span`
+    font-size: 13px;
+    color: #4A90E2;
+    font-weight: bold;
+`;
+
+export const DropdownItemAddress = styled.span`
+    font-size: 12px;
+    color: #888;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
+
 export const OverlayContainer = styled.div`
     position: absolute;
     bottom: 55px;
@@ -108,13 +253,14 @@ export const OverlayContainer = styled.div`
     background-color: white;
     border-radius: 100px;
     border: 1px solid #ccc;
-    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
-    padding: 30px;
-    padding-left: 40px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.15);
+    padding: 24px 20px 24px 32px;
     min-width: 280px;
     width: max-content;
-    height: 140px;
-    max-width: 450px;
+    height: auto;
+    min-height: 110px;
+    max-width: 600px;
+    box-sizing: border-box;
     z-index: 5;
     display: flex;
     flex-direction: row;
@@ -126,50 +272,56 @@ export const OverlayLeftSection = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    width: 100%;
 `;
 
 export const OverlayHeader = styled.div`
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     padding-bottom: 8px;
+    width: 100%;
 `;
 
 export const OverlayTitle = styled.h3`
     margin: 0;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     color: #333;
-    line-height: 1.3;
-    word-break: keep-all;
+    line-height: 1.4;
+    word-break: break-word;
+    white-space: normal;
 `;
 
 export const CategoryBadge = styled.span`
     display: inline-block;
-    padding: 3px 6px;
+    padding: 4px 8px;
     background-color: #f1f3f5;
     color: #495057;
     font-size: 11px;
     border-radius: 4px;
-    margin-top: 4px;
+    margin-top: 6px;
 `;
 
 export const OverlayBody = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    width: 100%;
 `;
 
 export const InfoText = styled.div`
     display: flex;
     align-items: flex-start;
-    gap: 6px;
+    gap: 8px;
     margin: 0;
-    font-size: 13px;
-    color: #666;
+    font-size: 12px;
+    color: #555;
     line-height: 1.4;
-    word-break: keep-all;
+    word-break: break-word;
+    white-space: normal;
 
     i {
         margin-top: 3px;
@@ -195,6 +347,7 @@ export const OverlayRightSection = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-shrink: 0;
 `;
 
 export const CloseButton = styled.button`
@@ -202,14 +355,14 @@ export const CloseButton = styled.button`
     border: none;
     font-size: 18px;
     cursor: pointer;
-    color: #999;
+    color: #adb5bd;
     padding: 0;
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 14px;
+    right: 18px;
 
     &:hover {
-        color: #555;
+        color: #495057;
     }
 `;
 
@@ -217,22 +370,19 @@ export const RouteButtonRound = styled.a`
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100px;
-    height: 100px;
+    width: 76px;
+    height: 76px;
     border-radius: 50%;
     background-color: #FFC130;
-    color: black;
+    color: #212529;
     text-decoration: none;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    font-size: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    font-size: 34px;
     transition: all 0.2s;
 
     &:hover {
         background-color: #e6ae2b;
-        transform: translateY(-2px);
-    }
-    
-    i {
-        width: 20px;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.2);
     }
 `;

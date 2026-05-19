@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Map, MapMarker, MarkerClusterer, CustomOverlayMap } from 'react-kakao-maps-sdk';
+import React, { useMemo } from 'react';
+import { Map, MapMarker, CustomOverlayMap } from 'react-kakao-maps-sdk';
 import { useMentalMap } from '../../hooks/map/useMap';
 import * as S from '../../style/pages/Map/Map.styles';
 
@@ -9,23 +9,60 @@ const markerSrc = `data:image/svg+xml;base64,${btoa(fontAwesomeMarkerSvg)}`;
 const MentalMap = () => {
     const {
         institutions,
+        categories,
+        selectedCategories,
+        toggleCategory,
+        isFilterOpen,
+        setIsFilterOpen,
         loading,
         error,
         mapCenter,
         mapRef,
         handleFindMyLocation,
-        searchPlace,
         selectedInst,
         setSelectedInst,
-        myLocation
+        myLocation,
+        keyword,
+        suggestions,
+        isDropdownOpen,
+        handleInputChange,
+        handleSuggestionClick,
+        handleSearch,
+        handleMapClick,
+        formatDistance
     } = useMentalMap();
 
-    const [keyword, setKeyword] = useState("");
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        searchPlace(keyword);
-    };
+    const memoizedMarkers = useMemo(() => {
+        return Array.isArray(institutions) && institutions.map((inst) => {
+            if (inst.location && inst.location.coordinates) {
+                return (
+                    <MapMarker
+                        key={inst.id || inst._id}
+                        position={{
+                            lat: inst.location.coordinates[1],
+                            lng: inst.location.coordinates[0]
+                        }}
+                        title={inst.name || inst.NAME}
+                        image={{
+                            src: markerSrc,
+                            size: { width: 32, height: 42 },
+                            options: { offset: { x: 16, y: 42 } },
+                        }}
+                        onClick={() => {
+                            setSelectedInst(inst);
+                            if(mapRef.current) {
+                                mapRef.current.panTo(new window.kakao.maps.LatLng(
+                                    inst.location.coordinates[1],
+                                    inst.location.coordinates[0]
+                                ));
+                            }
+                        }}
+                    />
+                );
+            }
+            return null;
+        });
+    }, [institutions, setSelectedInst, mapRef]);
 
     if (loading) return <S.LoadingErrorText>지도 스크립트 로딩 중...</S.LoadingErrorText>;
     if (error) return <S.LoadingErrorText $isError>지도를 불러오는데 실패했습니다.</S.LoadingErrorText>;
@@ -33,21 +70,65 @@ const MentalMap = () => {
     return (
         <S.Container>
             <S.MapWrapper>
-                <S.SearchContainer onSubmit={handleSearch}>
-                    <S.SearchInput
-                        type="text"
-                        placeholder="동네, 지하철역, 장소 검색"
-                        value={keyword}
-                        onChange={(e) => setKeyword(e.target.value)}
-                    />
-                    <S.SearchButton type="submit">
-                        <i className="fa-solid fa-magnifying-glass"></i>
-                    </S.SearchButton>
-                </S.SearchContainer>
 
-                <S.MyLocationButton onClick={handleFindMyLocation}>
-                    <i className="fa-solid fa-location-crosshairs"></i>
-                </S.MyLocationButton>
+                <S.SearchWrapper>
+                    <S.SearchContainer onSubmit={handleSearch}>
+                        <S.SearchInput
+                            type="text"
+                            placeholder="동네, 지하철역, 장소 검색"
+                            value={keyword}
+                            onChange={handleInputChange}
+                        />
+                        <S.SearchButton type="submit">
+                            <i className="fa-solid fa-magnifying-glass"></i>
+                        </S.SearchButton>
+                    </S.SearchContainer>
+
+                    {isDropdownOpen && suggestions.length > 0 && (
+                        <S.DropdownContainer>
+                            {suggestions.map((inst) => (
+                                <S.DropdownItem
+                                    key={inst.id || inst._id}
+                                    onClick={() => handleSuggestionClick(inst)}
+                                >
+                                    <S.DropdownItemHeader>
+                                        <S.DropdownItemName>{inst.name || inst.NAME}</S.DropdownItemName>
+                                        <S.DropdownItemDistance>{formatDistance(inst.distance)}</S.DropdownItemDistance>
+                                    </S.DropdownItemHeader>
+                                    <S.DropdownItemAddress>
+                                        {inst.addr || inst.ADDR || "주소 정보 없음"}
+                                    </S.DropdownItemAddress>
+                                </S.DropdownItem>
+                            ))}
+                        </S.DropdownContainer>
+                    )}
+                </S.SearchWrapper>
+
+                <S.ControlsContainer>
+                    <S.FilterPanel $isOpen={isFilterOpen}>
+                        {categories.map((category, index) => (
+                            <S.FilterChip
+                                key={index}
+                                $isActive={selectedCategories.includes(category)}
+                                onClick={() => {
+                                    toggleCategory(category);
+                                    setSelectedInst(null);
+                                }}
+                            >
+                                {category}
+                            </S.FilterChip>
+                        ))}
+                    </S.FilterPanel>
+
+                    <S.ButtonsWrapper>
+                        <S.FilterToggleButton onClick={() => setIsFilterOpen(!isFilterOpen)}>
+                            <i className="fa-solid fa-filter"></i>
+                        </S.FilterToggleButton>
+                        <S.MyLocationButton onClick={handleFindMyLocation}>
+                            <i className="fa-solid fa-location-crosshairs"></i>
+                        </S.MyLocationButton>
+                    </S.ButtonsWrapper>
+                </S.ControlsContainer>
 
                 <Map
                     center={mapCenter}
@@ -55,35 +136,9 @@ const MentalMap = () => {
                     style={{ width: "100%", height: "100%" }}
                     level={3}
                     isPanto={true}
-                    onClick={() => setSelectedInst(null)}
+                    onClick={handleMapClick}
                 >
-                        {Array.isArray(institutions) && institutions.map((inst) => {
-                            if (inst.location && inst.location.coordinates) {
-                                return (
-                                    <MapMarker
-                                        key={inst.id || inst._id}
-                                        position={{
-                                            lat: inst.location.coordinates[1],
-                                            lng: inst.location.coordinates[0]
-                                        }}
-                                        title={inst.name || inst.NAME}
-                                        image={{
-                                            src: markerSrc,
-                                            size: { width: 32, height: 42 },
-                                            options: { offset: { x: 16, y: 42 } },
-                                        }}
-                                        onClick={() => {
-                                            setSelectedInst(inst);
-                                            mapRef.current.panTo(new window.kakao.maps.LatLng(
-                                                inst.location.coordinates[1],
-                                                inst.location.coordinates[0]
-                                            ));
-                                        }}
-                                    />
-                                );
-                            }
-                            return null;
-                        })}
+                    {memoizedMarkers}
 
                     {selectedInst && selectedInst.location && (
                         <CustomOverlayMap
@@ -92,6 +147,7 @@ const MentalMap = () => {
                                 lng: selectedInst.location.coordinates[0]
                             }}
                             clickable={true}
+                            zIndex={15}
                         >
                             <S.OverlayContainer>
 
@@ -131,9 +187,14 @@ const MentalMap = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
-                                        <i className="fa-regular fa-compass"></i>
+                                        <i className="fa-solid fa-compass"></i>
                                     </S.RouteButtonRound>
                                 </S.OverlayRightSection>
+
+                                <S.CloseButton onClick={() => setSelectedInst(null)}>
+                                    <i className="fa-solid fa-xmark"></i>
+                                </S.CloseButton>
+
                             </S.OverlayContainer>
                         </CustomOverlayMap>
                     )}

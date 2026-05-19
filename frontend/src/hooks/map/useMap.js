@@ -1,6 +1,22 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useKakaoLoader } from 'react-kakao-maps-sdk';
 import { getInstitutions } from '../../api/mapApi';
+
+const getDistance = (lat1, lng1, lat2, lng2) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+};
+
+const formatDistance = (dist) => {
+    if (dist < 1) return Math.round(dist * 1000) + 'm';
+    return dist.toFixed(1) + 'km';
+};
 
 export const useMentalMap = () => {
     const [institutions, setInstitutions] = useState([]);
@@ -8,6 +24,13 @@ export const useMentalMap = () => {
     const [selectedInst, setSelectedInst] = useState(null);
     const [myLocation, setMyLocation] = useState(null);
     const mapRef = useRef(null);
+
+    const [keyword, setKeyword] = useState("");
+    const [suggestions, setSuggestions] = useState([]);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     const [loading, error] = useKakaoLoader({
         appkey: import.meta.env.VITE_KAKAO_JS_KEY,
@@ -63,15 +86,35 @@ export const useMentalMap = () => {
         fetchMyLocation(true);
     };
 
-    const searchPlace = (keyword) => {
-        if (!keyword.trim()) {
+    const categories = useMemo(() => {
+        const allCategories = institutions
+            .map(inst => inst.category || inst.CATEGORY)
+            .filter(Boolean);
+        return [...new Set(allCategories)].sort();
+    }, [institutions]);
+
+    const toggleCategory = (category) => {
+        setSelectedCategories(prev =>
+            prev.includes(category)
+                ? prev.filter(c => c !== category)
+                : [...prev, category]
+        );
+    };
+
+    const filteredInstitutions = useMemo(() => {
+        if (selectedCategories.length === 0) return institutions;
+        return institutions.filter(inst => selectedCategories.includes(inst.category || inst.CATEGORY));
+    }, [institutions, selectedCategories]);
+
+    const searchPlace = (searchKeyword) => {
+        if (!searchKeyword.trim()) {
             alert('검색어를 입력해주세요!');
             return;
         }
 
-        const matchedInst = institutions.find(inst => {
+        const matchedInst = filteredInstitutions.find(inst => {
             const name = inst.name || inst.NAME || "";
-            return name.includes(keyword);
+            return name.includes(searchKeyword);
         });
 
         if (matchedInst && matchedInst.location && matchedInst.location.coordinates) {
@@ -90,7 +133,7 @@ export const useMentalMap = () => {
 
         const ps = new window.kakao.maps.services.Places();
 
-        ps.keywordSearch(keyword, (data, status) => {
+        ps.keywordSearch(searchKeyword, (data, status) => {
             if (status === window.kakao.maps.services.Status.OK) {
                 const lat = data[0].y;
                 const lng = data[0].x;
@@ -110,16 +153,83 @@ export const useMentalMap = () => {
         });
     };
 
+    const handleInputChange = (e) => {
+        const val = e.target.value;
+        setKeyword(val);
+
+        if (!val.trim()) {
+            setSuggestions([]);
+            setIsDropdownOpen(false);
+            return;
+        }
+
+        const baseLat = myLocation ? myLocation.lat : mapCenter.lat;
+        const baseLng = myLocation ? myLocation.lng : mapCenter.lng;
+
+        const filtered = filteredInstitutions.filter(inst => {
+            const name = inst.name || inst.NAME || "";
+            return name.includes(val);
+        }).map(inst => {
+            const lat = inst.location.coordinates[1];
+            const lng = inst.location.coordinates[0];
+            const distance = getDistance(baseLat, baseLng, lat, lng);
+            return { ...inst, distance };
+        }).sort((a, b) => a.distance - b.distance)
+            .slice(0, 5);
+
+        setSuggestions(filtered);
+        setIsDropdownOpen(true);
+    };
+
+    const handleSuggestionClick = (inst) => {
+        setKeyword(inst.name || inst.NAME);
+        setIsDropdownOpen(false);
+        setSuggestions([]);
+        setSelectedInst(inst);
+
+        if (mapRef.current) {
+            mapRef.current.setLevel(3);
+            mapRef.current.panTo(new window.kakao.maps.LatLng(
+                inst.location.coordinates[1],
+                inst.location.coordinates[0]
+            ));
+        }
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        setIsDropdownOpen(false);
+        searchPlace(keyword);
+    };
+
+    const handleMapClick = () => {
+        setSelectedInst(null);
+        setIsDropdownOpen(false);
+        setIsFilterOpen(false);
+    };
+
     return {
-        institutions,
+        institutions: filteredInstitutions,
+        categories,
+        selectedCategories,
+        toggleCategory,
+        isFilterOpen,
+        setIsFilterOpen,
         loading,
         error,
         mapCenter,
         mapRef,
         handleFindMyLocation,
-        searchPlace,
         selectedInst,
         setSelectedInst,
-        myLocation
+        myLocation,
+        keyword,
+        suggestions,
+        isDropdownOpen,
+        handleInputChange,
+        handleSuggestionClick,
+        handleSearch,
+        handleMapClick,
+        formatDistance
     };
 };
