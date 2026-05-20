@@ -27,6 +27,19 @@ export const useDiaryList = () => {
     const month = currentDate.getMonth() + 1;
     const dateQuery = `${year}-${String(month).padStart(2, '0')}`;
 
+    const processDiaryData = (data) => {
+        if (!data || !Array.isArray(data)) return [];
+
+        return [...data]
+            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+            .map(item => ({
+                ...item,
+                displayDate: item.createdAt
+                    ? `${item.createdAt.substring(2, 4)}년 ${item.createdAt.substring(5, 7)}월 ${item.createdAt.substring(8, 10)}일`
+                    : ''
+            }));
+    };
+
     useEffect(() => {
         if (!keyword.trim() && selectedColors.length === 0) {
             const fetchDiaries = async () => {
@@ -46,7 +59,7 @@ export const useDiaryList = () => {
             const delayDebounceFn = setTimeout(async () => {
                 try {
                     const data = await searchDiaries(keyword);
-                    setSearchResults(data || []);
+                    setSearchResults(processDiaryData(data));
                 } catch (error) {
                     setSearchResults([]);
                 }
@@ -62,7 +75,7 @@ export const useDiaryList = () => {
             const fetchFilterResults = async () => {
                 try {
                     const data = await filterDiariesByColors(selectedColors);
-                    setFilterResults(data || []);
+                    setFilterResults(processDiaryData(data));
                 } catch (error) {
                     setFilterResults([]);
                 }

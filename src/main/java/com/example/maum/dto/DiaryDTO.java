@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record DiaryDTO(
         Integer diaryNo,
-        Integer userNo,
+        String userNo,
         String title,
         String content,
         String summary,

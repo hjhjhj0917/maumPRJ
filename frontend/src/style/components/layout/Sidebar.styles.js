@@ -112,3 +112,35 @@ export const NavItem = styled.div`
 export const BottomSection = styled.div`
     padding: 12px;
 `;
+
+export const RecentDiarySection = styled.div`
+    padding: 12px 4px;
+    margin-top: 30px;
+`;
+
+export const RecentDiaryTitle = styled.div`
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 8px;
+    padding-left: 12px;
+    font-weight: 600;
+`;
+
+export const RecentDiaryItem = styled.div`
+    cursor: pointer;
+    padding: 10px 12px;
+    margin: 2px 0;
+    font-size: 13.5px;
+    color: #444;
+    border-radius: 24px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: #e2e6ea;
+        border-radius: 24px;
+        color: #000;
+    }
+`;

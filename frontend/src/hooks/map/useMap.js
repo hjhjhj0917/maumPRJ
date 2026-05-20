@@ -32,6 +32,35 @@ export const useMentalMap = () => {
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
 
+    const [mapBounds, setMapBounds] = useState(null);
+
+    const updateMapBounds = (map) => {
+        const bounds = map.getBounds();
+        setMapBounds(prev => {
+            if (prev && prev.toString() === bounds.toString()) {
+                return prev;
+            }
+            return bounds;
+        });
+    };
+
+    const categories = [
+        '전체',
+        '공립',
+        '광역정신건강복지센터',
+        '국립',
+        '기초정신건강복지센터',
+        '병원',
+        '보건소',
+        '상급종합병원',
+        '의원',
+        '자살예방센터',
+        '정신요양시설',
+        '정신재활시설',
+        '종합병원',
+        '중독관리통합지원센터'
+    ];
+
     const [loading, error] = useKakaoLoader({
         appkey: import.meta.env.VITE_KAKAO_JS_KEY,
         libraries: ["clusterer", "services"]
@@ -86,14 +115,12 @@ export const useMentalMap = () => {
         fetchMyLocation(true);
     };
 
-    const categories = useMemo(() => {
-        const allCategories = institutions
-            .map(inst => inst.category || inst.CATEGORY)
-            .filter(Boolean);
-        return [...new Set(allCategories)].sort();
-    }, [institutions]);
-
     const toggleCategory = (category) => {
+        if (category === '전체') {
+            setSelectedCategories([]);
+            return;
+        }
+
         setSelectedCategories(prev =>
             prev.includes(category)
                 ? prev.filter(c => c !== category)
@@ -103,8 +130,30 @@ export const useMentalMap = () => {
 
     const filteredInstitutions = useMemo(() => {
         if (selectedCategories.length === 0) return institutions;
-        return institutions.filter(inst => selectedCategories.includes(inst.category || inst.CATEGORY));
+        return institutions.filter(inst => {
+            const cat = inst.category || inst.CATEGORY || "";
+            return selectedCategories.includes(cat.trim());
+        });
     }, [institutions, selectedCategories]);
+
+    const visibleInstitutions = useMemo(() => {
+        if (!mapBounds) return [];
+
+        const sw = mapBounds.getSouthWest();
+        const ne = mapBounds.getNorthEast();
+
+        return filteredInstitutions.filter(inst => {
+            if (!inst.location || !inst.location.coordinates) return false;
+            const lat = inst.location.coordinates[1];
+            const lng = inst.location.coordinates[0];
+
+            return (
+                lat >= sw.getLat() && lat <= ne.getLat() &&
+                lng >= sw.getLng() && lng <= ne.getLng()
+            );
+        });
+    }, [filteredInstitutions, mapBounds]);
+
 
     const searchPlace = (searchKeyword) => {
         if (!searchKeyword.trim()) {
@@ -209,7 +258,8 @@ export const useMentalMap = () => {
     };
 
     return {
-        institutions: filteredInstitutions,
+        visibleInstitutions,
+        updateMapBounds,
         categories,
         selectedCategories,
         toggleCategory,

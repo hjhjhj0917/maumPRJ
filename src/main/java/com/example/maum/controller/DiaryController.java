@@ -44,7 +44,7 @@ public class DiaryController {
                     .build();
         }
 
-        Integer userNo = Integer.parseInt(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
         String title = CmmUtil.nvl(dDTO.title());
         String content = CmmUtil.nvl(dDTO.content());
         String createdAt = CmmUtil.nvl(dDTO.createdAt());
@@ -92,7 +92,7 @@ public class DiaryController {
                     .build();
         }
 
-        Integer userNo = Integer.parseInt(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
         Integer diaryNo = dDTO.diaryNo();
         String title = CmmUtil.nvl(dDTO.title());
         String content = CmmUtil.nvl(dDTO.content());
@@ -129,7 +129,7 @@ public class DiaryController {
         }
 
 
-        Integer userNo = Integer.parseInt(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
         Integer diaryNo = dDTO.diaryNo();
 
         log.info("userNo: {}, diaryNo: {}", userNo, diaryNo);
@@ -164,7 +164,7 @@ public class DiaryController {
         }
 
         try {
-            Integer userNo = Integer.parseInt(jwt.getSubject());
+            String userNo = CmmUtil.nvl(jwt.getSubject());
 
             DiaryDTO sDTO = DiaryDTO.builder()
                     .userNo(userNo)
@@ -209,7 +209,7 @@ public class DiaryController {
             return res;
         }
 
-        Integer userNo = Integer.parseInt(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
 
         try {
             DiaryDTO pDTO = DiaryDTO.builder()
@@ -250,7 +250,8 @@ public class DiaryController {
         }
 
         try {
-            Integer userNo = Integer.parseInt(jwt.getSubject());
+            String userNo = CmmUtil.nvl(jwt.getSubject());
+
             DiaryDTO pDTO = DiaryDTO.builder()
                     .userNo(userNo)
                     .title(CmmUtil.nvl(keyword))
@@ -285,8 +286,8 @@ public class DiaryController {
         if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         try {
-            Integer userNo = Integer.parseInt(jwt.getSubject());
-            // Service에 colors 리스트를 전달하여 조회
+            String userNo = CmmUtil.nvl(jwt.getSubject());
+
             List<DiaryDTO> rList = diaryService.getDiaryListByColors(userNo, colors);
 
             log.info("{}.filterDiaryList End!", this.getClass().getName());
@@ -304,5 +305,32 @@ public class DiaryController {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @GetMapping("/recent")
+    public ResponseEntity<CommonResponse<List<DiaryDTO>>> getRecentDiaryList(@AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.getRecentDiaryList Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}", userNo);
+
+        DiaryDTO pDTO = DiaryDTO.builder()
+                .userNo(userNo)
+                .build();
+
+        List<DiaryDTO> rList = Optional.ofNullable(diaryService.getRecentDiaryList(pDTO))
+                .orElseGet(ArrayList::new);
+
+        log.info("{}.getRecentDiaryList End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.<List<DiaryDTO>>builder()
+                        .httpStatus(HttpStatus.OK)
+                        .message("최근 일기 조회 성공")
+                        .data(rList)
+                        .build()
+        );
     }
 }

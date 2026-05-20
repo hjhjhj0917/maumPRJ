@@ -14,6 +14,7 @@ const Layout = () => {
         handleLogoutClick,
         confirmLogout,
         isActive,
+        recentDiaries,
         navigate
     } = useSidebar();
 
@@ -28,6 +29,7 @@ const Layout = () => {
                 setShowLogoutModal={setShowLogoutModal}
                 isActive={isActive}
                 navigate={navigate}
+                recentDiaries={recentDiaries}
             />
 
             <S.MainWrapper>

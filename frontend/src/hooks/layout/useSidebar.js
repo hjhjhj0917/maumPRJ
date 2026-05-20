@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { logoutUser } from '../../api/authApi';
+import {getRecentDiaries } from "../../api/diaryApi.js";
 
 export const useSidebar = () => {
     const navigate = useNavigate();
@@ -34,6 +35,24 @@ export const useSidebar = () => {
 
     const isActive = (path) => location.pathname === path;
 
+    const [recentDiaries, setRecentDiaries] = useState([]);
+
+    useEffect(() => {
+        const fetchRecent = async () => {
+            try {
+                const res = await getRecentDiaries();
+
+                if (res) {
+                    const data = Array.isArray(res) ? res : [res];
+                    setRecentDiaries(data);
+                }
+            } catch (err) {
+                console.error("최신 일기 로드 실패", err);
+            }
+        };
+        fetchRecent();
+    }, []);
+
     return {
         isSidebarOpen,
         showLogoutModal,
@@ -42,6 +61,7 @@ export const useSidebar = () => {
         handleLogoutClick,
         confirmLogout,
         isActive,
+        recentDiaries,
         navigate
     };
 };

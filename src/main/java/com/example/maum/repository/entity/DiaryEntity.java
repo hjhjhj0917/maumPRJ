@@ -28,7 +28,7 @@ public class DiaryEntity implements Serializable {
     private Integer diaryNo;
 
     @Column(name = "USER_NO", nullable = false)
-    private Integer userNo;
+    private String userNo;
 
     @Column(name = "TITLE", nullable = false, length = 200)
     private String title;

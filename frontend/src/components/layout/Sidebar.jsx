@@ -10,6 +10,7 @@ const Sidebar = ({
                      showLogoutModal,
                      setShowLogoutModal,
                      isActive,
+                     recentDiaries,
                      navigate
                  }) => {
     return (
@@ -26,18 +27,36 @@ const Sidebar = ({
                 </S.TopSection>
 
                 <S.NavSection>
-                    <S.NavItem $isOpen={isOpen} $active={isActive('/chatbot')} onClick={isOpen ? () => navigate('/chatbot') : undefined}>
+                    <S.NavItem $isOpen={isOpen} $active={isActive('/chatbot')}
+                               onClick={isOpen ? () => navigate('/chatbot') : undefined}>
                         <i className="fa-solid fa-robot"></i>
                         {isOpen && <span>챗봇</span>}
                     </S.NavItem>
-                    <S.NavItem $isOpen={isOpen} $active={isActive('/counseling')} onClick={isOpen ? () => navigate('/map') : undefined}>
+                    <S.NavItem $isOpen={isOpen} $active={isActive('/map')}
+                               onClick={isOpen ? () => navigate('/map') : undefined}>
                         <i className="fa-solid fa-map-location-dot"></i>
                         {isOpen && <span>주변 상담소</span>}
                     </S.NavItem>
-                    <S.NavItem $isOpen={isOpen} $active={isActive('/diary/list')} onClick={isOpen ? () => navigate('/diary/list') : undefined}>
+                    <S.NavItem $isOpen={isOpen} $active={isActive('/diary/list')}
+                               onClick={isOpen ? () => navigate('/diary/list') : undefined}>
                         <i className="fa-solid fa-bars-staggered"></i>
                         {isOpen && <span>일기 목록</span>}
                     </S.NavItem>
+
+                    {isOpen && recentDiaries.length > 0 && (
+                        <S.RecentDiarySection>
+                            <S.RecentDiaryTitle>최근 일기</S.RecentDiaryTitle>
+                            {recentDiaries.map((diary) => (
+                                <S.RecentDiaryItem
+                                    key={diary.diaryNo}
+                                    onClick={() => navigate(`/diary/${diary.diaryNo}`)}
+                                    title={diary.title}
+                                >
+                                    {diary.title}
+                                </S.RecentDiaryItem>
+                            ))}
+                        </S.RecentDiarySection>
+                    )}
                 </S.NavSection>
 
                 <S.BottomSection>

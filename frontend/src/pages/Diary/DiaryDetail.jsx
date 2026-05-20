@@ -86,7 +86,7 @@ const DiaryDetail = () => {
                         ) : (
                             <S.TitleText>{diary.title}</S.TitleText>
                         )}
-                        <S.DateText>{diary.createdAt.substring(0, 10)}</S.DateText>
+                        <S.DateText>{diary?.createdAt?.substring(0, 10)}</S.DateText>
                     </S.TitleDateRow>
                 </S.HeaderSection>
 

@@ -44,16 +44,13 @@ export const ControlsContainer = styled.div`
     position: absolute;
     bottom: 30px;
     right: 30px;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
+    z-index: 20;
 `;
 
 export const ButtonsWrapper = styled.div`
     display: flex;
     gap: 12px;
+    justify-content: flex-end;
 `;
 
 export const MyLocationButton = styled.button`
@@ -77,19 +74,25 @@ export const MyLocationButton = styled.button`
 `;
 
 export const FilterPanel = styled.div`
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin-bottom: 15px;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
+    align-content: flex-end;
     gap: 8px;
     background-color: white;
     padding: 15px;
     border-radius: 16px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    width: max-content;
     max-width: 320px;
     opacity: ${(props) => (props.$isOpen ? 1 : 0)};
     visibility: ${(props) => (props.$isOpen ? 'visible' : 'hidden')};
-    transform: ${(props) => (props.$isOpen ? 'translateY(0)' : 'translateY(10px)')};
-    transition: all 0.3s ease;
+    transform: ${(props) => (props.$isOpen ? 'translateY(0)' : 'translateY(15px)')};
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: ${(props) => (props.$isOpen ? 'auto' : 'none')};
 `;
 
@@ -295,16 +298,6 @@ export const OverlayTitle = styled.h3`
     white-space: normal;
 `;
 
-export const CategoryBadge = styled.span`
-    display: inline-block;
-    padding: 4px 8px;
-    background-color: #f1f3f5;
-    color: #495057;
-    font-size: 11px;
-    border-radius: 4px;
-    margin-top: 6px;
-`;
-
 export const OverlayBody = styled.div`
     display: flex;
     flex-direction: column;
@@ -342,28 +335,21 @@ export const InfoText = styled.div`
     }
 `;
 
+export const HashtagText = styled.div`
+    display: inline-block;
+    font-size: 13px;
+    font-weight: bold;
+    color: #4A90E2;
+    margin-top: 4px;
+    word-break: keep-all;
+`;
+
 export const OverlayRightSection = styled.div`
     width: auto;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-shrink: 0;
-`;
-
-export const CloseButton = styled.button`
-    background: none;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    color: #adb5bd;
-    padding: 0;
-    position: absolute;
-    top: 14px;
-    right: 18px;
-
-    &:hover {
-        color: #495057;
-    }
 `;
 
 export const RouteButtonRound = styled.a`

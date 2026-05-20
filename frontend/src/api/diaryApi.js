@@ -56,3 +56,8 @@ export const filterDiariesByColors = async (colors) => {
     });
     return response.data;
 };
+
+export const getRecentDiaries = async () => {
+    const response = await apiClient.get('/diary/recent');
+    return response.data;
+};

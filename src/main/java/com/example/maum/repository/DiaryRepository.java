@@ -10,9 +10,11 @@ import java.util.List;
 @Repository
 public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
 
-    List<DiaryEntity> findAllByUserNoAndCreatedAtBetween(Integer userNo, LocalDate startDate, LocalDate endDate);
+    List<DiaryEntity> findAllByUserNoAndCreatedAtBetween(String userNo, LocalDate startDate, LocalDate endDate);
 
-    List<DiaryEntity> findByUserNoAndTitleContainingOrderByCreatedAtDesc(Integer userNo, String title);
+    List<DiaryEntity> findByUserNoAndTitleContainingOrderByCreatedAtDesc(String userNo, String title);
 
-    List<DiaryEntity> findByUserNoAndEmotionColorInOrderByCreatedAtDesc(Integer userNo, List<String> colors);
+    List<DiaryEntity> findByUserNoAndEmotionColorInOrderByCreatedAtDesc(String userNo, List<String> colors);
+
+    List<DiaryEntity> findTop10ByUserNoOrderByCreatedAtDesc(String userNo);
 }

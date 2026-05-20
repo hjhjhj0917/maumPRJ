@@ -39,7 +39,7 @@ public class UserInfoController {
 
     /* READ */
 
-    @PostMapping(value = "userInfo")
+    @PostMapping(value = "userInfo") // 수정이 필요함, userInfo로 모든 정보를 프론트로 보내는데 이 과정에서 네트워크 창에서 정보가 전부 보임
     public ResponseEntity<CommonResponse<UserInfoDTO>> userInfo(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.userInfo Start!", this.getClass().getName());
@@ -57,9 +57,8 @@ public class UserInfoController {
         }
 
         final String userNo = jwt.getSubject();
-        String userId = jwt.getClaimAsString("userId");
 
-        UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).userId(userId).build();
+        UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
 
         UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserInfo(pDTO))
                 .orElseGet(() -> UserInfoDTO.builder().build());

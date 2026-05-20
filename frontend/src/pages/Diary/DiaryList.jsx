@@ -23,6 +23,18 @@ const DiaryList = () => {
                     </S.ArrowButton>
                 </S.MonthNav>
 
+                <S.Controls>
+                    <S.SearchBox>
+                        <input
+                            type="text"
+                            placeholder="제목을 입력하세요"
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
+                        />
+                        <i className="fa-solid fa-magnifying-glass"></i>
+                    </S.SearchBox>
+                </S.Controls>
+
                 {!keyword && (
                     <S.FilterSection>
                         {Object.entries(EMOTION_GROUPS).map(([name, color]) => (
@@ -38,21 +50,6 @@ const DiaryList = () => {
                         ))}
                     </S.FilterSection>
                 )}
-
-                <S.Controls>
-                    <S.SearchBox>
-                        <input
-                            type="text"
-                            placeholder="제목을 입력하세요"
-                            value={keyword}
-                            onChange={(e) => setKeyword(e.target.value)}
-                        />
-                        <i className="fa-solid fa-magnifying-glass"></i>
-                    </S.SearchBox>
-                    <S.FilterButton>
-                        필터 <i className="fa-solid fa-filter"></i>
-                    </S.FilterButton>
-                </S.Controls>
             </S.StickyHeader>
 
             <S.ListWrapper>
@@ -60,7 +57,7 @@ const DiaryList = () => {
                     searchResults.length > 0 ? (
                         searchResults.map((result) => (
                             <S.ListItem key={result.diaryNo} onClick={() => handleResultClick(result.diaryNo)} $hasDiary={true}>
-                                <S.ResultDateText>{result.createdAt}</S.ResultDateText>
+                                <S.ResultDateText>{result.displayDate}</S.ResultDateText>
                                 <S.TitleText>{result.title}</S.TitleText>
                                 <S.ColorCircle $color={result.emotionColor || '#e0e0e0'} />
                             </S.ListItem>
@@ -72,7 +69,7 @@ const DiaryList = () => {
                     filterResults.length > 0 ? (
                         filterResults.map((result) => (
                             <S.ListItem key={result.diaryNo} onClick={() => handleResultClick(result.diaryNo)} $hasDiary={true}>
-                                <S.ResultDateText>{result.createdAt}</S.ResultDateText>
+                                <S.ResultDateText>{result.displayDate}</S.ResultDateText>
                                 <S.TitleText>{result.title}</S.TitleText>
                                 <S.ColorCircle $color={result.emotionColor || '#e0e0e0'} />
                             </S.ListItem>

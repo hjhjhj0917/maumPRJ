@@ -56,7 +56,7 @@ public class UserInfoService implements IUserInfoService {
         log.info("pDTO: {}", pDTO);
 
         try {
-            boolean exists = userInfoRepository.existsById(pDTO.userId());
+            boolean exists = userInfoRepository.findByUserId(pDTO.userId()).isPresent();
 
             if (exists) {
                 res = 2;
@@ -83,11 +83,11 @@ public class UserInfoService implements IUserInfoService {
 
         log.info("{}.getUserInfo Start!", this.getClass().getName());
 
-        String userId = CmmUtil.nvl(pDTO.userId());
+        String userNo = CmmUtil.nvl(pDTO.userNo());
 
-        log.info("userId: {}", userId);
+        log.info("userNo: {}", userNo);
 
-        UserInfoDTO rDTO = UserInfoDTO.from(userInfoRepository.findByUserId(userId).orElseThrow());
+        UserInfoDTO rDTO = UserInfoDTO.from(userInfoRepository.findById(userNo).orElseThrow());
 
         log.info("{}.getUserInfo End!", this.getClass().getName());
 
@@ -345,10 +345,10 @@ public class UserInfoService implements IUserInfoService {
 
         log.info("{}.updateProfileImg Start!", this.getClass().getName());
 
-        String userId = CmmUtil.nvl(pDTO.userId());
+        String userNo = CmmUtil.nvl(pDTO.userNo());
         String profileImage = CmmUtil.nvl(pDTO.profileImgUrl());
 
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findById(userNo);
 
         int res;
         if (rEntity.isPresent()) {

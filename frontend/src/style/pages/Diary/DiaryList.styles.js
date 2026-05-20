@@ -25,6 +25,7 @@ export const MonthNav = styled.div`
     align-items: center;
     justify-content: center;
     gap: 40px;
+    margin-top: 20px;
     margin-bottom: 30px;
 `;
 
@@ -53,7 +54,7 @@ export const MonthText = styled.h2`
 
 export const FilterSection = styled.div`
     width: 100%;
-    max-width: 800px;
+    max-width: 820px;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;

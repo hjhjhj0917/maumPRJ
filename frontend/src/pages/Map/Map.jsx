@@ -8,7 +8,8 @@ const markerSrc = `data:image/svg+xml;base64,${btoa(fontAwesomeMarkerSvg)}`;
 
 const MentalMap = () => {
     const {
-        institutions,
+        visibleInstitutions,
+        updateMapBounds,
         categories,
         selectedCategories,
         toggleCategory,
@@ -33,7 +34,7 @@ const MentalMap = () => {
     } = useMentalMap();
 
     const memoizedMarkers = useMemo(() => {
-        return Array.isArray(institutions) && institutions.map((inst) => {
+        return Array.isArray(visibleInstitutions) && visibleInstitutions.map((inst) => {
             if (inst.location && inst.location.coordinates) {
                 return (
                     <MapMarker
@@ -50,7 +51,7 @@ const MentalMap = () => {
                         }}
                         onClick={() => {
                             setSelectedInst(inst);
-                            if(mapRef.current) {
+                            if (mapRef.current) {
                                 mapRef.current.panTo(new window.kakao.maps.LatLng(
                                     inst.location.coordinates[1],
                                     inst.location.coordinates[0]
@@ -62,7 +63,7 @@ const MentalMap = () => {
             }
             return null;
         });
-    }, [institutions, setSelectedInst, mapRef]);
+    }, [visibleInstitutions, setSelectedInst, mapRef]);
 
     if (loading) return <S.LoadingErrorText>지도 스크립트 로딩 중...</S.LoadingErrorText>;
     if (error) return <S.LoadingErrorText $isError>지도를 불러오는데 실패했습니다.</S.LoadingErrorText>;
@@ -105,12 +106,13 @@ const MentalMap = () => {
                 </S.SearchWrapper>
 
                 <S.ControlsContainer>
-                    <S.FilterPanel $isOpen={isFilterOpen}>
+                    <S.FilterPanel $isOpen={isFilterOpen} onClick={(e) => e.stopPropagation()}>
                         {categories.map((category, index) => (
                             <S.FilterChip
                                 key={index}
-                                $isActive={selectedCategories.includes(category)}
-                                onClick={() => {
+                                $isActive={category === '전체' ? selectedCategories.length === 0 : selectedCategories.includes(category)}
+                                onClick={(e) => {
+                                    e.stopPropagation();
                                     toggleCategory(category);
                                     setSelectedInst(null);
                                 }}
@@ -121,10 +123,17 @@ const MentalMap = () => {
                     </S.FilterPanel>
 
                     <S.ButtonsWrapper>
-                        <S.FilterToggleButton onClick={() => setIsFilterOpen(!isFilterOpen)}>
+                        <S.FilterToggleButton onClick={(e) => {
+                            e.stopPropagation();
+                            setIsFilterOpen(!isFilterOpen);
+                        }}>
                             <i className="fa-solid fa-filter"></i>
                         </S.FilterToggleButton>
-                        <S.MyLocationButton onClick={handleFindMyLocation}>
+
+                        <S.MyLocationButton onClick={(e) => {
+                            e.stopPropagation();
+                            handleFindMyLocation();
+                        }}>
                             <i className="fa-solid fa-location-crosshairs"></i>
                         </S.MyLocationButton>
                     </S.ButtonsWrapper>
@@ -137,6 +146,8 @@ const MentalMap = () => {
                     level={3}
                     isPanto={true}
                     onClick={handleMapClick}
+                    onCreate={updateMapBounds}
+                    onIdle={updateMapBounds}
                 >
                     {memoizedMarkers}
 
@@ -155,9 +166,6 @@ const MentalMap = () => {
                                     <S.OverlayHeader>
                                         <div>
                                             <S.OverlayTitle>{selectedInst.name || selectedInst.NAME}</S.OverlayTitle>
-                                            {(selectedInst.category || selectedInst.CATEGORY) && (
-                                                <S.CategoryBadge>{selectedInst.category || selectedInst.CATEGORY}</S.CategoryBadge>
-                                            )}
                                         </div>
                                     </S.OverlayHeader>
                                     <S.OverlayBody>
@@ -169,10 +177,15 @@ const MentalMap = () => {
                                         {(selectedInst.homepage || selectedInst.HOMEPAGE) && (
                                             <S.InfoText>
                                                 <i className="fa-solid fa-globe"></i>
-                                                <a href={selectedInst.homepage || selectedInst.HOMEPAGE} target="_blank" rel="noopener noreferrer">
+                                                <a href={selectedInst.homepage || selectedInst.HOMEPAGE} target="_blank"
+                                                   rel="noopener noreferrer">
                                                     {selectedInst.homepage || selectedInst.HOMEPAGE}
                                                 </a>
                                             </S.InfoText>
+                                        )}
+
+                                        {(selectedInst.category || selectedInst.CATEGORY) && (
+                                            <S.HashtagText>#{selectedInst.category || selectedInst.CATEGORY}</S.HashtagText>
                                         )}
                                     </S.OverlayBody>
                                 </S.OverlayLeftSection>
@@ -190,10 +203,6 @@ const MentalMap = () => {
                                         <i className="fa-solid fa-compass"></i>
                                     </S.RouteButtonRound>
                                 </S.OverlayRightSection>
-
-                                <S.CloseButton onClick={() => setSelectedInst(null)}>
-                                    <i className="fa-solid fa-xmark"></i>
-                                </S.CloseButton>
 
                             </S.OverlayContainer>
                         </CustomOverlayMap>

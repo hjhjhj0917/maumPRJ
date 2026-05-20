@@ -10,7 +10,7 @@ import com.example.maum.util.DateUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +19,7 @@ import org.springframework.web.client.RestClient;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,6 +86,7 @@ public class DiaryService implements IDiaryService {
     /* [Diary Management] */
 
     @Transactional
+    @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
     public int diaryInsert(DiaryDTO pDTO) throws Exception {
 
@@ -125,6 +122,7 @@ public class DiaryService implements IDiaryService {
 
 
     @Transactional
+    @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
     public MsgDTO diaryUpdate(DiaryDTO pDTO) throws Exception {
 
@@ -133,7 +131,7 @@ public class DiaryService implements IDiaryService {
         int res = 0;
         String msg = "일기 수정에 실패하였습니다.";
 
-        Integer userNo = pDTO.userNo();
+        String userNo = CmmUtil.nvl(pDTO.userNo());
         Integer diaryNo = pDTO.diaryNo();
         String title = CmmUtil.nvl(pDTO.title());
         String content = CmmUtil.nvl(pDTO.content());
@@ -171,6 +169,7 @@ public class DiaryService implements IDiaryService {
 
 
     @Transactional
+    @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
     public MsgDTO diaryDelete(DiaryDTO pDTO) throws Exception {
 
@@ -179,7 +178,7 @@ public class DiaryService implements IDiaryService {
         int res = 0;
         String msg = "일기 삭제에 실패하였습니다.";
 
-        Integer userNo = pDTO.userNo();
+        String userNo = CmmUtil.nvl(pDTO.userNo());
         Integer diaryNo = pDTO.diaryNo();
 
         log.info("삭제 시도 - diaryNo: {}, userNo: {}", diaryNo, userNo);
@@ -219,13 +218,16 @@ public class DiaryService implements IDiaryService {
     /* [Diary Retrieval] */
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "diaryCache", key = "#pDTO.userNo() + '_' + #pDTO.createdAt()") // 중복된 요청을 빠르게 처리하기 위함 (캐시를 redis에 저장하게 수정)
+    //@Cacheable(value = "diaryCache", key = "#pDTO.userNo() + '_' + #pDTO.createdAt()") // 중복된 요청을 빠르게 처리하기 위함 (캐시를 redis에 저장하게 수정)
     @Override
     public List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.getMonthlyDiaryList Start!", this.getClass().getName());
 
+        String userNo = pDTO.userNo();
         String dateStr = CmmUtil.nvl(pDTO.createdAt());
+
+        log.info("Request Monthly Diary List - userNo: {}, createdAt: {}", userNo, dateStr);
 
         if (dateStr.isEmpty() || !dateStr.contains("-")) {
             log.warn("조회 날짜가 비어있거나 형식이 잘못되었습니다.");
@@ -243,7 +245,11 @@ public class DiaryService implements IDiaryService {
         LocalDate start = yearMonth.atDay(1);
         LocalDate end = yearMonth.atEndOfMonth();
 
-        List<DiaryEntity> entities = diaryRepository.findAllByUserNoAndCreatedAtBetween(pDTO.userNo(), start, end);
+        log.info("Query Date Range: {} ~ {}", start, end);
+
+        List<DiaryEntity> entities = diaryRepository.findAllByUserNoAndCreatedAtBetween(userNo, start, end);
+
+        log.info("Found {} diary entities.", entities.size());
 
         List<DiaryDTO> rList = entities.stream()
                 .map(e -> DiaryDTO.builder()
@@ -325,7 +331,7 @@ public class DiaryService implements IDiaryService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<DiaryDTO> getDiaryListByColors(Integer userNo, List<String> colors) throws Exception {
+    public List<DiaryDTO> getDiaryListByColors(String userNo, List<String> colors) throws Exception {
 
         log.info("{}.getDiaryListByColors Start!", this.getClass().getName());
 
@@ -339,6 +345,31 @@ public class DiaryService implements IDiaryService {
                 .collect(Collectors.toList());
 
         log.info("{}.getDiaryListByColors End!", this.getClass().getName());
+
+        return rList;
+    }
+
+    @Override
+    public List<DiaryDTO> getRecentDiaryList(DiaryDTO pDTO) throws Exception {
+
+        log.info("{}.getRecentDiaryList Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(pDTO.userNo());
+
+        log.info("userNo: {}", userNo);
+
+        List<DiaryDTO> rList = diaryRepository.findTop10ByUserNoOrderByCreatedAtDesc(userNo).stream()
+                .map(e -> DiaryDTO.builder()
+                        .diaryNo(e.getDiaryNo())
+                        .title(e.getTitle())
+                        .emotionColor(e.getEmotionColor())
+                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                        .build())
+                .collect(Collectors.toList());
+
+
+
+        log.info("{}.getRecentDiaryList End!", this.getClass().getName());
 
         return rList;
     }

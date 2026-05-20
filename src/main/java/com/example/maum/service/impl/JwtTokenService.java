@@ -56,7 +56,6 @@ public class JwtTokenService implements IJwtTokenService {
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(ttlSec))
                 .subject(user.userNo())
-                .claim(CLAIM_USERID, user.userId())
                 .claim(CLAIM_USERNAME, user.userName())
                 .claim(CLAIM_TYPE, type)
                 .claim(CLAIM_ROLES, roles)
