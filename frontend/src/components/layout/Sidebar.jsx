@@ -20,7 +20,7 @@ const Sidebar = ({
                     <S.IconButton $isOpen={isOpen} onClick={toggleSidebar}>
                         <i className="fa-solid fa-bars"></i>
                     </S.IconButton>
-                    <S.NewPostBtn $isOpen={isOpen} onClick={isOpen ? () => navigate('/diary/write') : undefined}>
+                    <S.NewPostBtn $isOpen={isOpen} onClick={isOpen ? () => navigate('/account/profile') : undefined}>
                         <i className="fa-solid fa-user-gear"></i>
                         {isOpen && <span>프로필 설정</span>}
                     </S.NewPostBtn>

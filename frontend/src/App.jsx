@@ -9,6 +9,7 @@ import DiaryList from "./pages/Diary/DiaryList.jsx";
 import DiaryDetail from "./pages/Diary/DiaryDetail.jsx";
 import ChatBot from "./pages/ChatBot/ChatBot.jsx";
 import Map from "./pages/Map/Map.jsx";
+import Profile from "./pages/Account/Profile.jsx";
 
 function App() {
     return (
@@ -27,6 +28,7 @@ function App() {
                     <Route path="/diary/write" element={<DiaryWrite />} />
                     <Route path="/diary/list" element={<DiaryList />} />
                     <Route path="/chatbot" element={<ChatBot />} />
+                    <Route path="/account/profile" element={<Profile />}/>
                     <Route path="/map" element={<Map />} />
                     <Route path="/diary/:diaryNo" element={<DiaryDetail />} />
                 </Route>
