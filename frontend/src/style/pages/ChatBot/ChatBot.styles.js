@@ -39,13 +39,13 @@ export const BottomInputArea = styled.div`
     padding: 20px;
     background-color: transparent;
     max-width: 800px;
-    margin: 0 auto;
+    margin-bottom: 60px;
 `;
 
 export const MessageList = styled.div`
     flex-grow: 1;
     overflow-y: auto;
-    padding: 40px 20px;
+    padding: 105px 20px 40px;
     display: flex;
     flex-direction: column;
     gap: 32px;
