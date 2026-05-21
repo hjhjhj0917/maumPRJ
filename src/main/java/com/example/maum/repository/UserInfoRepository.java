@@ -14,6 +14,9 @@ public interface UserInfoRepository extends JpaRepository<UserInfoEntity, String
     */
     Optional<UserInfoEntity> findByUserId(String userId);
 
+
+    Optional<UserInfoEntity> findByUserNo(String userNo);
+
     /*
     이메일 중복 여부
     */

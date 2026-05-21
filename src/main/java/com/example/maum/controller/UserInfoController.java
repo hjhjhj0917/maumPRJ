@@ -39,7 +39,7 @@ public class UserInfoController {
 
     /* READ */
 
-    @PostMapping(value = "userInfo") // 수정이 필요함, userInfo로 모든 정보를 프론트로 보내는데 이 과정에서 네트워크 창에서 정보가 전부 보임
+    @PostMapping(value = "userInfo")
     public ResponseEntity<CommonResponse<UserInfoDTO>> userInfo(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.userInfo Start!", this.getClass().getName());
@@ -231,22 +231,28 @@ public class UserInfoController {
 
 
     @PostMapping(value = "updateProfileImg")
-    public MsgDTO updateProfileImg(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<MsgDTO>> updateProfileImg(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.updateProfileImg Start!", this.getClass().getName());
 
         if (jwt == null) {
             log.warn("인증 정보(JWT)가 누락된 접근입니다.");
-            return MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build();
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(CommonResponse.of(
+                            HttpStatus.UNAUTHORIZED,
+                            HttpStatus.UNAUTHORIZED.series().name(),
+                            MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()
+                    ));
         }
 
-        String userId = jwt.getClaimAsString("userId");
+        String userNo = jwt.getSubject();
         String profileImage = CmmUtil.nvl(uDTO.profileImgUrl());
 
-        log.info("프로필 변경 요청 - userId: {}, profileImage: {}", userId, profileImage);
+        log.info("프로필 변경 요청 - userNo: {}, profileImage: {}", userNo, profileImage);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .userId(userId)
+                .userNo(userNo)
                 .profileImgUrl(profileImage)
                 .build();
 
@@ -262,6 +268,6 @@ public class UserInfoController {
 
         log.info("{}.updateProfileImg End!", this.getClass().getName());
 
-        return rDTO;
+        return ResponseEntity.ok(CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
     }
 }

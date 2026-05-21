@@ -3,13 +3,12 @@ import styled from 'styled-components';
 export const SidebarWrapper = styled.aside`
     width: ${props => (props.$isOpen ? '240px' : '68px')};
     height: 100vh;
-    background-color: #f4f7f9;
+    background-color: #333;
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 100;
-    border-right: solid 2px #EBEBEB;
 `;
 
 export const TopSection = styled.div`
@@ -24,7 +23,7 @@ export const IconButton = styled.button`
     height: 44px;
     border: none;
     background: transparent;
-    color: #333;
+    color: #ffffff;
     border-radius: 50%;
     cursor: pointer;
     font-size: 20px;
@@ -32,10 +31,10 @@ export const IconButton = styled.button`
     justify-content: center;
     align-items: center;
     margin: ${props => props.$isOpen ? '0' : '0 auto'};
+    transition: color 0.2s;
 
     &:hover {
-        background-color: #333537;
-        color: #fff;
+        color: #FFD166;
     }
 `;
 
@@ -48,18 +47,21 @@ export const NewPostBtn = styled.button`
     height: 44px;
     padding: 0 ${props => props.$isOpen ? '16px' : '0'};
     margin: ${props => props.$isOpen ? '0' : '0 auto'};
-    border-radius: ${props => props.$isOpen ? '24px' : '50%'};
+    border-radius: ${props => props.$isOpen ? '22px' : '50%'};
     border: none;
-    background-color: #333537;
-    color: ${props => props.$isOpen ? '#e3e3e3' : '#888'};
+    background-color: #FFD166;
+    color: #333;
+    font-weight: 600;
     cursor: ${props => props.$isOpen ? 'pointer' : 'default'};
     pointer-events: ${props => props.$isOpen ? 'auto' : 'none'};
     overflow: hidden;
     white-space: nowrap;
     box-sizing: border-box;
+    transition: all 0.2s ease;
 
     &:hover {
-        background-color: ${props => props.$isOpen ? '#3f4143' : '#333537'};
+        background-color: #e5bc5c;
+        color: #111;
     }
 `;
 
@@ -84,28 +86,31 @@ export const NavItem = styled.div`
     box-sizing: border-box;
     cursor: ${props => props.$isOpen ? 'pointer' : 'default'};
     pointer-events: ${props => props.$isOpen ? 'auto' : 'none'};
-    color: ${props => props.$active ? '#ffffff' : '#e3e3e3'};
-    background-color: ${props => props.$active ? '#333537' : 'transparent'};
+    color: ${props => props.$active ? '#FFD166' : '#ffffff'};
+    background-color: transparent;
     white-space: nowrap;
     overflow: hidden;
+    transition: color 0.2s;
 
     &:hover {
-        background-color: ${props => props.$isOpen ? '#333537' : 'transparent'};
-        span {
-            color: ${props => props.$isOpen ? '#ffffff' : '#333'};
+        color: #FFD166;
+        span, i {
+            color: #FFD166;
         }
     }
 
     span {
-        color: ${props => props.$active ? '#ffffff' : '#333'};
+        color: ${props => props.$active ? '#FFD166' : '#ffffff'};
         font-size: 15px;
+        transition: color 0.2s;
     }
 
     i {
-        color: ${props => props.$isOpen ? '#333' : '#888'};
+        color: ${props => props.$active ? '#FFD166' : '#ffffff'};
         font-size: 15px;
         min-width: 20px;
         text-align: center;
+        transition: color 0.2s;
     }
 `;
 
@@ -120,7 +125,7 @@ export const RecentDiarySection = styled.div`
 
 export const RecentDiaryTitle = styled.div`
     font-size: 11px;
-    color: #888;
+    color: #aaaaaa;
     margin-bottom: 8px;
     padding-left: 12px;
     font-weight: 600;
@@ -131,16 +136,14 @@ export const RecentDiaryItem = styled.div`
     padding: 10px 12px;
     margin: 2px 0;
     font-size: 13.5px;
-    color: #444;
+    color: #ffffff;
     border-radius: 24px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    transition: background-color 0.2s;
+    transition: color 0.2s;
 
     &:hover {
-        background-color: #e2e6ea;
-        border-radius: 24px;
-        color: #000;
+        color: #FFD166;
     }
 `;

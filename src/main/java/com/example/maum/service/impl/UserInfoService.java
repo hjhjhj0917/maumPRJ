@@ -346,20 +346,20 @@ public class UserInfoService implements IUserInfoService {
         log.info("{}.updateProfileImg Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(pDTO.userNo());
-        String profileImage = CmmUtil.nvl(pDTO.profileImgUrl());
+        String pProfileImageUrl = CmmUtil.nvl(pDTO.profileImgUrl());
 
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findById(userNo);
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserNo(userNo);
 
         int res;
         if (rEntity.isPresent()) {
             UserInfoEntity entity = rEntity.get();
-            String profileImgUrl = profileImage;
+            String rProfileImgUrl = pProfileImageUrl;
 
-            if (profileImage != null && profileImage.startsWith("/images/account/profile") && profileImage.endsWith(".png")) {
-                profileImgUrl = profileImage;
+            if (pProfileImageUrl != null && pProfileImageUrl.startsWith("/images/account/profile") && pProfileImageUrl.endsWith(".png")) {
+                rProfileImgUrl = pProfileImageUrl;
             }
 
-            entity.updateProfileImg(profileImgUrl);
+            entity.updateProfileImg(rProfileImgUrl);
             res = 1;
         } else {
             res = 0;

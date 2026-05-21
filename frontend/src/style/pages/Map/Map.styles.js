@@ -368,7 +368,6 @@ export const RouteButtonRound = styled.a`
 
     &:hover {
         background-color: #e6ae2b;
-        transform: translateY(-3px);
         box-shadow: 0 6px 15px rgba(0,0,0,0.2);
     }
 `;
