@@ -28,82 +28,66 @@ public class DiaryController {
     /* [Diary Management] */
 
     @PostMapping(value = "diaryInsert")
-    public MsgDTO diaryInsert(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<Integer>> diaryInsert(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.diaryInsert Start!", this.getClass().getName());
 
-        String msg = "";
-
-        MsgDTO rDTO;
-
         if (jwt == null) {
-            log.warn("인증 정보가 없습니다.");
-            return MsgDTO.builder()
-                    .result(0)
-                    .msg("로그인이 필요한 서비스입니다.")
-                    .build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(CommonResponse.<Integer>builder()
+                            .httpStatus(HttpStatus.UNAUTHORIZED)
+                            .message("로그인이 필요한 서비스입니다.")
+                            .build());
         }
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
-        String title = CmmUtil.nvl(dDTO.title());
-        String content = CmmUtil.nvl(dDTO.content());
-        String createdAt = CmmUtil.nvl(dDTO.createdAt());
-
-        log.info("userNo: {}, title: {}, content: {}, createdAt: {}", userNo, title, content, createdAt);
-
         DiaryDTO pDTO = DiaryDTO.builder()
                 .userNo(userNo)
-                .title(title)
-                .content(content)
-                .createdAt(createdAt)
+                .title(CmmUtil.nvl(dDTO.title()))
+                .content(CmmUtil.nvl(dDTO.content()))
+                .createdAt(CmmUtil.nvl(dDTO.createdAt()))
                 .build();
 
-        int res = diaryService.diaryInsert(pDTO);
+        int generatedDiaryNo = diaryService.diaryInsert(pDTO);
 
-        log.info("일기 저장 결과(res): {}", res);
+        log.info("일기 저장 결과(generatedDiaryNo): {}", generatedDiaryNo);
 
-        if (res == 1) {
-            msg = "저장이 완료되었습니다.";
+        if (generatedDiaryNo > 0) {
+            return ResponseEntity.ok(
+                    CommonResponse.<Integer>builder()
+                            .httpStatus(HttpStatus.OK)
+                            .message("저장이 완료되었습니다.")
+                            .data(generatedDiaryNo)
+                            .build()
+            );
         } else {
-            msg = "오류로 인해 저장이 실패하였습니다.";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(CommonResponse.<Integer>builder()
+                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .message("오류로 인해 저장이 실패하였습니다.")
+                            .build());
         }
-
-        rDTO = MsgDTO.builder()
-                .result(res)
-                .msg(msg)
-                .build();
-
-        log.info("{}.diaryInsert End!", this.getClass().getName());
-
-        return rDTO;
     }
 
 
     @PostMapping(value = "diaryUpdate")
-    public MsgDTO diaryUpdate(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<Integer>> diaryUpdate(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.diaryUpdate Start!", this.getClass().getName());
 
-        if (jwt == null) { // 이거 그냥 로그인 정보 없으면 아예 페이지 조차 접근 못 하게 처리하는 방법 생각해 보기
-            log.warn("인증 정보가 없습니다.");
-            return MsgDTO.builder()
-                    .result(0)
-                    .msg("로그인이 필요한 서비스입니다.")
-                    .build();
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(CommonResponse.<Integer>builder().httpStatus(HttpStatus.UNAUTHORIZED).message("로그인이 필요한 서비스입니다.").build());
         }
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
         Integer diaryNo = dDTO.diaryNo();
-        String title = CmmUtil.nvl(dDTO.title());
-        String content = CmmUtil.nvl(dDTO.content());
-
-        log.info("userNo: {}, diaryNo: {}, title: {}, content: {}", userNo, diaryNo, title, content);
 
         DiaryDTO pDTO = DiaryDTO.builder()
                 .userNo(userNo)
                 .diaryNo(diaryNo)
-                .title(title)
-                .content(content)
+                .title(CmmUtil.nvl(dDTO.title()))
+                .content(CmmUtil.nvl(dDTO.content()))
                 .build();
 
         MsgDTO rDTO = Optional.ofNullable(diaryService.diaryUpdate(pDTO))
@@ -111,40 +95,40 @@ public class DiaryController {
 
         log.info("{}.diaryUpdate End!", this.getClass().getName());
 
-        return rDTO;
+        if (rDTO.result() == 1) {
+            return ResponseEntity.ok(CommonResponse.<Integer>builder().httpStatus(HttpStatus.OK).message(rDTO.msg()).data(diaryNo).build());
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(CommonResponse.<Integer>builder().httpStatus(HttpStatus.INTERNAL_SERVER_ERROR).message(rDTO.msg()).build());
+        }
     }
 
-
     @PostMapping(value = "diaryDelete")
-    public MsgDTO diaryDelete(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<Integer>> diaryDelete(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.diaryDelete Start!", this.getClass().getName());
 
         if (jwt == null) {
-            log.warn("인증 정보가 없습니다.");
-            return MsgDTO.builder()
-                    .result(0)
-                    .msg("로그인이 필요한 서비스입니다.")
-                    .build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(CommonResponse.<Integer>builder().httpStatus(HttpStatus.UNAUTHORIZED).message("로그인이 필요한 서비스입니다.").build());
         }
-
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
         Integer diaryNo = dDTO.diaryNo();
 
-        log.info("userNo: {}, diaryNo: {}", userNo, diaryNo);
-
-        DiaryDTO pDTO = DiaryDTO.builder()
-                .userNo(userNo)
-                .diaryNo(diaryNo)
-                .build();
+        DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).diaryNo(diaryNo).build();
 
         MsgDTO rDTO = Optional.ofNullable(diaryService.diaryDelete(pDTO))
                 .orElseGet(() -> MsgDTO.builder().result(0).msg("일기 삭제에 실패하였습니다.").build());
 
         log.info("{}.diaryDelete End!", this.getClass().getName());
 
-        return rDTO;
+        if (rDTO.result() == 1) {
+            return ResponseEntity.ok(CommonResponse.<Integer>builder().httpStatus(HttpStatus.OK).message(rDTO.msg()).data(diaryNo).build());
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(CommonResponse.<Integer>builder().httpStatus(HttpStatus.INTERNAL_SERVER_ERROR).message(rDTO.msg()).build());
+        }
     }
 
 

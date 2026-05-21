@@ -51,6 +51,10 @@ export const useSidebar = () => {
             }
         };
         fetchRecent();
+
+        window.addEventListener('diary-updated', fetchRecent);
+
+        return () => window.removeEventListener('diary-updated', fetchRecent);
     }, []);
 
     return {

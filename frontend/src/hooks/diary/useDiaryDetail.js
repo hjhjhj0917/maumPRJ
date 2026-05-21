@@ -25,7 +25,7 @@ export const useDiaryDetail = () => {
                 navigate('/diary/list', { replace: true });
             }
         } catch (error) {
-            const errorMsg = error.response?.data?.msg || "일기를 불러오는 중 오류가 발생했습니다.";
+            const errorMsg = error.response?.data?.message || "일기를 불러오는 중 오류가 발생했습니다.";
             alert(errorMsg);
             navigate('/diary/list', { replace: true });
         } finally {
@@ -62,19 +62,20 @@ export const useDiaryDetail = () => {
         try {
             setLoading(true);
             const res = await updateDiary(diaryNo, editTitle, editContent);
-            const commonRes = res.data || res;
-            const msgDto = commonRes.data || commonRes;
 
-            if (msgDto && msgDto.result === 1) {
-                alert(msgDto.msg || "일기가 수정 및 재분석 되었습니다.");
+            if (res && res.data) {
+                alert(res.message || "일기가 수정 및 재분석 되었습니다.");
                 setIsEditing(false);
+
+                window.dispatchEvent(new CustomEvent('diary-updated'));
+
                 await fetchDiaryDetail();
             } else {
-                alert(msgDto?.msg || "수정에 실패했습니다.");
+                alert(res.message || "수정에 실패했습니다.");
                 setLoading(false);
             }
         } catch (error) {
-            alert("서버 통신 중 오류가 발생했습니다.");
+            alert(error.response?.data?.message || "서버 통신 중 오류가 발생했습니다.");
             setLoading(false);
         }
     };
@@ -84,18 +85,19 @@ export const useDiaryDetail = () => {
             try {
                 setLoading(true);
                 const res = await deleteDiary(diaryNo);
-                const commonRes = res.data || res;
-                const msgDto = commonRes.data || commonRes;
 
-                if (msgDto && msgDto.result === 1) {
-                    alert(msgDto.msg || "일기가 삭제되었습니다.");
+                if (res && res.data) {
+                    alert(res.message || "일기가 삭제되었습니다.");
+
+                    window.dispatchEvent(new CustomEvent('diary-updated'));
+
                     navigate('/diary/list', { replace: true });
                 } else {
-                    alert(msgDto?.msg || "삭제에 실패했습니다.");
+                    alert(res.message || "삭제에 실패했습니다.");
                     setLoading(false);
                 }
             } catch (error) {
-                alert("서버 통신 중 오류가 발생했습니다.");
+                alert(error.response?.data?.message || "서버 통신 중 오류가 발생했습니다.");
                 setLoading(false);
             }
         }

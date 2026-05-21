@@ -39,15 +39,18 @@ export const useDiaryWriteForm = () => {
 
             const res = await insertDiary(title, content, apiDate);
 
-            if (res.result === 1) {
-                alert(res.msg || '일기가 성공적으로 저장되었습니다.');
-                navigate('/diary/list');
+            if (res && res.data) {
+                alert(res.message || '일기가 성공적으로 저장되었습니다.');
+
+                window.dispatchEvent(new CustomEvent('diary-updated'));
+
+                navigate(`/diary/${res.data}`);
             } else {
-                alert(res.msg || '저장에 실패했습니다.');
+                alert(res.message || '저장에 실패했습니다.');
                 setIsLoading(false);
             }
         } catch (error) {
-            const errorMsg = error.response?.data?.msg || "서버 통신 중 오류가 발생했습니다.";
+            const errorMsg = error.response?.data?.message || "서버 통신 중 오류가 발생했습니다.";
             alert(errorMsg);
             setIsLoading(false);
         }

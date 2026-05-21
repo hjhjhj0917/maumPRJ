@@ -107,7 +107,7 @@ export const SearchBox = styled.div`
     background-color: #ffffff;
     border-radius: 30px;
     padding: 12px 24px;
-    width: 500px;
+    width: 600px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 
     input {

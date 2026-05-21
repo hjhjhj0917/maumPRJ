@@ -11,6 +11,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,11 +32,10 @@ public class DiaryService implements IDiaryService {
 
     private final DiaryRepository diaryRepository;
     private final RestClient restClient = RestClient.create();
+    private final MongoTemplate mongoTemplate;
 
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
-
-    /* [Diary Analyze] */
 
     private void requestAnalysisAndUpdate(DiaryEntity entity, String content) {
         try {
@@ -82,9 +84,6 @@ public class DiaryService implements IDiaryService {
         }
     }
 
-
-    /* [Diary Management] */
-
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -106,12 +105,12 @@ public class DiaryService implements IDiaryService {
                     .build();
 
             pEntity = diaryRepository.save(pEntity);
-            res = 1;
+            res = pEntity.getDiaryNo();
 
             requestAnalysisAndUpdate(pEntity, pDTO.content());
 
         } catch (Exception e) {
-            res = 2;
+            res = 0;
             log.error("Diary Insert Error : {}", e.getMessage());
         }
 
@@ -119,7 +118,6 @@ public class DiaryService implements IDiaryService {
 
         return res;
     }
-
 
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
@@ -142,7 +140,6 @@ public class DiaryService implements IDiaryService {
             DiaryEntity entity = rEntity.get();
 
             if (entity.getUserNo().equals(userNo)) {
-
                 entity.updateDiary(title, content);
                 diaryRepository.save(entity);
 
@@ -166,7 +163,6 @@ public class DiaryService implements IDiaryService {
 
         return rDTO;
     }
-
 
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
@@ -192,6 +188,13 @@ public class DiaryService implements IDiaryService {
 
                 diaryRepository.delete(entity);
 
+                try {
+                    Query query = new Query(Criteria.where("DIARY_NO").is(diaryNo));
+                    mongoTemplate.remove(query, "DIARY_LOGS");
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                }
+
                 res = 1;
                 msg = "일기가 성공적으로 삭제되었습니다.";
                 log.info("일기 삭제 성공 - diaryNo: {}", diaryNo);
@@ -214,11 +217,7 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
-
-    /* [Diary Retrieval] */
-
     @Transactional(readOnly = true)
-    //@Cacheable(value = "diaryCache", key = "#pDTO.userNo() + '_' + #pDTO.createdAt()") // 중복된 요청을 빠르게 처리하기 위함 (캐시를 redis에 저장하게 수정)
     @Override
     public List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception {
 
@@ -266,7 +265,6 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
-
     @Transactional(readOnly = true)
     @Override
     public DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception {
@@ -304,7 +302,6 @@ public class DiaryService implements IDiaryService {
 
         return rDTO;
     }
-
 
     @Transactional(readOnly = true)
     @Override
@@ -366,8 +363,6 @@ public class DiaryService implements IDiaryService {
                         .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
                         .build())
                 .collect(Collectors.toList());
-
-
 
         log.info("{}.getRecentDiaryList End!", this.getClass().getName());
 
