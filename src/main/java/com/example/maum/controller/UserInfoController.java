@@ -270,4 +270,41 @@ public class UserInfoController {
 
         return ResponseEntity.ok(CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
     }
+
+//    @PostMapping(value = "/updateAccount")
+//    public ResponseEntity<CommonResponse<MsgDTO>> updateAccount(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+//
+//        log.info("{}.updateAccount Start!", this.getClass().getName());
+//
+//        String userNo = CmmUtil.nvl(jwt.getSubject());
+//        String userId = CmmUtil.nvl(uDTO.userId());
+//        String password = CmmUtil.nvl(uDTO.password());
+//        String email = CmmUtil.nvl(uDTO.email());
+//        String addr = CmmUtil.nvl(uDTO.addr());
+//        String detailAddr = CmmUtil.nvl(uDTO.detailAddr());
+//
+//        log.info("userNo: {}, userId: {}, password: {}, email: {}, addr: {}, detailAddr: {}", userNo, userId, password, email, addr, detailAddr);
+//
+//        UserInfoDTO pDTO = UserInfoDTO.builder()
+//                .userNo(userNo)
+//                .userId(userId)
+//                .password(EncryptUtil.encHashSHA256(password))
+//                .email(EncryptUtil.encAES128BCBC(email))
+//                .addr(addr)
+//                .detailAddr(detailAddr)
+//                .build();
+//
+//        int res = Optional.of(userInfoService.updateAccount(pDTO));
+//
+//        String msg = (res == 1) ? "프로필 설정이 완료되었습니다." : "프로필 변경에 실패했습니다.";
+//
+//        MsgDTO rDTO = MsgDTO.builder()
+//                .result(res)
+//                .msg(msg)
+//                .build();
+//
+//        log.info("{}.updateAccount End!", this.getClass().getName());
+//
+//        return ResponseEntity.ok(CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
+//    }
 }

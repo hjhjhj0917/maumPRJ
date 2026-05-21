@@ -22,7 +22,7 @@ const Sidebar = ({
                     </S.IconButton>
                     <S.NewPostBtn $isOpen={isOpen} onClick={isOpen ? () => navigate('/account/profile') : undefined}>
                         <i className="fa-solid fa-user-gear"></i>
-                        {isOpen && <span>프로필 설정</span>}
+                        {isOpen && <span>마이페이지</span>}
                     </S.NewPostBtn>
                 </S.TopSection>
 
