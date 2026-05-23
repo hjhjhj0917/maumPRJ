@@ -271,7 +271,7 @@ public class UserInfoController {
         return ResponseEntity.ok(CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
     }
 
-//    @PostMapping(value = "/updateAccount")
+//    @PostMapping(value = "/updateAccount") // 프로필 수정 수정된 정보를 한 번에 반영
 //    public ResponseEntity<CommonResponse<MsgDTO>> updateAccount(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 //
 //        log.info("{}.updateAccount Start!", this.getClass().getName());
