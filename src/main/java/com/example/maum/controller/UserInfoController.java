@@ -275,6 +275,8 @@ public class UserInfoController {
     @PostMapping(value = "verifyCurrentPassword")
     public ResponseEntity<CommonResponse<MsgDTO>> verifyCurrentPassword(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
+        log.info("{}.verifyCurrentPassword Start!", this.getClass().getName());
+
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()));
@@ -283,6 +285,8 @@ public class UserInfoController {
         String userNo = jwt.getSubject();
         String password = CmmUtil.nvl(uDTO.password());
 
+        log.info("userNo: {}, password: {}", userNo, EncryptUtil.encHashSHA256(password));
+
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .userNo(userNo)
                 .password(password)
@@ -290,12 +294,16 @@ public class UserInfoController {
 
         MsgDTO rDTO = userInfoService.verifyCurrentPassword(pDTO);
 
+        log.info("{}.verifyCurrentPassword End!", this.getClass().getName());
+
         return ResponseEntity.ok(CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
     }
 
 
     @PostMapping(value = "updateAccount")
     public ResponseEntity<CommonResponse<MsgDTO>> updateAccount(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.updateAccount Start!", this.getClass().getName());
 
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -307,6 +315,8 @@ public class UserInfoController {
         String email = CmmUtil.nvl(uDTO.email());
         String addr = CmmUtil.nvl(uDTO.addr());
         String detailAddr = CmmUtil.nvl(uDTO.detailAddr());
+
+        log.info("userNo: {}, password: {}, email: {}, addr: {}, detailAddr: {}", userNo, EncryptUtil.encHashSHA256(password), email, addr, detailAddr);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .userNo(userNo)
@@ -322,6 +332,8 @@ public class UserInfoController {
                 .result(res)
                 .msg(res == 1 ? "프로필 수정이 완료되었습니다." : "프로필 수정에 실패했습니다.")
                 .build();
+
+        log.info("{}.updateAccount End!", this.getClass().getName());
 
         return ResponseEntity.ok(CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
     }

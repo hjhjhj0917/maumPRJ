@@ -435,6 +435,8 @@ public class UserInfoService implements IUserInfoService {
     @Override
     public MsgDTO verifyCurrentPassword(UserInfoDTO pDTO) throws Exception {
 
+        log.info("{}.verifyCurrentPassword Start!", this.getClass().getName());
+
         String userNo = CmmUtil.nvl(pDTO.userNo());
         String password = CmmUtil.nvl(pDTO.password());
 
@@ -447,6 +449,8 @@ public class UserInfoService implements IUserInfoService {
             rDTO = MsgDTO.builder().result(0).msg("비밀번호가 일치하지 않습니다.").build();
         }
 
+        log.info("{}.verifyCurrentPassword End!", this.getClass().getName());
+
         return rDTO;
     }
 
@@ -454,6 +458,8 @@ public class UserInfoService implements IUserInfoService {
     @Transactional
     @Override
     public int updateAccount(UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.updateAccount Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(pDTO.userNo());
         Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserNo(userNo);
@@ -481,6 +487,8 @@ public class UserInfoService implements IUserInfoService {
 
             res = 1;
         }
+
+        log.info("{}.updateAccount End!", this.getClass().getName());
 
         return res;
     }
