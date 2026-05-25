@@ -431,4 +431,58 @@ public class UserInfoService implements IUserInfoService {
         return res;
     }
 
+
+    @Override
+    public MsgDTO verifyCurrentPassword(UserInfoDTO pDTO) throws Exception {
+
+        String userNo = CmmUtil.nvl(pDTO.userNo());
+        String password = CmmUtil.nvl(pDTO.password());
+
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserNo(userNo);
+
+        MsgDTO rDTO;
+        if (rEntity.isPresent() && bCryptPasswordEncoder.matches(password, rEntity.get().getPassword())) {
+            rDTO = MsgDTO.builder().result(1).msg("비밀번호가 일치합니다.").build();
+        } else {
+            rDTO = MsgDTO.builder().result(0).msg("비밀번호가 일치하지 않습니다.").build();
+        }
+
+        return rDTO;
+    }
+
+
+    @Transactional
+    @Override
+    public int updateAccount(UserInfoDTO pDTO) throws Exception {
+
+        String userNo = CmmUtil.nvl(pDTO.userNo());
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserNo(userNo);
+
+        int res = 0;
+
+        if (rEntity.isPresent()) {
+            UserInfoEntity entity = rEntity.get();
+
+            String password = CmmUtil.nvl(pDTO.password());
+            if (!password.isEmpty()) {
+                entity.updatePassword(bCryptPasswordEncoder.encode(password));
+            }
+
+            String email = CmmUtil.nvl(pDTO.email());
+            if (!email.isEmpty()) {
+                entity.updateEmail(email);
+            }
+
+            String addr = CmmUtil.nvl(pDTO.addr());
+            String detailAddr = CmmUtil.nvl(pDTO.detailAddr());
+            if (!addr.isEmpty()) {
+                entity.updateAddress(addr, detailAddr);
+            }
+
+            res = 1;
+        }
+
+        return res;
+    }
+
 }

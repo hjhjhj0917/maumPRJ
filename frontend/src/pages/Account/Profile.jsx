@@ -10,12 +10,23 @@ const ProfilePage = () => {
         isModalOpen,
         selectedCharacterUrl,
         currentColor,
-        handleChange,
+        isDropdownOpen,
+        activeModalType,
+        editForm,
+        verifyState,
         openModal,
         selectCharacter,
         closeModal,
         cancelModal,
-        handleUpdate,
+        toggleDropdown,
+        openActionModal,
+        closeActionModal,
+        handleEditChange,
+        verifyCurrentPasswordAction,
+        sendEmailCodeAction,
+        verifyEmailCodeAction,
+        searchAddressAction,
+        updateAccountAction,
         handleWithdrawal
     } = useProfile();
 
@@ -27,6 +38,7 @@ const ProfilePage = () => {
                         <S.AvatarImage src={userInfo.profileImgUrl} alt="Profile" />
                         <S.EditIcon className="fa-solid fa-pencil" />
                     </S.AvatarWrapper>
+
                     <S.HeaderInfo>
                         <S.UserName>{userInfo.userName || 'User'}님</S.UserName>
                         <S.UserId>@{userInfo.userId}</S.UserId>
@@ -39,64 +51,30 @@ const ProfilePage = () => {
                             </S.ContactItem>
                         </S.ContactInfo>
                     </S.HeaderInfo>
+
+                    <S.OptionsWrapper>
+                        <S.EllipsisIcon className="fa-solid fa-ellipsis-vertical" onClick={toggleDropdown} />
+                        {isDropdownOpen && (
+                            <S.DropdownMenu>
+                                <S.DropdownItem onClick={() => openActionModal('edit')}>프로필 수정</S.DropdownItem>
+                                <S.DropdownItem onClick={() => openActionModal('withdraw')}>회원 탈퇴</S.DropdownItem>
+                            </S.DropdownMenu>
+                        )}
+                    </S.OptionsWrapper>
                 </S.HeaderContent>
             </S.HeaderBanner>
 
             <S.MainContent>
-                {/*<S.CardsGrid>*/}
-                {/*    <S.Card>*/}
-                {/*        <S.CardTitle>기본 정보</S.CardTitle>*/}
-                {/*        <S.InputGroup>*/}
-                {/*            <S.Label>이름</S.Label>*/}
-                {/*            <S.Input name="userName" value={userInfo.userName} onChange={handleChange} $themeColor={currentColor} />*/}
-                {/*        </S.InputGroup>*/}
-                {/*        <S.InputGroup>*/}
-                {/*            <S.Label>생년월일</S.Label>*/}
-                {/*            <S.Input type="date" name="birthDate" value={userInfo.birthDate} onChange={handleChange} $themeColor={currentColor} />*/}
-                {/*        </S.InputGroup>*/}
-                {/*        <S.InputGroup>*/}
-                {/*            <S.Label>프로필 이미지 URL</S.Label>*/}
-                {/*            <S.Input name="profileImgUrl" value={userInfo.profileImgUrl} onChange={handleChange} disabled $themeColor={currentColor} />*/}
-                {/*        </S.InputGroup>*/}
-                {/*    </S.Card>*/}
-
-                {/*    <S.Card>*/}
-                {/*        <S.CardTitle>연락처 및 주소</S.CardTitle>*/}
-                {/*        <S.InputGroup>*/}
-                {/*            <S.Label>이메일 (수정불가)</S.Label>*/}
-                {/*            <S.Input value={userInfo.email} disabled $themeColor={currentColor} />*/}
-                {/*        </S.InputGroup>*/}
-                {/*        <S.InputGroup>*/}
-                {/*            <S.Label>기본 주소</S.Label>*/}
-                {/*            <S.Input name="addr" value={userInfo.addr} onChange={handleChange} $themeColor={currentColor} />*/}
-                {/*        </S.InputGroup>*/}
-                {/*        <S.InputGroup>*/}
-                {/*            <S.Label>상세 주소</S.Label>*/}
-                {/*            <S.Input name="detailAddr" value={userInfo.detailAddr} onChange={handleChange} $themeColor={currentColor} />*/}
-                {/*        </S.InputGroup>*/}
-                {/*    </S.Card>*/}
-
-                {/*    <S.Card>*/}
-                {/*        <S.CardTitle>보안 및 계정 관리</S.CardTitle>*/}
-                {/*        <S.InputGroup>*/}
-                {/*            <S.Label>새 비밀번호</S.Label>*/}
-                {/*            <S.Input type="password" name="password" value={userInfo.password} placeholder="변경 시에만 입력" onChange={handleChange} $themeColor={currentColor} />*/}
-                {/*        </S.InputGroup>*/}
-
-                {/*        <S.ButtonGroup>*/}
-                {/*            <S.SaveButton onClick={handleUpdate} $themeColor={currentColor}>정보 수정 완료</S.SaveButton>*/}
-                {/*            <S.DeleteButton onClick={handleWithdrawal}>회원 탈퇴</S.DeleteButton>*/}
-                {/*        </S.ButtonGroup>*/}
-                {/*    </S.Card>*/}
-                {/*</S.CardsGrid>*/}
             </S.MainContent>
 
             {isModalOpen && (
                 <S.ModalOverlay onClick={cancelModal}>
                     <S.ModalContent onClick={e => e.stopPropagation()}>
                         <S.ModalHeader>
-                            <img src={logo} alt="logo" />
-                            <h2>마음 캐릭터</h2>
+                            <h2>
+                                <img src={logo} alt="logo" />
+                                마음 캐릭터
+                            </h2>
                             <S.CloseIcon onClick={cancelModal}>&times;</S.CloseIcon>
                         </S.ModalHeader>
 
@@ -116,6 +94,129 @@ const ProfilePage = () => {
                         <S.ModalFooter>
                             <S.CancelButton onClick={cancelModal}>취소</S.CancelButton>
                             <S.ConfirmButton onClick={closeModal} $themeColor={currentColor}>완료</S.ConfirmButton>
+                        </S.ModalFooter>
+                    </S.ModalContent>
+                </S.ModalOverlay>
+            )}
+
+            {activeModalType === 'edit' && (
+                <S.ModalOverlay onClick={closeActionModal}>
+                    <S.ModalContent onClick={e => e.stopPropagation()}>
+                        <S.ModalHeader>
+                            <h2>프로필 수정</h2>
+                            <S.CloseIcon onClick={closeActionModal}>&times;</S.CloseIcon>
+                        </S.ModalHeader>
+
+                        <S.ModalScrollContent>
+                            <S.FormGroup>
+                                <S.FormLabel>비밀번호 변경</S.FormLabel>
+                                <S.InputRow>
+                                    <S.FormInput
+                                        type="password"
+                                        name="currentPassword"
+                                        placeholder="현재 비밀번호"
+                                        value={editForm.currentPassword}
+                                        onChange={handleEditChange}
+                                        disabled={verifyState.isPasswordVerified}
+                                    />
+                                    <S.VerifyButton onClick={verifyCurrentPasswordAction} disabled={verifyState.isPasswordVerified}>
+                                        {verifyState.isPasswordVerified ? '인증완료' : '인증'}
+                                    </S.VerifyButton>
+                                </S.InputRow>
+                                {verifyState.isPasswordVerified && (
+                                    <S.FormInput
+                                        type="password"
+                                        name="newPassword"
+                                        placeholder="새 비밀번호 입력"
+                                        value={editForm.newPassword}
+                                        onChange={handleEditChange}
+                                        style={{marginTop: '8px'}}
+                                    />
+                                )}
+                            </S.FormGroup>
+
+                            <S.FormGroup>
+                                <S.FormLabel>이메일 변경</S.FormLabel>
+                                <S.InputRow>
+                                    <S.FormInput
+                                        type="email"
+                                        name="newEmail"
+                                        placeholder="새 이메일 주소"
+                                        value={editForm.newEmail}
+                                        onChange={handleEditChange}
+                                        disabled={verifyState.isEmailVerified}
+                                    />
+                                    <S.VerifyButton onClick={sendEmailCodeAction} disabled={verifyState.isEmailVerified}>
+                                        발송
+                                    </S.VerifyButton>
+                                </S.InputRow>
+                                {verifyState.isEmailCodeSent && !verifyState.isEmailVerified && (
+                                    <S.InputRow style={{marginTop: '8px'}}>
+                                        <S.FormInput
+                                            type="text"
+                                            name="emailCode"
+                                            placeholder="인증번호 입력"
+                                            value={editForm.emailCode}
+                                            onChange={handleEditChange}
+                                        />
+                                        <S.VerifyButton onClick={verifyEmailCodeAction}>
+                                            확인
+                                        </S.VerifyButton>
+                                    </S.InputRow>
+                                )}
+                                {verifyState.isEmailVerified && (
+                                    <div style={{ fontSize: '13px', color: '#28a745', marginTop: '8px', fontWeight: 'bold' }}>
+                                        이메일 인증이 완료되었습니다.
+                                    </div>
+                                )}
+                            </S.FormGroup>
+
+                            <S.FormGroup>
+                                <S.FormLabel>주소 변경</S.FormLabel>
+                                <S.InputRow>
+                                    <S.FormInput
+                                        type="text"
+                                        name="newAddr"
+                                        value={editForm.newAddr}
+                                        readOnly
+                                    />
+                                    <S.VerifyButton onClick={searchAddressAction}>
+                                        우편번호
+                                    </S.VerifyButton>
+                                </S.InputRow>
+                                <S.FormInput
+                                    type="text"
+                                    name="newDetailAddr"
+                                    placeholder="상세 주소 입력"
+                                    value={editForm.newDetailAddr}
+                                    onChange={handleEditChange}
+                                    style={{marginTop: '8px'}}
+                                />
+                            </S.FormGroup>
+                        </S.ModalScrollContent>
+
+                        <S.ModalFooter>
+                            <S.CancelButton onClick={closeActionModal}>취소</S.CancelButton>
+                            <S.ConfirmButton onClick={updateAccountAction} $themeColor={currentColor}>수정 완료</S.ConfirmButton>
+                        </S.ModalFooter>
+                    </S.ModalContent>
+                </S.ModalOverlay>
+            )}
+
+            {activeModalType === 'withdraw' && (
+                <S.ModalOverlay onClick={closeActionModal}>
+                    <S.ModalContent onClick={e => e.stopPropagation()}>
+                        <S.ModalHeader>
+                            <h2>회원 탈퇴</h2>
+                            <S.CloseIcon onClick={closeActionModal}>&times;</S.CloseIcon>
+                        </S.ModalHeader>
+                        <div style={{ textAlign: 'center', padding: '40px 0', fontSize: '16px', color: '#333', lineHeight: '1.6' }}>
+                            정말 탈퇴하시겠습니까?<br />
+                            탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.
+                        </div>
+                        <S.ModalFooter>
+                            <S.CancelButton onClick={closeActionModal}>취소</S.CancelButton>
+                            <S.ConfirmButton onClick={handleWithdrawal} style={{ backgroundColor: '#ff4d4f', color: '#fff' }}>탈퇴하기</S.ConfirmButton>
                         </S.ModalFooter>
                     </S.ModalContent>
                 </S.ModalOverlay>

@@ -43,4 +43,8 @@ public interface IUserInfoService extends UserDetailsService {
 
     int updatePassword(UserInfoDTO pDTO) throws Exception;
 
+    MsgDTO verifyCurrentPassword(UserInfoDTO pDTO) throws Exception;
+
+    int updateAccount(UserInfoDTO pDTO) throws Exception;
+
 }

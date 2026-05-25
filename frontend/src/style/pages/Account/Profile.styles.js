@@ -24,6 +24,61 @@ export const HeaderContent = styled.div`
     align-items: center;
     gap: 40px;
     padding: 0 20px;
+    padding-top: 40px;
+    position: relative;
+`;
+
+export const OptionsWrapper = styled.div`
+    position: absolute;
+    top: -20px;
+    right: 20px;
+`;
+
+export const EllipsisIcon = styled.i`
+    font-size: 24px;
+    color: #333;
+    cursor: pointer;
+    padding: 10px;
+    padding-top: 40px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+
+    &:hover {
+        opacity: 1;
+    }
+`;
+
+export const DropdownMenu = styled.div`
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 120px;
+    z-index: 10;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+`;
+
+export const DropdownItem = styled.button`
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+        background: #f8f9fa;
+    }
+
+    &:not(:last-child) {
+        border-bottom: 1px solid #eee;
+    }
 `;
 
 export const EditIcon = styled.i`
@@ -74,12 +129,6 @@ export const HeaderInfo = styled.div`
     transition: color 0.4s ease;
 `;
 
-export const Greeting = styled.span`
-    font-size: 24px;
-    font-weight: 300;
-    opacity: 0.9;
-`;
-
 export const UserName = styled.h1`
     font-size: 42px;
     font-weight: 700;
@@ -114,108 +163,6 @@ export const MainContent = styled.div`
     box-sizing: border-box;
 `;
 
-export const CardsGrid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
-`;
-
-export const Card = styled.div`
-    background: white;
-    border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: column;
-`;
-
-export const CardTitle = styled.h3`
-    font-size: 16px;
-    color: #999;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 25px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 15px;
-`;
-
-export const InputGroup = styled.div`
-    margin-bottom: 20px;
-`;
-
-export const Label = styled.label`
-    display: block;
-    font-size: 13px;
-    color: #666;
-    margin-bottom: 8px;
-    font-weight: 600;
-`;
-
-export const Input = styled.input`
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #e1e1e1;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #333;
-    box-sizing: border-box;
-    transition: all 0.3s ease;
-
-    &:focus {
-        outline: none;
-        border-color: ${props => props.$themeColor || '#7b83c7'};
-        box-shadow: 0 0 0 3px ${props => props.$themeColor ? props.$themeColor + '40' : 'rgba(123, 131, 199, 0.1)'};
-    }
-
-    &:disabled {
-        background-color: #f8f9fa;
-        color: #999;
-        cursor: not-allowed;
-    }
-`;
-
-export const ButtonGroup = styled.div`
-    margin-top: auto;
-    padding-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-`;
-
-export const SaveButton = styled.button`
-    width: 100%;
-    padding: 14px;
-    background-color: ${props => props.$themeColor || '#7b83c7'};
-    color: #333;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: filter 0.2s, background-color 0.4s ease;
-
-    &:hover {
-        filter: brightness(0.9);
-    }
-`;
-
-export const DeleteButton = styled.button`
-    width: 100%;
-    padding: 14px;
-    background-color: transparent;
-    color: #ff4d4f;
-    border: 1px solid #ff4d4f;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover {
-        background-color: #fff1f0;
-    }
-`;
-
 export const ModalOverlay = styled.div`
     position: fixed;
     top: 0;
@@ -239,23 +186,25 @@ export const ModalContent = styled.div`
     display: flex;
     flex-direction: column;
     gap: 25px;
-    
-    img {
-        width: 30px;
-        height: auto;
-    }
 `;
 
 export const ModalHeader = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
 
     h2 {
         font-size: 20px;
         font-weight: bold;
         color: #333;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        img {
+            width: 30px;
+            height: auto;
+        }
     }
 `;
 
@@ -322,8 +271,8 @@ export const CancelButton = styled.button`
 
 export const ConfirmButton = styled.button`
     padding: 10px 20px;
-    background-color: #333;
-    color: #fff;
+    background-color: ${props => props.$themeColor || '#7b83c7'};
+    color: #333;
     border: none;
     border-radius: 8px;
     font-size: 14px;
@@ -333,5 +282,74 @@ export const ConfirmButton = styled.button`
 
     &:hover {
         filter: brightness(0.9);
+    }
+`;
+
+export const ModalScrollContent = styled.div`
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 10px;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 4px;
+    }
+`;
+
+export const FormGroup = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+    text-align: left;
+`;
+
+export const FormLabel = styled.label`
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+`;
+
+export const InputRow = styled.div`
+    display: flex;
+    gap: 10px;
+`;
+
+export const FormInput = styled.input`
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+        border-color: #7b83c7;
+    }
+    &:disabled, &[readonly] {
+        background-color: #f4f6f8;
+        color: #888;
+        cursor: not-allowed;
+    }
+`;
+
+export const VerifyButton = styled.button`
+    padding: 0 16px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
     }
 `;

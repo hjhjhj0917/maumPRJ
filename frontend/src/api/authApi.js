@@ -55,3 +55,12 @@ export const findUserPw = (email, userId) =>
 
 export const updateUserPw = (email, password, code) =>
     apiClient.post('/account/updateUserPw', {email, password, code});
+
+export const verifyCurrentPassword = (password) =>
+    apiClient.post('/account/verifyCurrentPassword', { password });
+
+export const updateAccount = (payload) =>
+    apiClient.post('/account/updateAccount', payload);
+
+export const deleteUser = () =>
+    apiClient.post('/account/deleteUser');

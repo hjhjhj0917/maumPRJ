@@ -65,5 +65,16 @@ public class UserInfoEntity implements Serializable {
         this.profileImgUrl = profileImgUrl;
     }
 
-    public void updatePassword(String password) { this.password = password; }
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
+    public void updateAddress(String addr, String detailAddr) {
+        this.addr = addr;
+        this.detailAddr = detailAddr;
+    }
 }

@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../../api/apiClient';
-import { updateProfileImg } from '../../api/authApi';
+import {
+    getUserStatus,
+    updateProfileImg,
+    checkEmailExists,
+    verifyEmailCode,
+    verifyCurrentPassword,
+    updateAccount,
+    deleteUser
+} from '../../api/authApi';
 
 const characterData = [
     { url: '/images/account/profile1.png', color: '#D4C4FB' },
@@ -30,19 +37,36 @@ export const useProfile = () => {
         birthDate: '',
         addr: '',
         detailAddr: '',
-        profileImgUrl: characters[0],
-        password: ''
+        profileImgUrl: characters[0]
     });
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedCharacterUrl, setSelectedCharacterUrl] = useState('');
+
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [activeModalType, setActiveModalType] = useState(null);
+
+    const [editForm, setEditForm] = useState({
+        currentPassword: '',
+        newPassword: '',
+        newEmail: '',
+        emailCode: '',
+        newAddr: '',
+        newDetailAddr: ''
+    });
+
+    const [verifyState, setVerifyState] = useState({
+        isPasswordVerified: false,
+        isEmailCodeSent: false,
+        isEmailVerified: false
+    });
 
     const currentColor = characterData.find(c => c.url === userInfo.profileImgUrl)?.color || '#7b83c7';
 
     useEffect(() => {
         const fetchUserInfo = async () => {
             try {
-                const res = await apiClient.post('/account/userInfo');
+                const res = await getUserStatus();
                 if (res && res.data) {
                     setUserInfo({
                         userId: res.data.userId || '',
@@ -51,8 +75,7 @@ export const useProfile = () => {
                         birthDate: res.data.birthDate || '',
                         addr: res.data.addr || '',
                         detailAddr: res.data.detailAddr || '',
-                        profileImgUrl: res.data.profileImgUrl || characters[0],
-                        password: ''
+                        profileImgUrl: res.data.profileImgUrl || characters[0]
                     });
                 }
             } catch (error) {
@@ -62,12 +85,16 @@ export const useProfile = () => {
         };
 
         fetchUserInfo();
-    }, [navigate]);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setUserInfo(prev => ({ ...prev, [name]: value }));
-    };
+        const script = document.createElement('script');
+        script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+        script.async = true;
+        document.body.appendChild(script);
+
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, [navigate]);
 
     const openModal = () => {
         setSelectedCharacterUrl(userInfo.profileImgUrl);
@@ -99,33 +126,125 @@ export const useProfile = () => {
         setIsModalOpen(false);
     };
 
-    const handleUpdate = async () => {
-        if (!userInfo.userName.trim()) return alert('이름을 입력해주세요.');
-        if (!userInfo.birthDate) return alert('생년월일을 입력해주세요.');
-        if (!userInfo.addr.trim()) return alert('주소를 입력해주세요.');
+    const toggleDropdown = () => {
+        setIsDropdownOpen(prev => !prev);
+    };
 
-        if (window.confirm('회원 정보를 수정하시겠습니까?')) {
-            try {
-                const res = await apiClient.post('/account/updateUserInfo', userInfo);
-                if (res && res.data) {
-                    alert('정보가 성공적으로 수정되었습니다.');
-                    setUserInfo(prev => ({ ...prev, password: '' }));
-                }
-            } catch (error) {
-                alert(error.response?.data?.message || "정보 수정에 실패했습니다.");
+    const openActionModal = (type) => {
+        if (type === 'edit') {
+            setEditForm({
+                currentPassword: '',
+                newPassword: '',
+                newEmail: '',
+                emailCode: '',
+                newAddr: userInfo.addr,
+                newDetailAddr: userInfo.detailAddr
+            });
+            setVerifyState({
+                isPasswordVerified: false,
+                isEmailCodeSent: false,
+                isEmailVerified: false
+            });
+        }
+        setActiveModalType(type);
+        setIsDropdownOpen(false);
+    };
+
+    const closeActionModal = () => {
+        setActiveModalType(null);
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const verifyCurrentPasswordAction = async () => {
+        if (!editForm.currentPassword) return;
+        try {
+            const res = await verifyCurrentPassword(editForm.currentPassword);
+            if (res.data && res.data.result === 1) {
+                setVerifyState(prev => ({ ...prev, isPasswordVerified: true }));
+                alert('비밀번호가 확인되었습니다.');
+            } else {
+                alert(res.data?.msg || '비밀번호가 일치하지 않습니다.');
             }
+        } catch (error) {
+            alert('인증 중 오류가 발생했습니다.');
+        }
+    };
+
+    const sendEmailCodeAction = async () => {
+        if (!editForm.newEmail) return;
+        try {
+            const res = await checkEmailExists(editForm.newEmail);
+
+            if (res && res.exists === false) {
+                setVerifyState(prev => ({ ...prev, isEmailCodeSent: true }));
+                alert('인증 코드가 발송되었습니다.');
+            } else {
+                alert('이미 사용중인 이메일입니다.');
+            }
+        } catch (error) {
+            alert('인증 코드 발송 중 오류가 발생했습니다.');
+        }
+    };
+
+    const verifyEmailCodeAction = async () => {
+        if (!editForm.emailCode) return;
+        try {
+            const res = await verifyEmailCode(editForm.newEmail, editForm.emailCode);
+
+            if (res && res.result === 1) {
+                setVerifyState(prev => ({ ...prev, isEmailVerified: true }));
+                alert('이메일 인증이 완료되었습니다.');
+            } else {
+                alert(res?.msg || '인증 코드가 일치하지 않습니다.');
+            }
+        } catch (error) {
+            alert('이메일 인증 중 오류가 발생했습니다.');
+        }
+    };
+
+    const searchAddressAction = () => {
+        if (window.daum && window.daum.Postcode) {
+            new window.daum.Postcode({
+                oncomplete: function (data) {
+                    setEditForm(prev => ({ ...prev, newAddr: data.address }));
+                }
+            }).open();
+        }
+    };
+
+    const updateAccountAction = async () => {
+        try {
+            const payload = {
+                password: verifyState.isPasswordVerified ? editForm.newPassword : '',
+                email: verifyState.isEmailVerified ? editForm.newEmail : '',
+                addr: editForm.newAddr,
+                detailAddr: editForm.newDetailAddr
+            };
+
+            const res = await updateAccount(payload);
+
+            if (res.data && res.data.result === 1) {
+                alert('프로필이 성공적으로 수정되었습니다.');
+                window.location.reload();
+            } else {
+                alert(res.data?.msg || '수정에 실패했습니다.');
+            }
+        } catch (error) {
+            alert('수정 처리 중 오류가 발생했습니다.');
         }
     };
 
     const handleWithdrawal = async () => {
-        if (window.confirm('정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없으며 모든 데이터가 삭제됩니다.')) {
-            try {
-                await apiClient.post('/account/deleteUser');
-                alert('회원 탈퇴가 완료되었습니다.');
-                navigate('/');
-            } catch (error) {
-                alert(error.response?.data?.message || "탈퇴 처리에 실패했습니다.");
-            }
+        try {
+            await deleteUser();
+            alert('회원 탈퇴가 완료되었습니다.');
+            navigate('/');
+        } catch (error) {
+            alert(error.response?.data?.message || "탈퇴 처리에 실패했습니다.");
         }
     };
 
@@ -135,12 +254,23 @@ export const useProfile = () => {
         isModalOpen,
         selectedCharacterUrl,
         currentColor,
-        handleChange,
+        isDropdownOpen,
+        activeModalType,
+        editForm,
+        verifyState,
         openModal,
         selectCharacter,
         closeModal,
         cancelModal,
-        handleUpdate,
+        toggleDropdown,
+        openActionModal,
+        closeActionModal,
+        handleEditChange,
+        verifyCurrentPasswordAction,
+        sendEmailCodeAction,
+        verifyEmailCodeAction,
+        searchAddressAction,
+        updateAccountAction,
         handleWithdrawal
     };
 };
