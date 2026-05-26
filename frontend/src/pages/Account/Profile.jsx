@@ -12,8 +12,11 @@ const ProfilePage = () => {
         currentColor,
         isDropdownOpen,
         activeModalType,
+        withdrawStep,
         editForm,
+        withdrawForm,
         verifyState,
+        isProfileModified,
         openModal,
         selectCharacter,
         closeModal,
@@ -22,12 +25,16 @@ const ProfilePage = () => {
         openActionModal,
         closeActionModal,
         handleEditChange,
+        handleWithdrawChange,
         verifyCurrentPasswordAction,
         sendEmailCodeAction,
         verifyEmailCodeAction,
         searchAddressAction,
         updateAccountAction,
-        handleWithdrawal
+        verifyWithdrawPasswordAction,
+        sendWithdrawEmailCodeAction,
+        verifyWithdrawEmailCodeAction,
+        processWithdrawalAction
     } = useProfile();
 
     return (
@@ -47,7 +54,7 @@ const ProfilePage = () => {
                                 <span><i className="fa-solid fa-envelope"></i></span> {userInfo.email}
                             </S.ContactItem>
                             <S.ContactItem>
-                                <span><i className="fa-solid fa-location-dot"></i></span> {userInfo.addr + userInfo.detailAddr || '등록된 주소가 없습니다'}
+                                <span><i className="fa-solid fa-location-dot"></i></span> {userInfo.addr + (userInfo.detailAddr ? ' ' + ` (${userInfo.detailAddr})` : '') || '등록된 주소가 없습니다'}
                             </S.ContactItem>
                         </S.ContactInfo>
                     </S.HeaderInfo>
@@ -197,7 +204,13 @@ const ProfilePage = () => {
 
                         <S.ModalFooter>
                             <S.CancelButton onClick={closeActionModal}>취소</S.CancelButton>
-                            <S.ConfirmButton onClick={updateAccountAction} $themeColor={currentColor}>수정 완료</S.ConfirmButton>
+                            <S.ConfirmButton
+                                onClick={updateAccountAction}
+                                $themeColor={currentColor}
+                                disabled={!isProfileModified}
+                            >
+                                수정 완료
+                            </S.ConfirmButton>
                         </S.ModalFooter>
                     </S.ModalContent>
                 </S.ModalOverlay>
@@ -210,13 +223,83 @@ const ProfilePage = () => {
                             <h2>회원 탈퇴</h2>
                             <S.CloseIcon onClick={closeActionModal}>&times;</S.CloseIcon>
                         </S.ModalHeader>
-                        <div style={{ textAlign: 'center', padding: '40px 0', fontSize: '16px', color: '#333', lineHeight: '1.6' }}>
-                            정말 탈퇴하시겠습니까?<br />
-                            탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.
-                        </div>
+
+                        <S.StepContainer>
+                            <S.StepLine />
+                            <S.StepItem>
+                                <S.StepCircle $active={withdrawStep === 1} $completed={withdrawStep > 1} $themeColor={currentColor}>1</S.StepCircle>
+                                <S.StepLabel $active={withdrawStep === 1}>비밀번호 확인</S.StepLabel>
+                            </S.StepItem>
+                            <S.StepItem>
+                                <S.StepCircle $active={withdrawStep === 2} $completed={withdrawStep > 2} $themeColor={currentColor}>2</S.StepCircle>
+                                <S.StepLabel $active={withdrawStep === 2}>이메일 인증</S.StepLabel>
+                            </S.StepItem>
+                            <S.StepItem>
+                                <S.StepCircle $active={withdrawStep === 3} $completed={withdrawStep > 3} $themeColor={currentColor}>3</S.StepCircle>
+                                <S.StepLabel $active={withdrawStep === 3}>탈퇴 확인</S.StepLabel>
+                            </S.StepItem>
+                        </S.StepContainer>
+
+                        <S.StepContentWrapper>
+                            {withdrawStep === 1 && (
+                                <S.FormGroup>
+                                    <S.FormLabel>현재 비밀번호를 입력해주세요.</S.FormLabel>
+                                    <S.FormInput
+                                        type="password"
+                                        name="password"
+                                        placeholder="비밀번호"
+                                        value={withdrawForm.password}
+                                        onChange={handleWithdrawChange}
+                                    />
+                                </S.FormGroup>
+                            )}
+
+                            {withdrawStep === 2 && (
+                                <S.FormGroup>
+                                    <S.FormLabel>이메일 인증을 진행해주세요. ({userInfo.email})</S.FormLabel>
+                                    <S.InputRow>
+                                        <S.VerifyButton onClick={sendWithdrawEmailCodeAction} style={{ width: '100%', padding: '12px', borderRadius: '8px' }}>
+                                            인증번호 발송
+                                        </S.VerifyButton>
+                                    </S.InputRow>
+                                    {verifyState.isWithdrawEmailCodeSent && (
+                                        <S.InputRow style={{ marginTop: '10px' }}>
+                                            <S.FormInput
+                                                type="text"
+                                                name="emailCode"
+                                                placeholder="인증번호 6자리"
+                                                value={withdrawForm.emailCode}
+                                                onChange={handleWithdrawChange}
+                                            />
+                                            <S.VerifyButton onClick={verifyWithdrawEmailCodeAction}>
+                                                확인
+                                            </S.VerifyButton>
+                                        </S.InputRow>
+                                    )}
+                                </S.FormGroup>
+                            )}
+
+                            {withdrawStep === 3 && (
+                                <S.FormGroup>
+                                    <S.FormLabel>탈퇴를 위해 아이디를 입력해주세요.</S.FormLabel>
+                                    <S.FormInput
+                                        type="text"
+                                        name="confirmUserId"
+                                        placeholder={`현재 아이디: ${userInfo.userId}`}
+                                        value={withdrawForm.confirmUserId}
+                                        onChange={handleWithdrawChange}
+                                    />
+                                    <div style={{ fontSize: '13px', color: '#ff4d4f', marginTop: '12px', lineHeight: '1.5' }}>
+                                        탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.
+                                    </div>
+                                </S.FormGroup>
+                            )}
+                        </S.StepContentWrapper>
+
                         <S.ModalFooter>
                             <S.CancelButton onClick={closeActionModal}>취소</S.CancelButton>
-                            <S.ConfirmButton onClick={handleWithdrawal} style={{ backgroundColor: '#ff4d4f', color: '#fff' }}>탈퇴하기</S.ConfirmButton>
+                            {withdrawStep === 1 && <S.ConfirmButton onClick={verifyWithdrawPasswordAction} $themeColor={currentColor}>다음</S.ConfirmButton>}
+                            {withdrawStep === 3 && <S.ConfirmButton onClick={processWithdrawalAction} style={{ backgroundColor: '#ff4d4f', color: '#fff' }}>탈퇴하기</S.ConfirmButton>}
                         </S.ModalFooter>
                     </S.ModalContent>
                 </S.ModalOverlay>

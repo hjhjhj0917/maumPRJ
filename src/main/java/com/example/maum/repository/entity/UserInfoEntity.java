@@ -77,4 +77,8 @@ public class UserInfoEntity implements Serializable {
         this.addr = addr;
         this.detailAddr = detailAddr;
     }
+
+    public void updateUserStatus(String userStatus) {
+        this.userStatus = userStatus;
+    }
 }

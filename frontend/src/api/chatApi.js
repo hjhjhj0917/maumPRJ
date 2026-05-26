@@ -22,9 +22,8 @@ export const streamChatApi = async (message, onChunk, onError, onComplete) => {
                     const text = line.substring(line.indexOf(':') + 1).trim();
                     if (text === '[DONE]') break;
 
-                    for (let char of text) {
-                        onChunk(char);
-                        await new Promise(r => setTimeout(r, 15));
+                    if (text) {
+                        onChunk(text);
                     }
                 }
             }

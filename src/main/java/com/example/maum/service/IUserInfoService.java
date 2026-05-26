@@ -47,4 +47,8 @@ public interface IUserInfoService extends UserDetailsService {
 
     int updateAccount(UserInfoDTO pDTO) throws Exception;
 
+    MsgDTO sendWithdrawEmailCode(UserInfoDTO pDTO) throws Exception;
+
+    int deleteUser(UserInfoDTO pDTO) throws Exception;
+
 }

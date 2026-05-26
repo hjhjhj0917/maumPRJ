@@ -206,14 +206,14 @@ const Index = () => {
                             <li><Link to="#">RAG Architecture</Link></li>
                         </ul>
                     </div>
-                    <div>
-                        <h4>Support</h4>
-                        <ul>
-                            <li><Link to="#">이용약관</Link></li>
-                            <li><Link to="#">개인정보 처리방침</Link></li>
-                            <li><Link to="#">문의하기</Link></li>
-                        </ul>
-                    </div>
+                    {/*<div>*/}
+                    {/*    <h4>Support</h4>*/}
+                    {/*    <ul>*/}
+                    {/*        <li><Link to="#">이용약관</Link></li>*/}
+                    {/*        <li><Link to="#">개인정보 처리방침</Link></li>*/}
+                    {/*        <li><Link to="#">문의하기</Link></li>*/}
+                    {/*    </ul>*/}
+                    {/*</div>*/}
                 </S.FooterGrid>
             </S.Footer>
         </S.PageWrapper>

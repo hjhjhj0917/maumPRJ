@@ -337,4 +337,62 @@ public class UserInfoController {
 
         return ResponseEntity.ok(CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
     }
+
+
+    @PostMapping(value = "sendWithdrawEmailCode")
+    public ResponseEntity<CommonResponse<MsgDTO>> sendWithdrawEmailCode(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.sendWithdrawEmailCode Start!", this.getClass().getName());
+
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()));
+        }
+
+        String email = CmmUtil.nvl(uDTO.email());
+
+        UserInfoDTO pDTO = UserInfoDTO.builder()
+                .email(EncryptUtil.encAES128BCBC(email))
+                .build();
+
+        MsgDTO rDTO = userInfoService.sendWithdrawEmailCode(pDTO);
+
+        log.info("{}.sendWithdrawEmailCode End!", this.getClass().getName());
+
+        return ResponseEntity.ok(CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
+    }
+
+
+    @PostMapping(value = "deleteUser")
+    public ResponseEntity<CommonResponse<MsgDTO>> deleteUser(@AuthenticationPrincipal Jwt jwt,
+                                                             HttpServletRequest request,
+                                                             HttpServletResponse response) throws Exception {
+
+        log.info("{}.deleteUser Start!", this.getClass().getName());
+
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()));
+        }
+
+        String userNo = jwt.getSubject();
+        UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
+
+        int res = Optional.of(userInfoService.deleteUser(pDTO)).orElse(0);
+
+        if (res == 1) {
+            String accessToken = bearerTokenResolver.resolve(request);
+            List<ResponseCookie> cookies = userInfoService.logout(accessToken, userNo);
+            cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
+        }
+
+        MsgDTO rDTO = MsgDTO.builder()
+                .result(res)
+                .msg(res == 1 ? "회원 탈퇴가 완료되었습니다." : "회원 탈퇴 처리에 실패했습니다.")
+                .build();
+
+        log.info("{}.deleteUser End!", this.getClass().getName());
+
+        return ResponseEntity.ok(CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
+    }
 }

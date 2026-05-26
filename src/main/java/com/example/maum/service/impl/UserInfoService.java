@@ -235,7 +235,8 @@ public class UserInfoService implements IUserInfoService {
 
         Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmailAndUserName(email, userName);
 
-        boolean exists = rEntity.isPresent();
+        boolean exists = rEntity.isPresent() && !"WITHDRAWN".equals(rEntity.get().getUserStatus());
+
         int authNumber = 0;
 
         if (exists) {
@@ -273,7 +274,7 @@ public class UserInfoService implements IUserInfoService {
 
         Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmailAndUserId(email, userId);
 
-        boolean exists = rEntity.isPresent();
+        boolean exists = rEntity.isPresent() && !"WITHDRAWN".equals(rEntity.get().getUserStatus());
         int authNumber = 0;
 
         if (exists) {
@@ -422,6 +423,10 @@ public class UserInfoService implements IUserInfoService {
         UserInfoEntity rEntity = userInfoRepository.findByUserId(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(userId + " Not Found User"));
 
+        if ("WITHDRAWN".equals(rEntity.getUserStatus())) {
+            throw new UsernameNotFoundException("탈퇴 대기 중인 계정입니다.");
+        }
+
         UserInfoDTO rDTO = UserInfoDTO.from(rEntity);
 
         UserDetails res = new AuthInfo(rDTO);
@@ -493,4 +498,36 @@ public class UserInfoService implements IUserInfoService {
         return res;
     }
 
+
+    @Override
+    public MsgDTO sendWithdrawEmailCode(UserInfoDTO pDTO) throws Exception {
+        String email = CmmUtil.nvl(pDTO.email());
+        int authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
+
+        MailDTO mailDTO = new MailDTO();
+        mailDTO.setTitle("회원 탈퇴 인증번호 발송 메일");
+        mailDTO.setContent("인증번호는 " + authNumber + " 입니다.");
+        mailDTO.setReceiver(EncryptUtil.decAES128BCBC(email));
+        mailService.doSendMail(mailDTO);
+
+        redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
+
+        return MsgDTO.builder().result(1).msg("인증 코드가 발송되었습니다.").build();
+    }
+
+    @Transactional
+    @Override
+    public int deleteUser(UserInfoDTO pDTO) throws Exception {
+        String userNo = CmmUtil.nvl(pDTO.userNo());
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserNo(userNo);
+
+        int res = 0;
+
+        if (rEntity.isPresent()) {
+            rEntity.get().updateUserStatus("WITHDRAWN");
+            res = 1;
+        }
+
+        return res;
+    }
 }

@@ -50,7 +50,7 @@ export const EllipsisIcon = styled.i`
 
 export const DropdownMenu = styled.div`
     position: absolute;
-    top: 45px;
+    top: 70px;
     right: 0;
     background: white;
     border-radius: 8px;
@@ -226,24 +226,26 @@ export const CharacterItem = styled.div`
     width: 100%;
     aspect-ratio: 1;
     border-radius: 50%;
-    border: 3px solid ${props => props.$isSelected ? (props.$themeColor || '#7b83c7') : '#eee'};
-    overflow: hidden;
+    border: 4px solid ${props => props.$isSelected ? (props.$themeColor || '#7b83c7') : 'transparent'};
+    padding: 4px;
+    box-sizing: border-box;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
 
     &:hover {
         border-color: ${props => props.$themeColor || '#7b83c7'};
-        opacity: 0.8;
+        transform: scale(1.05);
     }
 
     img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        border-radius: 50%;
+        box-shadow: ${props => props.$isSelected ? '0 4px 10px rgba(0,0,0,0.15)' : '0 2px 6px rgba(0,0,0,0.05)'};
     }
 `;
 
@@ -278,10 +280,15 @@ export const ConfirmButton = styled.button`
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: filter 0.2s, background-color 0.4s ease;
+    transition: filter 0.2s, background-color 0.4s ease, opacity 0.2s;
 
-    &:hover {
+    &:hover:not(:disabled) {
         filter: brightness(0.9);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 `;
 
@@ -352,4 +359,58 @@ export const VerifyButton = styled.button`
         background-color: #ccc;
         cursor: not-allowed;
     }
+`;
+
+export const StepContainer = styled.div`
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    position: relative;
+    padding: 0 10px;
+`;
+
+export const StepLine = styled.div`
+    position: absolute;
+    top: 15px;
+    left: 30px;
+    right: 30px;
+    height: 2px;
+    background-color: #eee;
+    z-index: 1;
+`;
+
+export const StepItem = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 2;
+`;
+
+export const StepCircle = styled.div`
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: ${props => props.$active ? (props.$themeColor || '#7b83c7') : (props.$completed ? '#333' : '#fff')};
+    border: 2px solid ${props => props.$active || props.$completed ? (props.$active ? (props.$themeColor || '#7b83c7') : '#333') : '#ddd'};
+    color: ${props => props.$active || props.$completed ? '#fff' : '#999'};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+`;
+
+export const StepLabel = styled.span`
+    font-size: 12px;
+    color: ${props => props.$active ? '#333' : '#999'};
+    font-weight: ${props => props.$active ? 'bold' : 'normal'};
+`;
+
+export const StepContentWrapper = styled.div`
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 `;

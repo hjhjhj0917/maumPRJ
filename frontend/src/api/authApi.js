@@ -62,5 +62,8 @@ export const verifyCurrentPassword = (password) =>
 export const updateAccount = (payload) =>
     apiClient.post('/account/updateAccount', payload);
 
+export const sendWithdrawEmailCode = (email) =>
+    apiClient.post('/account/sendWithdrawEmailCode', { email });
+
 export const deleteUser = () =>
     apiClient.post('/account/deleteUser');

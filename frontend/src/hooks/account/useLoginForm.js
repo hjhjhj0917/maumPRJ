@@ -47,7 +47,7 @@ export const useLoginForm = () => {
             const msgDto = res.data;
 
             if (msgDto && msgDto.result === 1) {
-                navigate('/diary/list');
+                navigate('/diary/write');
             } else {
                 setMessage('userId', msgDto?.msg || "로그인 정보를 확인해주세요.", 'error');
                 setPassword('');

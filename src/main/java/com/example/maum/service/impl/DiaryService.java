@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -36,6 +37,7 @@ public class DiaryService implements IDiaryService {
 
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
+
 
     private void requestAnalysisAndUpdate(DiaryEntity entity, String content) {
         try {
@@ -84,6 +86,7 @@ public class DiaryService implements IDiaryService {
         }
     }
 
+
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -118,6 +121,7 @@ public class DiaryService implements IDiaryService {
 
         return res;
     }
+
 
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
@@ -163,6 +167,7 @@ public class DiaryService implements IDiaryService {
 
         return rDTO;
     }
+
 
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
@@ -217,6 +222,7 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception {
@@ -265,6 +271,7 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+
     @Transactional(readOnly = true)
     @Override
     public DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception {
@@ -303,6 +310,7 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> searchDiaryList(DiaryDTO pDTO) throws Exception {
@@ -326,6 +334,7 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getDiaryListByColors(String userNo, List<String> colors) throws Exception {
@@ -346,6 +355,8 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+
+    @Cacheable(value = "diaryCache", key = "#pDTO.userNo()", condition = "#pDTO.userNo() != null")
     @Override
     public List<DiaryDTO> getRecentDiaryList(DiaryDTO pDTO) throws Exception {
 
