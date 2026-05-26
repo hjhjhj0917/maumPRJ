@@ -28,8 +28,14 @@ export const useChatBot = () => {
             (chunk) => {
                 setMessages(prev => {
                     const newMessages = [...prev];
-                    newMessages[newMessages.length - 1].content += chunk;
-                    return [...newMessages];
+                    const lastIndex = newMessages.length - 1;
+
+                    newMessages[lastIndex] = {
+                        ...newMessages[lastIndex],
+                        content: newMessages[lastIndex].content + chunk
+                    };
+
+                    return newMessages;
                 });
             },
             () => setIsStreaming(false),

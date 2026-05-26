@@ -33,16 +33,17 @@ public class ChatBotService implements IChatBotService {
 
         log.info("{}.streamChat Start!", this.getClass().getName());
 
-        Flux<String> rFlux = webClient.post()
+        return webClient.post()
                 .uri("/api/rag-chat")
+                .header("Accept", "text/plain") // 파이썬에서 순수 텍스트를 받기로 함
                 .bodyValue(pDTO)
                 .retrieve()
                 .bodyToFlux(String.class)
+                .doOnNext(data -> log.info("Python Raw Data: {}", data)) // 실시간 데이터 확인 로그
                 .doOnComplete(() -> log.info("{}.streamChat Data Stream Completed!", this.getClass().getName()))
-                .onErrorReturn("잠시 연결이 고르지 않아요. 조금 이따가 다시 말해줄래요?");
-
-        log.info("{}.streamChat End!", this.getClass().getName());
-
-        return rFlux;
+                .onErrorResume(e -> {
+                    log.error("Python Communication Error: ", e);
+                    return Flux.just("연결 중에 문제가 발생했어요. 잠시 후 다시 시도해주세요.");
+                });
     }
 }

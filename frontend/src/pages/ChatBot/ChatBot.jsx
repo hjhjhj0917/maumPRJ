@@ -56,23 +56,38 @@ const ChatBot = () => {
                 <>
                     <S.MessageList>
                         {messages.map((msg, index) => {
-                            const isThinkingNow = msg.content.includes('<think>') && !msg.content.includes('</think>');
-                            const cleanContent = msg.content.replace(/<think>[\s\S]*?(<\/think>|$)/gi, '').trim();
+                            const isThinkingNow = msg.role === 'bot' && msg.content.includes('<think>') && !msg.content.includes('</think>');
+                            const hasFinishedThinking = msg.role === 'bot' && msg.content.includes('</think>');
+
+                            // 생각 중 메시지 추출 (태그 내부 내용만)
+                            let thinkingText = '';
+                            if (msg.content.includes('<think>')) {
+                                const match = msg.content.match(/<think>([\s\S]*?)(?:<\/think>|$)/i);
+                                if (match) thinkingText = match[1];
+                            }
+
+                            // 본문 추출 (생각 태그 제외)
+                            const cleanContent = msg.content.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '').trim();
 
                             return (
                                 <S.MessageWrapper key={index} $isUser={msg.role === 'user'}>
                                     <S.Bubble $isUser={msg.role === 'user'}>
-                                        {msg.role === 'bot' && isThinkingNow && (
-                                            <S.ThinkingIndicator>
-                                                <i className="fa-solid fa-circle-notch fa-spin"></i> 생각하는 중...
+                                        {msg.role === 'bot' && msg.content.includes('<think>') && (
+                                            <S.ThinkingIndicator $isFinished={hasFinishedThinking}>
+                                                <i className={`fa-solid ${hasFinishedThinking ? 'fa-check-circle' : 'fa-circle-notch fa-spin'}`}></i>
+                                                {thinkingText || '생각하는 중...'}
                                             </S.ThinkingIndicator>
                                         )}
                                         {msg.role === 'user' ? (
                                             msg.content
                                         ) : (
-                                            <ReactMarkdown>
-                                                {cleanContent + (isStreaming && index === messages.length - 1 ? ' ▌' : '')}
-                                            </ReactMarkdown>
+                                            cleanContent ? (
+                                                <ReactMarkdown>
+                                                    {cleanContent + (isStreaming && index === messages.length - 1 ? ' ▌' : '')}
+                                                </ReactMarkdown>
+                                            ) : (
+                                                !hasFinishedThinking && isStreaming && index === messages.length - 1 && ' ▌'
+                                            )
                                         )}
                                     </S.Bubble>
                                 </S.MessageWrapper>

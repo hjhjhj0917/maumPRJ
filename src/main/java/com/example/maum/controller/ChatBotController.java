@@ -25,7 +25,7 @@ public class ChatBotController {
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
-        log.info("{}.diaryInsert Start!", this.getClass().getName());
+        log.info("{}.streamChat Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
         String message = CmmUtil.nvl(cDTO.message());
@@ -37,12 +37,6 @@ public class ChatBotController {
                 .message(message)
                 .build();
 
-        Flux<String> rFlux = chatBotService.streamChat(pDTO)
-                .onErrorReturn("통신 중에 약간의 문제가 생겼어요. 잠시 후 다시 말해줄래요?")
-                .switchIfEmpty(Flux.just("현재 응답할 수 있는 내용이 없습니다."));
-
-        log.info("{}.diaryInsert Start!", this.getClass().getName());
-
-        return rFlux;
+        return chatBotService.streamChat(pDTO);
     }
 }
