@@ -35,4 +35,15 @@ public class RedisService implements IRedisService {
     public boolean hasKey(String key) {
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
+
+    @Override
+    public void pushMessage(String key, String data) {
+        redisTemplate.opsForList().rightPush(key, data);
+        redisTemplate.expire(key, 1, TimeUnit.HOURS); // 1시간 동안 유지
+    }
+
+    @Override
+    public java.util.List<Object> getList(String key) {
+        return redisTemplate.opsForList().range(key, 0, -1);
+    }
 }

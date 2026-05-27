@@ -9,4 +9,8 @@ public interface IRedisService {
     void deleteValues(String key);
 
     boolean hasKey(String key);
+
+    void pushMessage(String key, String data);
+
+    java.util.List<Object> getList(String key);
 }

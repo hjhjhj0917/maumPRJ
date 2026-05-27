@@ -1,3 +1,15 @@
+import apiClient from './apiClient';
+
+export const getChatHistoryApi = async () => {
+    try {
+        const response = await apiClient.get('/chat/history');
+        return response;
+    } catch (error) {
+        console.error("채팅 내역 불러오기 에러:", error);
+        throw error;
+    }
+};
+
 export const streamChatApi = async (message, onChunk, onError, onComplete) => {
     try {
         const response = await fetch('/api/v1/chat/stream', {
@@ -28,26 +40,32 @@ export const streamChatApi = async (message, onChunk, onError, onComplete) => {
             buffer = lines.pop();
 
             for (let line of lines) {
-                const trimmed = line.trim();
+                if (line.startsWith('data:')) {
+                    let text = line.substring(5);
 
-                if (trimmed.startsWith('data:')) {
-                    let text = trimmed.substring(5).trim();
+                    if (text.startsWith(' ')) {
+                        text = text.substring(1);
+                    }
+
                     if (text === '[DONE]') break;
-                    if (text) onChunk(text);
-                }
-                else if (trimmed !== '' && !trimmed.startsWith('event:')) {
-                    onChunk(trimmed);
+
+                    if (text) {
+                        // <br>을 마크다운 줄바꿈(공백 2개 + \n)으로 변환하고 <sp>를 공백으로 변환
+                        text = text.split('<br>').join('  \n').split('<sp>').join(' ');
+                        onChunk(text);
+                    }
                 }
             }
         }
 
-        if (buffer.trim() !== '') {
-            let text = buffer.trim();
-            if (text.startsWith('data:')) {
-                text = text.substring(5);
-                if (text.startsWith(' ')) text = text.substring(1);
+        if (buffer.startsWith('data:')) {
+            let text = buffer.substring(5);
+            if (text.startsWith(' ')) text = text.substring(1);
+            if (text && text !== '[DONE]') {
+                // <br>을 마크다운 줄바꿈으로 변환하고 <sp>를 공백으로 변환
+                text = text.split('<br>').join('  \n').split('<sp>').join(' ');
+                onChunk(text);
             }
-            if (text && text !== '[DONE]') onChunk(text);
         }
 
         onComplete();

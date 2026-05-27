@@ -21,7 +21,7 @@ const Login = () => {
 
                 <S.LoginSection>
                     <S.LoginCard>
-                        <S.LoginLogoTitle src={logoImg} alt="마음 로고"/>
+                        {/*<S.LoginLogoTitle src={logoImg} alt="마음 로고"/>*/}
 
                         <form id="loginForm" onSubmit={handleLogin}>
                             <S.InputGroup>

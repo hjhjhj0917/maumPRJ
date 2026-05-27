@@ -4,12 +4,13 @@ import { useChatBot } from '../../hooks/chatbot/useChatBot';
 import * as S from '../../style/pages/ChatBot/ChatBot.styles';
 
 const ChatBot = () => {
-    const { messages, input, setInput, isStreaming, messagesEndRef, sendMessage, handleKeyDown } = useChatBot();
+    const { messages, input, setInput, isStreaming, isWaiting, messagesEndRef, sendMessage, handleKeyDown } = useChatBot();
 
     const suggestions = [
-        {icon: 'fa-solid fa-hashtag', text: '내가 작성한 일기를 바탕으로 나에대해 분석해줘.'},
-        {icon: 'fa-solid fa-hashtag', text: '나를 분석한 결과를 참고해서 필요한 정책 알려줘.'},
-        {icon: 'fa-solid fa-hashtag', text: '오늘 저녁은 뭐 먹을까?'}
+        {icon: 'fa-solid fa-hashtag', text: '나 요즘 지치고 힘들다. 예전에 나 언제 기분 좋았었지?'},
+        {icon: 'fa-solid fa-hashtag', text: '나 요즘 우울해서 어디서 상담 같은 거 받아볼 수 없을까?'},
+        {icon: 'fa-solid fa-hashtag', text: '다음 달 월세 낼 돈도 부족한데, 내가 받을 수 있는 지원금이 있을까?'},
+        {icon: 'fa-solid fa-hashtag', text: '오늘 저녁 메뉴 추천해줘.'}
     ];
 
     const isEmptyState = messages.length === 0;
@@ -56,25 +57,21 @@ const ChatBot = () => {
                 <>
                     <S.MessageList>
                         {messages.map((msg, index) => {
-                            const isThinkingNow = msg.role === 'bot' && msg.content.includes('<think>') && !msg.content.includes('</think>');
-                            const hasFinishedThinking = msg.role === 'bot' && msg.content.includes('</think>');
+                            const cleanContent = msg.content.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '');
+                            const isThinking = msg.role === 'bot' && msg.content.includes('<think>') && cleanContent.trim() === '';
 
-                            // 생각 중 메시지 추출 (태그 내부 내용만)
                             let thinkingText = '';
                             if (msg.content.includes('<think>')) {
                                 const match = msg.content.match(/<think>([\s\S]*?)(?:<\/think>|$)/i);
                                 if (match) thinkingText = match[1];
                             }
 
-                            // 본문 추출 (생각 태그 제외)
-                            const cleanContent = msg.content.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '').trim();
-
                             return (
                                 <S.MessageWrapper key={index} $isUser={msg.role === 'user'}>
                                     <S.Bubble $isUser={msg.role === 'user'}>
-                                        {msg.role === 'bot' && msg.content.includes('<think>') && (
-                                            <S.ThinkingIndicator $isFinished={hasFinishedThinking}>
-                                                <i className={`fa-solid ${hasFinishedThinking ? 'fa-check-circle' : 'fa-circle-notch fa-spin'}`}></i>
+                                        {isThinking && (
+                                            <S.ThinkingIndicator>
+                                                <i className="fa-solid fa-circle-notch fa-spin"></i>
                                                 {thinkingText || '생각하는 중...'}
                                             </S.ThinkingIndicator>
                                         )}
@@ -86,13 +83,23 @@ const ChatBot = () => {
                                                     {cleanContent + (isStreaming && index === messages.length - 1 ? ' ▌' : '')}
                                                 </ReactMarkdown>
                                             ) : (
-                                                !hasFinishedThinking && isStreaming && index === messages.length - 1 && ' ▌'
+                                                !isThinking && isStreaming && index === messages.length - 1 ? ' ▌' : null
                                             )
                                         )}
                                     </S.Bubble>
                                 </S.MessageWrapper>
                             );
                         })}
+                        {isStreaming && isWaiting && (
+                            <S.MessageWrapper $isUser={false}>
+                                <S.Bubble $isUser={false}>
+                                    <S.ThinkingIndicator>
+                                        <i className="fa-solid fa-circle-notch fa-spin"></i>
+                                        마음이 답변을 생성하고 있습니다...
+                                    </S.ThinkingIndicator>
+                                </S.Bubble>
+                            </S.MessageWrapper>
+                        )}
                         <div ref={messagesEndRef} />
                     </S.MessageList>
                     <S.BottomInputArea>

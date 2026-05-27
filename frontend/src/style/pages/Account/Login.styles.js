@@ -107,9 +107,8 @@ export const LoginSection = styled.div`
 export const LoginCard = styled.div`
     width: 100%;
     max-width: 400px;
-    padding: 40px;
     position: relative;
-    padding-bottom: 115px;
+    padding: 40px 40px 30px;
 
     @media (max-width: 768px) {
         padding-bottom: 40px;

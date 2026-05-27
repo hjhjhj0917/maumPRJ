@@ -12,8 +12,31 @@ export const ChatContainer = styled.div`
     height: 100vh;
     max-width: 800px;
     margin: 0 auto;
+    /* padding-top: 100px; */
     background-color: transparent;
     position: relative;
+
+    /* 상단 그라데이션 페이드 효과 */
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 120px; /* 그라데이션 영역 높이 */
+        background: linear-gradient(to bottom, 
+            rgba(244, 247, 249, 1) 0%, 
+            rgba(244, 247, 249, 1) 60px, 
+            rgba(244, 247, 249, 0.8) 90px, 
+            rgba(244, 247, 249, 0) 100%
+        );
+        pointer-events: none; /* 클릭 방해 금지 */
+        z-index: 10;
+    }
+
+    ::-webkit-scrollbar {
+        display: none;
+    }
 `;
 
 export const EmptyStateContainer = styled.div`
@@ -45,10 +68,11 @@ export const BottomInputArea = styled.div`
 export const MessageList = styled.div`
     flex-grow: 1;
     overflow-y: auto;
-    padding: 105px 20px 40px;
+    /* padding: 105px 20px 40px; */
+    padding: 120px 20px 40px;
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: 100px;
 `;
 
 export const MessageWrapper = styled.div`

@@ -9,6 +9,7 @@ export const SidebarWrapper = styled.aside`
     flex-shrink: 0;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 100;
+    //border-radius: 0 10px 10px 0;
 `;
 
 export const TopSection = styled.div`
