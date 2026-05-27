@@ -158,7 +158,7 @@ public class UserInfoService implements IUserInfoService {
         log.info("{}.logout Start!", this.getClass().getName());
 
         if (accessToken != null) {
-            long atExpirationMillis = 3600000L;
+            long atExpirationMillis = 3600000L; // 블랙리스트 토큰 만료시간을 현재 남아있던 만료 시간 만큼만 유지하게 수정
             redisService.setValues("AT:" + accessToken, "logout", atExpirationMillis);
             log.info("Access Token 블랙리스트 등록: {}", accessToken);
         }
@@ -423,7 +423,7 @@ public class UserInfoService implements IUserInfoService {
         UserInfoEntity rEntity = userInfoRepository.findByUserId(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(userId + " Not Found User"));
 
-        if ("WITHDRAWN".equals(rEntity.getUserStatus())) {
+        if (rEntity.getUserStatus().equals("WITHDRAWN")) {
             throw new UsernameNotFoundException("탈퇴 대기 중인 계정입니다.");
         }
 

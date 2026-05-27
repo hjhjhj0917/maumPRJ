@@ -21,8 +21,8 @@ public class ChatBotController {
 
     private final IChatBotService chatBotService;
 
-    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE) // SSE 방식 요청 후 응답생성되는 즉시 계속 전달 GPT 같은 느낌
+    public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception { // Flux는 비동기 스트림 객체
 
         log.info("{}.streamChat Start!", this.getClass().getName());
 
@@ -41,8 +41,11 @@ public class ChatBotController {
 
     @GetMapping("/history")
     public List<Object> getHistory(@AuthenticationPrincipal Jwt jwt) throws Exception {
+
         log.info("{}.getHistory Start!", this.getClass().getName());
+
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
         return chatBotService.getHistory(userNo);
     }
 }

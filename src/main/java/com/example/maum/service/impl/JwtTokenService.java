@@ -143,10 +143,10 @@ public class JwtTokenService implements IJwtTokenService {
     public void writeTokenAsCookies(HttpServletResponse res, String accessToken, String refreshToken) {
 
         ResponseCookie at = ResponseCookie.from(accessCookie, accessToken)
-                .httpOnly(true)
+                .httpOnly(true) // 쿠키 접근 불가
                 .secure(false) // 개발중에만 false 이후에는 true로 설정 바꾸기
                 .path("/")
-                .sameSite("Lax")
+                .sameSite("Lax") // CSRF 방어 : Lax는 대부분 허용
                 .maxAge(accessTtlSec)
                 .build();
 

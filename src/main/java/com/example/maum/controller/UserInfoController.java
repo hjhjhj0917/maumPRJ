@@ -157,7 +157,7 @@ public class UserInfoController {
 
         log.info("{}.findUserId End!", this.getClass().getName());
 
-        return ExistsDTO.builder()
+        return ExistsDTO.builder() // 프론트로 인증번호를 보내지 않겠다
                 .exists(rDTO.exists())
                 .authNumber(0)
                 .build();
