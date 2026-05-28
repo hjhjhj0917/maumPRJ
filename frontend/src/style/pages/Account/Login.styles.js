@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 
 export const LoginPageWrapper = styled.div`
     display: flex;
@@ -36,25 +36,25 @@ export const FindLinks = styled.div`
 `;
 
 export const SignupBox = styled.div`
-    font-size: 0.9rem;
-    color: #888;
-    line-height: 1.5;
-    text-align: left !important;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 0 40px;
-    box-sizing: border-box;
-    white-space: normal;
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+        font-size: 0.9rem;
+        color: #888;
+        line-height: 1.5;
+        text-align: left !important;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 100px 40px 0;
+        box-sizing: border-box;
+        white-space: normal;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
 `;
 
 export const LoginSection = styled.div`
     flex: 0.8;
     display: flex;
-    justify-content: center;    
+    justify-content: center;
     align-items: center;
     background-color: #ffffff;
     transition: flex 0.5s ease-in-out;

@@ -86,10 +86,10 @@ const Login = () => {
                             </S.FindRow>
                         </S.FindLinks>
 
-                        <S.SignupBox>
-                            아직 회원이 아니시라면, 지금 바로 마음(MAÜM)을 <br/>
-                            시작해 보세요. <S.LinkSignup to="/account/register">가입하기</S.LinkSignup>
-                        </S.SignupBox>
+                        {/*<S.SignupBox>*/}
+                        {/*    아직 회원이 아니시라면, 지금 바로 마음(MAÜM)을 <br/>*/}
+                        {/*    시작해 보세요. <S.LinkSignup to="/account/register">가입하기</S.LinkSignup>*/}
+                        {/*</S.SignupBox>*/}
                     </S.LoginCard>
                 </S.LoginSection>
             </S.Container>

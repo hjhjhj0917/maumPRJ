@@ -7,8 +7,8 @@ const ChatBot = () => {
     const { messages, input, setInput, isStreaming, isWaiting, messagesEndRef, sendMessage, handleKeyDown } = useChatBot();
 
     const suggestions = [
-        {icon: 'fa-solid fa-hashtag', text: '나 요즘 지치고 힘들다. 예전에 나 언제 기분 좋았었지?'},
-        {icon: 'fa-solid fa-hashtag', text: '나 요즘 우울해서 어디서 상담 같은 거 받아볼 수 없을까?'},
+        {icon: 'fa-solid fa-hashtag', text: '나 요즘 지치고 힘들다. 예전에 나는 언제 기분이 좋았었지?'},
+        {icon: 'fa-solid fa-hashtag', text: '나 요즘 우울한데, 어디서 상담 같은 걸 받아볼 수 없을까?'},
         {icon: 'fa-solid fa-hashtag', text: '다음 달 월세 낼 돈도 부족한데, 내가 받을 수 있는 지원금이 있을까?'},
         {icon: 'fa-solid fa-hashtag', text: '오늘 저녁 메뉴 추천해줘.'}
     ];

@@ -41,20 +41,23 @@ const Index = () => {
 
             <S.HeroSection>
                 <S.HeroContent>
-                    <S.Title>AI가 그려주는<br />내 마음의 지도, MauM</S.Title>
+                    <S.Title>감정을 기록하는<br />AI 마음 연구소, MauM</S.Title>
                     <S.Subtitle>
                         HyperCLOVA X와 감정 분석 모델을 통해 당신의 일상 속에 숨겨진 감정을 발견하세요.
-                        맞춤형 AI 상담사와의 대화를 통해 지친 마음을 다독이고 내일을 위한 힘을 얻을 수 있습니다.
+                        AI와의 대화를 통해 지친 마음을 다독이고 내일을 위한 힘을 <br />얻어 보세요.
                     </S.Subtitle>
-                    <S.Button $primary style={{ padding: '16px 32px', fontSize: '18px' }}>
-                        지금 시작하기
-                    </S.Button>
+                    <Link to="/account/login">
+                        <S.Button $primary style={{ padding: '16px 32px', fontSize: '18px' }}>
+                            지금 시작하기
+                        </S.Button>
+                    </Link>
 
                     <S.LogoTicker>
                         <i className="fa-brands fa-java" title="Java"></i>
                         <i className="fa-brands fa-python" title="Python"></i>
                         <i className="fa-brands fa-react" title="React"></i>
                         <i className="fa-brands fa-github" title="GitHub"></i>
+                        <i className="fa-brands fa-js"></i>
                     </S.LogoTicker>
                 </S.HeroContent>
 
