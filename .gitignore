@@ -41,7 +41,6 @@ out/
 
 # 환경별 설정 파일 무시
 .env
-application.yml
 
 # 빌드 결과물
 /build/
@@ -60,4 +59,4 @@ Thumbs.db
 ### 제외 규칙 확인
 !src/main/resources/application.properties
 
-src/main/resources/application.yaml
+src/main/resources/application-secret.yaml

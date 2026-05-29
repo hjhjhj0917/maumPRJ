@@ -1,0 +1,71 @@
+spring:
+  config:
+    import: optional:classpath:application-secret.yaml
+
+  application:
+    name: maum
+
+  # Database Connection
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: ${secure.datasource.url}
+    username: ${secure.datasource.username}
+    password: ${secure.datasource.password}
+
+  # MongoDB Connection
+  mongodb:
+    uri: ${secure.datasource.mongodb.uri}
+
+  # Redis
+  data:
+    redis:
+      host: ${secure.datasource.redis.host}
+      port: ${secure.datasource.redis.port}
+      password: ${secure.datasource.redis.password}
+
+  # Mail
+  mail:
+    host: smtp.naver.com
+    port: 465
+    username: ${secure.mail.username}
+    password: ${secure.mail.password}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            enable: true
+            trust: smtp.naver.com
+
+  # JPA
+  jpa:
+    generate-ddl: false
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      cache:
+        region:
+          factory_class: org.hibernate.cache.jcache.internal.JCacheRegionFactory
+    properties:
+      jakarta:
+        persistence:
+          sharedCache:
+            mode: ENABLE_SELECTIVE
+      hibernate:
+        cache:
+          use_second_level_cache: true
+          use_query_cache: true
+        generate_statistics: true
+        default_batch_fetch_size: 100
+        format_sql: true
+        use_sql_comments: true
+
+server:
+  port: 11000
+

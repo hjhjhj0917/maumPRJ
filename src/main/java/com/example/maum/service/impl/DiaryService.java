@@ -46,6 +46,7 @@ public class DiaryService implements IDiaryService {
             requestMap.put("diary_no", entity.getDiaryNo());
             requestMap.put("user_no", entity.getUserNo());
             requestMap.put("title", entity.getTitle());
+            requestMap.put("created_at", entity.getCreatedAt());
             requestMap.put("content", content);
             requestMap.put("disease_type", "depression");
 
