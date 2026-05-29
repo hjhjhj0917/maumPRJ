@@ -1,10 +1,10 @@
 package com.example.maum.service;
 
-import com.example.maum.dto.MentalInstDTO;
+import com.example.maum.repository.entity.MentalInstDocument;
 
 import java.util.List;
 
 public interface IMentalInstService {
 
-    List<MentalInstDTO> getAllInstitutions() throws Exception;
+    List<MentalInstDocument> getAllInstitutions() throws Exception;
 }

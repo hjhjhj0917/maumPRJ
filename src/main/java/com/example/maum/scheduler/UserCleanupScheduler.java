@@ -1,5 +1,6 @@
 package com.example.maum.scheduler;
 
+import com.example.maum.repository.DiaryLogRepository;
 import com.example.maum.repository.UserInfoRepository;
 import com.example.maum.repository.entity.UserInfoEntity;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +20,14 @@ import java.util.List;
 public class UserCleanupScheduler {
 
     private final UserInfoRepository userInfoRepository;
+    private final DiaryLogRepository diaryLogRepository;
 
     @Transactional
     @Scheduled(cron = "0 0 4 * * ?")
     public void cleanupWithdrawnUsers() {
+
+        log.info("탈퇴 후 10일 경과 유저(MySQL) 및 일기 로그(MongoDB) 삭제 시작");
+
         try {
             List<UserInfoEntity> users = userInfoRepository.findAll();
             LocalDateTime now = LocalDateTime.now();
@@ -36,8 +41,12 @@ public class UserCleanupScheduler {
                     LocalDateTime updatedAt = LocalDateTime.parse(updatedAtStr, formatter);
 
                     if (ChronoUnit.DAYS.between(updatedAt, now) >= 10) {
+
+                        diaryLogRepository.deleteByUserNo(Integer.valueOf(user.getUserNo()));
+
                         userInfoRepository.delete(user);
-                        log.info("탈퇴 후 10일 경과 유저 데이터 삭제 완료: {}", user.getUserId());
+
+                        log.info("탈퇴 후 10일 경과 유저(MySQL) 및 일기 로그(MongoDB) 삭제 완료: {}", user.getUserId());
                     }
                 }
             }

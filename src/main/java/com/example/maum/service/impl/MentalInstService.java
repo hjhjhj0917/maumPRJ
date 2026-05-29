@@ -1,6 +1,6 @@
 package com.example.maum.service.impl;
 
-import com.example.maum.dto.MentalInstDTO;
+import com.example.maum.repository.entity.MentalInstDocument;
 import com.example.maum.repository.MentalInstRepository;
 import com.example.maum.service.IMentalInstService;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +19,11 @@ public class MentalInstService implements IMentalInstService {
 
     @Cacheable(value = "institutionsList")
     @Override
-    public List<MentalInstDTO> getAllInstitutions() {
+    public List<MentalInstDocument> getAllInstitutions() {
 
         log.info("{}.getAllInstitutions Start!", this.getClass().getName());
 
-        List<MentalInstDTO> rList = repository.findAll();
+        List<MentalInstDocument> rList = repository.findAll();
 
         log.info("{}.getAllInstitutions End!", this.getClass().getName());
 

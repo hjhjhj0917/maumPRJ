@@ -1,6 +1,6 @@
 package com.example.maum.controller;
 
-import com.example.maum.dto.MentalInstDTO;
+import com.example.maum.repository.entity.MentalInstDocument;
 import com.example.maum.service.IMentalInstService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +21,11 @@ public class MapController {
     private final IMentalInstService mentalInstService;
 
     @GetMapping("/institutions")
-    public List<MentalInstDTO> getInstitutions() throws Exception {
+    public List<MentalInstDocument> getInstitutions() throws Exception {
 
         log.info("{}.getInstitutions Start!", this.getClass().getName());
 
-        List<MentalInstDTO> rList = Optional.ofNullable(mentalInstService.getAllInstitutions())
+        List<MentalInstDocument> rList = Optional.ofNullable(mentalInstService.getAllInstitutions())
                         .orElseGet(ArrayList::new);
 
         log.info("{}.getInstitutions End!", this.getClass().getName());
