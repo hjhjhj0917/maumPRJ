@@ -26,7 +26,7 @@ public class ChatBotController {
 
         log.info("{}.streamChat Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        final String userNo = CmmUtil.nvl(jwt.getSubject());
         String message = CmmUtil.nvl(cDTO.message());
 
         log.info("userNo: {}, message: {}", userNo, message);
@@ -44,7 +44,7 @@ public class ChatBotController {
 
         log.info("{}.getHistory Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        final String userNo = CmmUtil.nvl(jwt.getSubject());
 
         return chatBotService.getHistory(userNo);
     }

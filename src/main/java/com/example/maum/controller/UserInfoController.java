@@ -44,7 +44,7 @@ public class UserInfoController {
 
         log.info("{}.userInfo Start!", this.getClass().getName());
 
-        if (jwt == null) {
+        if (jwt == null) { // 수정 필요함
 
             log.warn("JWT principal is null - unauthorized access to /api/v1/account/userInfo");
 
@@ -56,7 +56,7 @@ public class UserInfoController {
                     ));
         }
 
-        final String userNo = jwt.getSubject();
+        final String userNo = CmmUtil.nvl(jwt.getSubject());
 
         UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
 
@@ -118,7 +118,7 @@ public class UserInfoController {
         log.info("{}.logout Start!", this.getClass().getName());
 
         String accessToken = bearerTokenResolver.resolve(request);
-        String userNo = (jwt != null) ? jwt.getSubject() : null;
+        final String userNo = CmmUtil.nvl(jwt.getSubject());
 
         List<ResponseCookie> cookies = userInfoService.logout(accessToken, userNo);
 
@@ -246,7 +246,7 @@ public class UserInfoController {
                     ));
         }
 
-        String userNo = jwt.getSubject();
+        final String userNo = CmmUtil.nvl(jwt.getSubject());
         String profileImage = CmmUtil.nvl(uDTO.profileImgUrl());
 
         log.info("프로필 변경 요청 - userNo: {}, profileImage: {}", userNo, profileImage);
@@ -282,7 +282,7 @@ public class UserInfoController {
                     .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()));
         }
 
-        String userNo = jwt.getSubject();
+        final String userNo = CmmUtil.nvl(jwt.getSubject());
         String password = CmmUtil.nvl(uDTO.password());
 
         log.info("userNo: {}, password: {}", userNo, EncryptUtil.encHashSHA256(password));
@@ -310,7 +310,7 @@ public class UserInfoController {
                     .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()));
         }
 
-        String userNo = jwt.getSubject();
+        final String userNo = CmmUtil.nvl(jwt.getSubject());
         String password = CmmUtil.nvl(uDTO.password());
         String email = CmmUtil.nvl(uDTO.email());
         String addr = CmmUtil.nvl(uDTO.addr());
@@ -375,7 +375,7 @@ public class UserInfoController {
                     .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()));
         }
 
-        String userNo = jwt.getSubject();
+        final String userNo = CmmUtil.nvl(jwt.getSubject());
         UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
 
         int res = Optional.of(userInfoService.deleteUser(pDTO)).orElse(0);

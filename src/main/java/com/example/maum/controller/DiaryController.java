@@ -40,7 +40,8 @@ public class DiaryController {
                             .build());
         }
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        final String userNo = CmmUtil.nvl(jwt.getSubject());
+
         DiaryDTO pDTO = DiaryDTO.builder()
                 .userNo(userNo)
                 .title(CmmUtil.nvl(dDTO.title()))
