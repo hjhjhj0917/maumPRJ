@@ -16,5 +16,5 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
 
     List<DiaryEntity> findByUserNoAndEmotionColorInOrderByCreatedAtDesc(String userNo, List<String> colors);
 
-    List<DiaryEntity> findTop10ByUserNoOrderByCreatedAtDesc(String userNo);
+    List<DiaryEntity> findTop20ByUserNoOrderByCreatedAtDesc(String userNo);
 }

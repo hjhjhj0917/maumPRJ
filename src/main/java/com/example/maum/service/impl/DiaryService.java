@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
@@ -32,8 +33,19 @@ import java.util.stream.Collectors;
 public class DiaryService implements IDiaryService {
 
     private final DiaryRepository diaryRepository;
-    private final RestClient restClient = RestClient.create();
     private final MongoTemplate mongoTemplate;
+
+    private final RestClient restClient = createRestClientWithTimeout();
+
+    private RestClient createRestClientWithTimeout() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(10000);
+        factory.setReadTimeout(120000);
+
+        return RestClient.builder()
+                .requestFactory(factory)
+                .build();
+    }
 
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
@@ -367,7 +379,7 @@ public class DiaryService implements IDiaryService {
 
         log.info("userNo: {}", userNo);
 
-        List<DiaryDTO> rList = diaryRepository.findTop10ByUserNoOrderByCreatedAtDesc(userNo).stream()
+        List<DiaryDTO> rList = diaryRepository.findTop20ByUserNoOrderByCreatedAtDesc(userNo).stream()
                 .map(e -> DiaryDTO.builder()
                         .diaryNo(e.getDiaryNo())
                         .title(e.getTitle())

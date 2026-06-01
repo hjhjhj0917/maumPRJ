@@ -245,10 +245,12 @@ public class UserInfoService implements IUserInfoService {
         if (exists) {
             authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
 
-            MailDTO mailDTO = new MailDTO();
-            mailDTO.setTitle("아이디 찾기 인증번호 발송 메일");
-            mailDTO.setContent("인증번호는 " + authNumber + " 입니다.");
-            mailDTO.setReceiver(EncryptUtil.decAES128BCBC(email));
+            MailDTO mailDTO = MailDTO.builder()
+                    .title("아이디 찾기 인증번호 발송 메일")
+                    .content("인증번호는 " + authNumber + " 입니다.")
+                    .receiver(EncryptUtil.decAES128BCBC(email))
+                    .build();
+
             mailService.doSendMail(mailDTO);
 
             redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
@@ -283,10 +285,12 @@ public class UserInfoService implements IUserInfoService {
         if (exists) {
             authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
 
-            MailDTO mailDTO = new MailDTO();
-            mailDTO.setTitle("비밀번호 찾기 인증번호 발송 메일");
-            mailDTO.setContent("인증번호는 " + authNumber + " 입니다.");
-            mailDTO.setReceiver(EncryptUtil.decAES128BCBC(email));
+            MailDTO mailDTO = MailDTO.builder()
+                    .title("비밀번호 찾기 인증번호 발송 메일")
+                    .content("인증번호는 " + authNumber + " 입니다.")
+                    .receiver(EncryptUtil.decAES128BCBC(email))
+                    .build();
+
             mailService.doSendMail(mailDTO);
 
             redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
@@ -319,10 +323,12 @@ public class UserInfoService implements IUserInfoService {
         if (!exists) {
             authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
 
-            MailDTO mailDTO = new MailDTO();
-            mailDTO.setTitle("이메일 중복 확인 인증번호 발송 메일");
-            mailDTO.setContent("인증번호는 " + authNumber + " 입니다.");
-            mailDTO.setReceiver(EncryptUtil.decAES128BCBC(email));
+            MailDTO mailDTO = MailDTO.builder()
+                    .title("이메일 중복 확인 인증번호 발송 메일")
+                    .content("인증번호는 " + authNumber + " 입니다.")
+                    .receiver(EncryptUtil.decAES128BCBC(email))
+                    .build();
+
             mailService.doSendMail(mailDTO);
 
             redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
@@ -507,16 +513,19 @@ public class UserInfoService implements IUserInfoService {
         String email = CmmUtil.nvl(pDTO.email());
         int authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
 
-        MailDTO mailDTO = new MailDTO();
-        mailDTO.setTitle("회원 탈퇴 인증번호 발송 메일");
-        mailDTO.setContent("인증번호는 " + authNumber + " 입니다.");
-        mailDTO.setReceiver(EncryptUtil.decAES128BCBC(email));
+        MailDTO mailDTO = MailDTO.builder()
+                .title("회원 탈퇴 인증번호 발송 메일")
+                .content("인증번호는 " + authNumber + " 입니다.")
+                .receiver(EncryptUtil.decAES128BCBC(email))
+                .build();
+
         mailService.doSendMail(mailDTO);
 
         redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
 
         return MsgDTO.builder().result(1).msg("인증 코드가 발송되었습니다.").build();
     }
+
 
     @Transactional
     @Override
