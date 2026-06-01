@@ -163,7 +163,7 @@ public class JwtTokenService implements IJwtTokenService {
                 .secure(false) // 개발중에만 false 이후에는 true로 설정 바꾸기
                 .path("/")
                 .sameSite("Lax")
-                .maxAge(accessTtlSec)
+                .maxAge(refreshTtlSec)
                 .build();
 
         res.addHeader("Set-Cookie", at.toString());

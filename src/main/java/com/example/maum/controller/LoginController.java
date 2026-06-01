@@ -108,7 +108,7 @@ public class LoginController {
 
     @PostMapping(value = "/refresh")
     public ResponseEntity<MsgDTO> refreshToken(
-            @CookieValue(value = "jwtRefreshToken", required = false) String refreshToken,
+            @CookieValue(value = "${secure.jwt.token.refresh.name}", required = false) String refreshToken,
             HttpServletResponse response) {
 
         log.info("Token Refresh Request Start!");
