@@ -23,7 +23,7 @@ public interface IUserInfoService extends UserDetailsService {
 
     MsgDTO verifyEmailCode(UserInfoDTO pDTO) throws Exception;
 
-    List<ResponseCookie> logout(String accessToken, String userNo) throws Exception;
+    List<ResponseCookie> logout(String accessToken, String userNo, long remainingMilliSeconds) throws Exception;
 
 
     /* [Account Recovery] */

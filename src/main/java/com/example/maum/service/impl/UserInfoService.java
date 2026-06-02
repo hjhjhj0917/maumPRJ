@@ -139,6 +139,8 @@ public class UserInfoService implements IUserInfoService {
                     .result(1)
                     .msg("인증에 성공하였습니다.")
                     .build();
+
+            redisService.deleteValues(redisKey);
         } else {
             rDTO = MsgDTO.builder()
                     .result(0)
@@ -153,19 +155,24 @@ public class UserInfoService implements IUserInfoService {
 
 
     @Override
-    public List<ResponseCookie> logout(String accessToken, String userNo) throws Exception {
+    public List<ResponseCookie> logout(String accessToken, String userNo, long remainingMilliSeconds) throws Exception {
 
         log.info("{}.logout Start!", this.getClass().getName());
 
-        if (accessToken != null) {
-            long atExpirationMillis = 3600000L; // 블랙리스트 토큰 만료시간을 현재 남아있던 만료 시간 만큼만 유지하게 수정
-            redisService.setValues("AT:" + accessToken, "logout", atExpirationMillis);
-            log.info("Access Token 블랙리스트 등록: {}", accessToken);
+        if (accessToken != null && remainingMilliSeconds > 0) {
+            redisService.setValues("AT:" + accessToken, "logout", remainingMilliSeconds);
+            log.info("Access Token 블랙리스트 등록: {} (유지시간: {}ms)", accessToken, remainingMilliSeconds);
         }
 
         if (userNo != null) {
             redisService.deleteValues("RT:" + userNo);
             log.info("Refresh Token 삭제: {}", userNo);
+
+            redisService.deleteValues("diaryCache::" + userNo);
+            log.info("일기 최신 리스트 삭제: {}", userNo);
+
+            redisService.deleteValues("chat:" + userNo);
+            log.info("챗봇 대화 내역 삭제 완료: {}", userNo);
         }
 
         ResponseCookie accessCookie = ResponseCookie.from(accessCookieName, "")
@@ -280,6 +287,7 @@ public class UserInfoService implements IUserInfoService {
         Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmailAndUserId(email, userId);
 
         boolean exists = rEntity.isPresent() && !"WITHDRAWN".equals(rEntity.get().getUserStatus());
+
         int authNumber = 0;
 
         if (exists) {

@@ -44,18 +44,6 @@ public class UserInfoController {
 
         log.info("{}.userInfo Start!", this.getClass().getName());
 
-        if (jwt == null) { // 수정 필요함
-
-            log.warn("JWT principal is null - unauthorized access to /api/v1/account/userInfo");
-
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.of(
-                            HttpStatus.UNAUTHORIZED,
-                            HttpStatus.UNAUTHORIZED.series().name(),
-                            UserInfoDTO.builder().build()
-                    ));
-        }
-
         final String userNo = CmmUtil.nvl(jwt.getSubject());
 
         UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
@@ -120,9 +108,18 @@ public class UserInfoController {
         String accessToken = bearerTokenResolver.resolve(request);
         final String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        List<ResponseCookie> cookies = userInfoService.logout(accessToken, userNo);
+        long remainingMilliSeconds = 0;
+        if (jwt.getExpiresAt() != null) {
+            remainingMilliSeconds = jwt.getExpiresAt().toEpochMilli() - System.currentTimeMillis();
+        }
 
-        cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
+        if (remainingMilliSeconds > 0) {
+            List<ResponseCookie> cookies = userInfoService.logout(accessToken, userNo, remainingMilliSeconds);
+            cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
+        } else {
+            List<ResponseCookie> cookies = userInfoService.logout(null, userNo, 0);
+            cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
+        }
 
         MsgDTO dto = MsgDTO.builder()
                 .result(1)
@@ -235,17 +232,6 @@ public class UserInfoController {
 
         log.info("{}.updateProfileImg Start!", this.getClass().getName());
 
-        if (jwt == null) {
-            log.warn("인증 정보(JWT)가 누락된 접근입니다.");
-
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.of(
-                            HttpStatus.UNAUTHORIZED,
-                            HttpStatus.UNAUTHORIZED.series().name(),
-                            MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()
-                    ));
-        }
-
         final String userNo = CmmUtil.nvl(jwt.getSubject());
         String profileImage = CmmUtil.nvl(uDTO.profileImgUrl());
 
@@ -277,11 +263,6 @@ public class UserInfoController {
 
         log.info("{}.verifyCurrentPassword Start!", this.getClass().getName());
 
-        if (jwt == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()));
-        }
-
         final String userNo = CmmUtil.nvl(jwt.getSubject());
         String password = CmmUtil.nvl(uDTO.password());
 
@@ -304,11 +285,6 @@ public class UserInfoController {
     public ResponseEntity<CommonResponse<MsgDTO>> updateAccount(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.updateAccount Start!", this.getClass().getName());
-
-        if (jwt == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()));
-        }
 
         final String userNo = CmmUtil.nvl(jwt.getSubject());
         String password = CmmUtil.nvl(uDTO.password());
@@ -344,11 +320,6 @@ public class UserInfoController {
 
         log.info("{}.sendWithdrawEmailCode Start!", this.getClass().getName());
 
-        if (jwt == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()));
-        }
-
         String email = CmmUtil.nvl(uDTO.email());
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
@@ -370,11 +341,6 @@ public class UserInfoController {
 
         log.info("{}.deleteUser Start!", this.getClass().getName());
 
-        if (jwt == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 정보가 없습니다.").build()));
-        }
-
         final String userNo = CmmUtil.nvl(jwt.getSubject());
         UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
 
@@ -382,7 +348,13 @@ public class UserInfoController {
 
         if (res == 1) {
             String accessToken = bearerTokenResolver.resolve(request);
-            List<ResponseCookie> cookies = userInfoService.logout(accessToken, userNo);
+
+            long remainingMilliSeconds = 0;
+            if (jwt.getExpiresAt() != null) {
+                remainingMilliSeconds = jwt.getExpiresAt().toEpochMilli() - System.currentTimeMillis();
+            }
+
+            List<ResponseCookie> cookies = userInfoService.logout(accessToken, userNo, remainingMilliSeconds);
             cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
         }
 
