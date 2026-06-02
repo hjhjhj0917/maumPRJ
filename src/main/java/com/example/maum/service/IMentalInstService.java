@@ -7,4 +7,6 @@ import java.util.List;
 public interface IMentalInstService {
 
     List<MentalInstDocument> getAllInstitutions() throws Exception;
+
+    boolean clearInstitutionsCache();
 }

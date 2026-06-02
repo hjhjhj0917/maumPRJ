@@ -34,7 +34,7 @@ public class UserCleanupScheduler {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
             for (UserInfoEntity user : users) {
-                if ("WITHDRAWN".equals(user.getUserStatus()) && user.getUpdatedAt() != null) {
+                if ("N".equals(user.getUserStatus()) && user.getUpdatedAt() != null) {
                     String updatedAtStr = user.getUpdatedAt().length() > 19
                             ? user.getUpdatedAt().substring(0, 19)
                             : user.getUpdatedAt();

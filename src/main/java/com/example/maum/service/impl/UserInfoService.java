@@ -245,7 +245,7 @@ public class UserInfoService implements IUserInfoService {
 
         Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmailAndUserName(email, userName);
 
-        boolean exists = rEntity.isPresent() && !"WITHDRAWN".equals(rEntity.get().getUserStatus());
+        boolean exists = rEntity.isPresent() && !"N".equals(rEntity.get().getUserStatus());
 
         int authNumber = 0;
 
@@ -286,7 +286,7 @@ public class UserInfoService implements IUserInfoService {
 
         Optional<UserInfoEntity> rEntity = userInfoRepository.findByEmailAndUserId(email, userId);
 
-        boolean exists = rEntity.isPresent() && !"WITHDRAWN".equals(rEntity.get().getUserStatus());
+        boolean exists = rEntity.isPresent() && !"N".equals(rEntity.get().getUserStatus());
 
         int authNumber = 0;
 
@@ -440,7 +440,7 @@ public class UserInfoService implements IUserInfoService {
         UserInfoEntity rEntity = userInfoRepository.findByUserId(userId)
                 .orElseThrow(() -> new UsernameNotFoundException(userId + " Not Found User"));
 
-        if (rEntity.getUserStatus().equals("WITHDRAWN")) {
+        if (rEntity.getUserStatus().equals("N")) {
             throw new UsernameNotFoundException("탈퇴 대기 중인 계정입니다.");
         }
 
@@ -544,7 +544,7 @@ public class UserInfoService implements IUserInfoService {
         int res = 0;
 
         if (rEntity.isPresent()) {
-            rEntity.get().updateUserStatus("WITHDRAWN");
+            rEntity.get().updateUserStatus("N");
             res = 1;
         }
 

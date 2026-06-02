@@ -1,10 +1,11 @@
 package com.example.maum.service.impl;
 
-import com.example.maum.repository.entity.MentalInstDocument;
 import com.example.maum.repository.MentalInstRepository;
+import com.example.maum.repository.entity.MentalInstDocument;
 import com.example.maum.service.IMentalInstService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,15 @@ public class MentalInstService implements IMentalInstService {
         log.info("{}.getAllInstitutions End!", this.getClass().getName());
 
         return rList;
+    }
+
+    @Override
+    @CacheEvict(value = "institutionsList", allEntries = true)
+    public boolean clearInstitutionsCache() {
+
+        log.info("{}.clearInstitutionsCache Start!", this.getClass().getName());
+
+        return true;
     }
 
 }

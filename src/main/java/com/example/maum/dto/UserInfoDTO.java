@@ -5,6 +5,7 @@ import com.example.maum.util.CmmUtil;
 import com.example.maum.util.EncryptUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 
@@ -15,22 +16,24 @@ public record UserInfoDTO(
         String userNo,
 
         @NotBlank(message = "아이디를 입력해주세요.")
-        @Size(min = 4, message = "아이디는 최소 4글자 이상 입력해주세요.")
+        @Size(min = 4, max = 20, message = "아이디는 4~20자리로 입력해주세요.")
         String userId,
 
         @NotBlank(message = "비밀번호를 입력해주세요.")
-        @Size(min = 4, message = "비밀번호는 최소 8글자 이상 입력해주세요.")
+        @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,20}$", message = "영문, 숫자, 특수문자를 모두 포함하여 8~20자리로 조합해주세요.")
         String password,
 
         @NotBlank(message = "이름을 입력해주세요.")
-        @Size(max = 10, message = "이름은 최대 10글자까지 입력가능합니다.")
+        @Pattern(regexp = "^[가-힣a-zA-Z]{2,10}$", message = "이름은 2~10자의 한글 또는 영문만 가능합니다.")
         String userName,
 
         @NotBlank(message = "이메일을 입력해주세요.")
-        @Size(max = 40, message = "이메일은 최대 40글자까지 입력가능합니다..")
+        @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "유효한 이메일 형식이 아닙니다.")
+        @Size(max = 255, message = "이메일은 최대 255글자까지 입력가능합니다.")
         String email,
 
         @NotBlank(message = "생년월일을 입력해주세요.")
+        @Pattern(regexp = "^(19|20)\\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$", message = "올바른 날짜 형식이 아닙니다.")
         String birthDate,
 
         @NotBlank(message = "주소를 입력해주세요.")
