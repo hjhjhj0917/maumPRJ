@@ -1,11 +1,14 @@
 package com.example.maum.controller;
 
+import com.example.maum.controller.response.CommonResponse;
 import com.example.maum.dto.ChatBotDTO;
 import com.example.maum.service.IChatBotService;
 import com.example.maum.util.CmmUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +24,10 @@ public class ChatBotController {
 
     private final IChatBotService chatBotService;
 
-    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE) // SSE 방식 요청 후 응답생성되는 즉시 계속 전달 GPT 같은 느낌
-    public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception { // Flux는 비동기 스트림 객체
+    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
-        log.info("{}.streamChat Start!", this.getClass().getName());
+        log.info("{}.chatStream Start!", this.getClass().getName());
 
         final String userNo = CmmUtil.nvl(jwt.getSubject());
         String message = CmmUtil.nvl(cDTO.message());
@@ -39,13 +42,20 @@ public class ChatBotController {
         return chatBotService.streamChat(pDTO);
     }
 
+
     @GetMapping("/history")
-    public List<Object> getHistory(@AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<List<Object>>> getHistory(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.getHistory Start!", this.getClass().getName());
 
         final String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        return chatBotService.getHistory(userNo);
+        List<Object> rList = chatBotService.getHistory(userNo);
+
+        log.info("{}.getHistory End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rList)
+        );
     }
 }

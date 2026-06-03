@@ -26,7 +26,6 @@ public class UserRegController {
     private final IUserInfoService userInfoService;
     private final PasswordEncoder bCryptPasswordEncoder;
 
-
     @PostMapping(value = "getUserIdExists")
     public ResponseEntity<CommonResponse<UserInfoDTO>> getUserIdExists(@RequestBody UserInfoDTO pDTO) throws Exception {
 
@@ -41,14 +40,14 @@ public class UserRegController {
         );
     }
 
-
     @PostMapping(value = "insertUserInfo")
-    public ResponseEntity<?> insertUserInfo(@Valid @RequestBody UserInfoDTO pDTO, BindingResult bindingResult) {
+    public ResponseEntity<CommonResponse<?>> insertUserInfo(@Valid @RequestBody UserInfoDTO pDTO, BindingResult bindingResult) {
 
         log.info("{}.insertUserInfo Start!", this.getClass().getName());
 
         if (bindingResult.hasErrors()) {
             log.info("error: {}", bindingResult);
+            log.info("{}.insertUserInfo End!", this.getClass().getName());
             return CommonResponse.getErrors(bindingResult);
         }
 

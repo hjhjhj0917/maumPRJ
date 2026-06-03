@@ -34,11 +34,6 @@ public class UserInfoController {
     private final IUserInfoService userInfoService;
     private final BearerTokenResolver bearerTokenResolver;
 
-    /* CREATE */
-
-
-    /* READ */
-
     @PostMapping(value = "userInfo")
     public ResponseEntity<CommonResponse<UserInfoDTO>> userInfo(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -54,13 +49,13 @@ public class UserInfoController {
         log.info("{}.userInfo End!", this.getClass().getName());
 
         return ResponseEntity.ok(
-                CommonResponse.of((HttpStatus.OK), HttpStatus.OK.series().name(), rDTO)
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO)
         );
     }
 
 
     @PostMapping(value = "getEmailExists")
-    public ExistsDTO getEmailExists(@RequestBody UserInfoDTO uDTO) throws Exception {
+    public ResponseEntity<CommonResponse<ExistsDTO>> getEmailExists(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.getEmailExists Start!", this.getClass().getName());
 
@@ -75,17 +70,21 @@ public class UserInfoController {
         ExistsDTO rDTO = Optional.ofNullable(userInfoService.getEmailExists(pDTO))
                 .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
 
-        log.info("{}.getEmailExists End!", this.getClass().getName());
-
-        return ExistsDTO.builder()
+        ExistsDTO resultDTO = ExistsDTO.builder()
                 .exists(rDTO.exists())
                 .authNumber(0)
                 .build();
+
+        log.info("{}.getEmailExists End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), resultDTO)
+        );
     }
 
 
     @PostMapping(value = "verifyEmailCode")
-    public MsgDTO verifyEmailCode(@RequestBody UserInfoDTO uDTO) throws Exception {
+    public ResponseEntity<CommonResponse<MsgDTO>> verifyEmailCode(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.verifyEmailCode Start!", this.getClass().getName());
 
@@ -94,7 +93,9 @@ public class UserInfoController {
 
         log.info("{}.verifyEmailCode End!", this.getClass().getName());
 
-        return rDTO;
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO)
+        );
     }
 
 
@@ -135,7 +136,7 @@ public class UserInfoController {
 
 
     @PostMapping(value = "findUserId")
-    public ExistsDTO findUserId(@RequestBody UserInfoDTO uDTO) throws Exception {
+    public ResponseEntity<CommonResponse<ExistsDTO>> findUserId(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.findUserId Start!", this.getClass().getName());
 
@@ -152,17 +153,21 @@ public class UserInfoController {
         ExistsDTO rDTO = Optional.ofNullable(userInfoService.findUserId(pDTO))
                 .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
 
-        log.info("{}.findUserId End!", this.getClass().getName());
-
-        return ExistsDTO.builder() // 프론트로 인증번호를 보내지 않겠다
+        ExistsDTO resultDTO = ExistsDTO.builder()
                 .exists(rDTO.exists())
                 .authNumber(0)
                 .build();
+
+        log.info("{}.findUserId End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), resultDTO)
+        );
     }
 
 
     @PostMapping(value = "getUserId")
-    public UserInfoDTO getUserId(@RequestBody UserInfoDTO uDTO) throws Exception {
+    public ResponseEntity<CommonResponse<UserInfoDTO>> getUserId(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.getUserId Start!", this.getClass().getName());
 
@@ -177,12 +182,14 @@ public class UserInfoController {
 
         log.info("{}.getUserId End!", this.getClass().getName());
 
-        return rDTO;
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO)
+        );
     }
 
 
     @PostMapping(value = "findUserPw")
-    public ExistsDTO findUserPw(@RequestBody UserInfoDTO uDTO) throws Exception {
+    public ResponseEntity<CommonResponse<ExistsDTO>> findUserPw(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.findUserPw Start!", this.getClass().getName());
 
@@ -197,17 +204,21 @@ public class UserInfoController {
         ExistsDTO rDTO = Optional.ofNullable(userInfoService.findUserPw(pDTO))
                 .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
 
-        log.info("{}.findUserPw End!", this.getClass().getName());
-
-        return ExistsDTO.builder()
+        ExistsDTO resultDTO = ExistsDTO.builder()
                 .exists(rDTO.exists())
                 .authNumber(0)
                 .build();
+
+        log.info("{}.findUserPw End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), resultDTO)
+        );
     }
 
 
     @PostMapping(value = "updateUserPw")
-    public MsgDTO updateUserPw(@RequestBody UserInfoDTO uDTO) throws Exception {
+    public ResponseEntity<CommonResponse<MsgDTO>> updateUserPw(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.updateUserPw Start!", this.getClass().getName());
 
@@ -223,7 +234,9 @@ public class UserInfoController {
 
         log.info("{}.updateUserPw End!", this.getClass().getName());
 
-        return rDTO;
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO)
+        );
     }
 
 

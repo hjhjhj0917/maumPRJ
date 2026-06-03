@@ -25,20 +25,10 @@ public class DiaryController {
 
     private final DiaryService diaryService;
 
-    /* [Diary Management] */
-
     @PostMapping(value = "diaryInsert")
     public ResponseEntity<CommonResponse<Integer>> diaryInsert(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.diaryInsert Start!", this.getClass().getName());
-
-        if (jwt == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.<Integer>builder()
-                            .httpStatus(HttpStatus.UNAUTHORIZED)
-                            .message("로그인이 필요한 서비스입니다.")
-                            .build());
-        }
 
         final String userNo = CmmUtil.nvl(jwt.getSubject());
 
@@ -52,6 +42,7 @@ public class DiaryController {
         int generatedDiaryNo = diaryService.diaryInsert(pDTO);
 
         log.info("일기 저장 결과(generatedDiaryNo): {}", generatedDiaryNo);
+        log.info("{}.diaryInsert End!", this.getClass().getName());
 
         if (generatedDiaryNo > 0) {
             return ResponseEntity.ok(
@@ -76,11 +67,6 @@ public class DiaryController {
 
         log.info("{}.diaryUpdate Start!", this.getClass().getName());
 
-        if (jwt == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.<Integer>builder().httpStatus(HttpStatus.UNAUTHORIZED).message("로그인이 필요한 서비스입니다.").build());
-        }
-
         String userNo = CmmUtil.nvl(jwt.getSubject());
         Integer diaryNo = dDTO.diaryNo();
 
@@ -104,15 +90,11 @@ public class DiaryController {
         }
     }
 
+
     @PostMapping(value = "diaryDelete")
     public ResponseEntity<CommonResponse<Integer>> diaryDelete(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.diaryDelete Start!", this.getClass().getName());
-
-        if (jwt == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.<Integer>builder().httpStatus(HttpStatus.UNAUTHORIZED).message("로그인이 필요한 서비스입니다.").build());
-        }
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
         Integer diaryNo = dDTO.diaryNo();
@@ -133,20 +115,10 @@ public class DiaryController {
     }
 
 
-    /* [Diary Retrieval] */
-
     @GetMapping("/monthly")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getMonthlyDiaryList(DiaryDTO pDTO, @AuthenticationPrincipal Jwt jwt) {
 
         log.info("{}.getMonthlyDiaryList Start!", this.getClass().getName());
-
-        if (jwt == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.<List<DiaryDTO>>builder()
-                            .httpStatus(HttpStatus.UNAUTHORIZED)
-                            .message("로그인이 필요합니다.")
-                            .build());
-        }
 
         try {
             String userNo = CmmUtil.nvl(jwt.getSubject());
@@ -159,6 +131,8 @@ public class DiaryController {
             List<DiaryDTO> rList = diaryService.getMonthlyDiaryList(sDTO);
             if (rList == null) rList = new ArrayList<>();
 
+            log.info("{}.getMonthlyDiaryList End!", this.getClass().getName());
+
             return ResponseEntity.ok(
                     CommonResponse.<List<DiaryDTO>>builder()
                             .httpStatus(HttpStatus.OK)
@@ -169,6 +143,9 @@ public class DiaryController {
 
         } catch (Exception e) {
             log.error("조회 중 에러 발생: ", e);
+
+            log.info("{}.getMonthlyDiaryList End!", this.getClass().getName());
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(CommonResponse.<List<DiaryDTO>>builder()
                             .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -183,17 +160,6 @@ public class DiaryController {
 
         log.info("{}.getDiaryDetail Start!", this.getClass().getName());
 
-        ResponseEntity<CommonResponse<DiaryDTO>> res;
-
-        if (jwt == null) {
-            res = ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(CommonResponse.<DiaryDTO>builder()
-                            .httpStatus(HttpStatus.UNAUTHORIZED)
-                            .message("로그인이 필요한 서비스입니다.")
-                            .build());
-            return res;
-        }
-
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
         try {
@@ -204,7 +170,9 @@ public class DiaryController {
 
             DiaryDTO rDTO = diaryService.getDiaryDetail(pDTO);
 
-            res = ResponseEntity.ok(
+            log.info("{}.getDiaryDetail End!", this.getClass().getName());
+
+            return ResponseEntity.ok(
                     CommonResponse.<DiaryDTO>builder()
                             .httpStatus(HttpStatus.OK)
                             .message("일기 조회 성공")
@@ -214,14 +182,15 @@ public class DiaryController {
 
         } catch (Exception e) {
             log.error("일기 상세 조회 중 오류 발생: ", e);
-            res = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+
+            log.info("{}.getDiaryDetail End!", this.getClass().getName());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(CommonResponse.<DiaryDTO>builder()
                             .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
                             .message(e.getMessage())
                             .build());
         }
-
-        return res;
     }
 
 
@@ -229,10 +198,6 @@ public class DiaryController {
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> searchDiaryList(@RequestParam(value = "keyword") String keyword, @AuthenticationPrincipal Jwt jwt) {
 
         log.info("{}.searchDiaryList Start!", this.getClass().getName());
-
-        if (jwt == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
 
         try {
             String userNo = CmmUtil.nvl(jwt.getSubject());
@@ -257,18 +222,20 @@ public class DiaryController {
             log.error("검색 중 에러 발생: ", e);
             log.info("{}.searchDiaryList End!", this.getClass().getName());
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(CommonResponse.<List<DiaryDTO>>builder()
+                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .message("서버 조회 오류")
+                            .build());
         }
     }
 
 
     @GetMapping("/filter")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> filterDiaryList(@RequestParam(value = "colors") List<String> colors,
-            @AuthenticationPrincipal Jwt jwt) {
+                                                                          @AuthenticationPrincipal Jwt jwt) {
 
         log.info("{}.filterDiaryList Start!", this.getClass().getName());
-
-        if (jwt == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 
         try {
             String userNo = CmmUtil.nvl(jwt.getSubject());
@@ -288,9 +255,14 @@ public class DiaryController {
             log.error("필터 조회 중 에러: ", e);
             log.info("{}.filterDiaryList End!", this.getClass().getName());
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(CommonResponse.<List<DiaryDTO>>builder()
+                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .message("서버 조회 오류")
+                            .build());
         }
     }
+
 
     @GetMapping("/recent")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getRecentDiaryList(@AuthenticationPrincipal Jwt jwt) throws Exception {

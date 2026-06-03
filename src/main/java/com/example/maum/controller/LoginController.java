@@ -28,7 +28,6 @@ public class LoginController {
     private final AuthenticationManager authenticationManager;
     private final IJwtTokenService jwtTokenService;
 
-
     @PostMapping(value = "loginProc")
     public ResponseEntity<CommonResponse<MsgDTO>> loginProc(@RequestBody UserInfoDTO pDTO, HttpServletResponse response) {
 
@@ -69,7 +68,6 @@ public class LoginController {
         );
     }
 
-
     @PostMapping(value = "loginInfo")
     public ResponseEntity<CommonResponse<UserInfoDTO>> loginInfo(@AuthenticationPrincipal Jwt jwt) {
 
@@ -105,34 +103,40 @@ public class LoginController {
         );
     }
 
-
     @PostMapping(value = "/refresh")
-    public ResponseEntity<MsgDTO> refreshToken(
+    public ResponseEntity<CommonResponse<MsgDTO>> refreshToken(
             @CookieValue(value = "${secure.jwt.token.refresh.name}", required = false) String refreshToken,
             HttpServletResponse response) {
 
-        log.info("Token Refresh Request Start!");
+        log.info("{}.refreshToken Start!", this.getClass().getName());
 
         if (refreshToken == null || refreshToken.isEmpty()) {
+            log.info("{}.refreshToken End!", this.getClass().getName());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(MsgDTO.builder().result(0).msg("세션이 만료되었습니다.").build());
+                    .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("세션이 만료되었습니다.").build()));
         }
 
         try {
             int res = jwtTokenService.reissueTokens(refreshToken, response);
 
             if (res == 1) {
+                log.info("{}.refreshToken End!", this.getClass().getName());
+
                 return ResponseEntity.ok(
-                        MsgDTO.builder().result(1).msg("세션이 연장되었습니다.").build()
+                        CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), MsgDTO.builder().result(1).msg("세션이 연장되었습니다.").build())
                 );
             } else {
+                log.info("{}.refreshToken End!", this.getClass().getName());
+
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(MsgDTO.builder().result(0).msg("유효하지 않은 세션입니다.").build());
+                        .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("유효하지 않은 세션입니다.").build()));
             }
         } catch (Exception e) {
             log.error("Refresh Controller Error : {}", e.getMessage());
+            log.info("{}.refreshToken End!", this.getClass().getName());
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(MsgDTO.builder().result(0).msg("인증 처리 중 오류가 발생했습니다.").build());
+                    .body(CommonResponse.of(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.series().name(), MsgDTO.builder().result(0).msg("인증 처리 중 오류가 발생했습니다.").build()));
         }
     }
 }
