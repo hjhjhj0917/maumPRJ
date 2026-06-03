@@ -61,15 +61,15 @@ public class DiaryService implements IDiaryService {
         List<String> red = Arrays.asList("화남/분노", "짜증", "불평/불만");
         List<String> orange = Arrays.asList("기대감", "비장함", "깨달음");
 
-        if (yellow.contains(emotion)) return "#FFD700";
-        if (mint.contains(emotion)) return "#66CDAA";
-        if (purple.contains(emotion)) return "#4B0082";
-        if (blue.contains(emotion)) return "#00BFFF";
-        if (darkBlue.contains(emotion)) return "#1E3A8A";
-        if (olive.contains(emotion)) return "#556B2F";
-        if (red.contains(emotion)) return "#FF3B30";
-        if (orange.contains(emotion)) return "#FFA500";
-        return "#9E9E9E";
+        if (yellow.contains(emotion)) return "#FFF0A8";
+        if (mint.contains(emotion)) return "#A8E6CF";
+        if (purple.contains(emotion)) return "#DDBDF1";
+        if (blue.contains(emotion)) return "#A2D2FF";
+        if (darkBlue.contains(emotion)) return "#8EA4D2";
+        if (olive.contains(emotion)) return "#C5D8A4";
+        if (red.contains(emotion)) return "#FFB3B3";
+        if (orange.contains(emotion)) return "#FFDFBA";
+        return "#D9D9D9";
     }
 
 
