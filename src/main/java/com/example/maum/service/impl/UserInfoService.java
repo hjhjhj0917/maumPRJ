@@ -129,6 +129,7 @@ public class UserInfoService implements IUserInfoService {
 
         String encEmail = EncryptUtil.encAES128BCBC(email);
         String redisKey = "AUTH:" + encEmail;
+        String pwResetKey = "PW_RESET:" + encEmail;
 
         String storedAuthCode = redisService.getValues(redisKey);
 
@@ -140,7 +141,13 @@ public class UserInfoService implements IUserInfoService {
                     .msg("인증에 성공하였습니다.")
                     .build();
 
-            redisService.deleteValues(redisKey);
+            if (redisService.getValues(pwResetKey) == null) {
+                redisService.deleteValues(redisKey);
+                log.info("인증 성공: Redis 인증번호 즉시 삭제 완료 (일반 인증)");
+            } else {
+                log.info("인증 성공: 비밀번호 변경 프로세스이므로 AUTH 키 유지");
+            }
+
         } else {
             rDTO = MsgDTO.builder()
                     .result(0)

@@ -1,6 +1,7 @@
 package com.example.maum.service;
 
 import com.example.maum.dto.DiaryDTO;
+import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
 
 import java.util.List;
@@ -27,4 +28,6 @@ public interface IDiaryService {
     List<DiaryDTO> getDiaryListByColors(String userNo, List<String> colors) throws Exception;
 
     List<DiaryDTO> getRecentDiaryList(DiaryDTO pDTO) throws Exception;
+
+    List<EmotionStatDTO> getEmotionStats(String userNoStr) throws Exception;
 }

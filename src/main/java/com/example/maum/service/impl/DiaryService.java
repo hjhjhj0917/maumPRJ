@@ -1,9 +1,12 @@
 package com.example.maum.service.impl;
 
 import com.example.maum.dto.DiaryDTO;
+import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
+import com.example.maum.repository.DiaryLogRepository;
 import com.example.maum.repository.DiaryRepository;
 import com.example.maum.repository.entity.DiaryEntity;
+import com.example.maum.repository.entity.DiaryLogDocument;
 import com.example.maum.service.IDiaryService;
 import com.example.maum.util.CmmUtil;
 import com.example.maum.util.DateUtil;
@@ -33,6 +36,7 @@ import java.util.stream.Collectors;
 public class DiaryService implements IDiaryService {
 
     private final DiaryRepository diaryRepository;
+    private final DiaryLogRepository diaryLogRepository;
     private final MongoTemplate mongoTemplate;
 
     private final RestClient restClient = createRestClientWithTimeout();
@@ -47,8 +51,26 @@ public class DiaryService implements IDiaryService {
                 .build();
     }
 
-    @Value("${secure.python.api.url}")
-    private String pythonApiUrl;
+    private String getEmotionColor(String emotion) {
+        List<String> yellow = Arrays.asList("즐거움/신남", "행복", "기쁨", "뿌듯함", "흐뭇함(귀여움/예쁨)", "감동/감탄", "고마움", "환영/호의");
+        List<String> mint = Arrays.asList("안심/신뢰", "존경", "아껴주는", "편안/쾌적");
+        List<String> purple = Arrays.asList("공포/무서움", "불안/걱정", "부담/안_내킴", "의심/불신");
+        List<String> blue = Arrays.asList("놀람", "신기함/관심", "어이없음", "경악", "당황/난처");
+        List<String> darkBlue = Arrays.asList("슬픔", "절망", "서러움", "불쌍함/연민", "안타까움/실망", "패배/자기혐오", "힘듦/지침");
+        List<String> olive = Arrays.asList("역겨움/징그러움", "증오/혐오", "지긋지긋", "한심함");
+        List<String> red = Arrays.asList("화남/분노", "짜증", "불평/불만");
+        List<String> orange = Arrays.asList("기대감", "비장함", "깨달음");
+
+        if (yellow.contains(emotion)) return "#FFD700";
+        if (mint.contains(emotion)) return "#66CDAA";
+        if (purple.contains(emotion)) return "#4B0082";
+        if (blue.contains(emotion)) return "#00BFFF";
+        if (darkBlue.contains(emotion)) return "#1E3A8A";
+        if (olive.contains(emotion)) return "#556B2F";
+        if (red.contains(emotion)) return "#FF3B30";
+        if (orange.contains(emotion)) return "#FFA500";
+        return "#9E9E9E";
+    }
 
 
     private void requestAnalysisAndUpdate(DiaryEntity entity, String content) {
@@ -98,6 +120,9 @@ public class DiaryService implements IDiaryService {
             log.error("파이썬 서버 통신 에러: {}", e.getMessage());
         }
     }
+
+    @Value("${secure.python.api.url}")
+    private String pythonApiUrl;
 
 
     @Transactional
@@ -389,6 +414,40 @@ public class DiaryService implements IDiaryService {
                 .collect(Collectors.toList());
 
         log.info("{}.getRecentDiaryList End!", this.getClass().getName());
+
+        return rList;
+    }
+
+
+    @Override
+    public List<EmotionStatDTO> getEmotionStats(String userNoStr) throws Exception {
+
+        log.info("{}.getEmotionStats Start!", this.getClass().getName());
+
+        Integer userNo = Integer.parseInt(userNoStr);
+        List<DiaryLogDocument> logs = diaryLogRepository.findByUserNo(userNo);
+        Map<String, Integer> countMap = new HashMap<>();
+
+        for (DiaryLogDocument logDoc : logs) {
+            if (logDoc.getEmoRes() != null) {
+                for (Map.Entry<String, Double> entry : logDoc.getEmoRes().entrySet()) {
+                    if (entry.getValue() != null && entry.getValue() >= 0.6) {
+                        countMap.put(entry.getKey(), countMap.getOrDefault(entry.getKey(), 0) + 1);
+                    }
+                }
+            }
+        }
+
+        List<EmotionStatDTO> rList = countMap.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .map(entry -> new EmotionStatDTO(
+                        entry.getKey(),
+                        entry.getValue(),
+                        getEmotionColor(entry.getKey())
+                ))
+                .collect(Collectors.toList());
+
+        log.info("{}.getEmotionStats End!", this.getClass().getName());
 
         return rList;
     }

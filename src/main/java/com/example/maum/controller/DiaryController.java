@@ -2,6 +2,7 @@ package com.example.maum.controller;
 
 import com.example.maum.controller.response.CommonResponse;
 import com.example.maum.dto.DiaryDTO;
+import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
 import com.example.maum.service.impl.DiaryService;
 import com.example.maum.util.CmmUtil;
@@ -289,5 +290,32 @@ public class DiaryController {
                         .data(rList)
                         .build()
         );
+    }
+
+
+    @GetMapping("/emotions/stats")
+    public ResponseEntity<CommonResponse<List<EmotionStatDTO>>> getEmotionStats(@AuthenticationPrincipal Jwt jwt) {
+        log.info("{}.getEmotionStats Start!", this.getClass().getName());
+        try {
+            String userNo = CmmUtil.nvl(jwt.getSubject());
+            List<EmotionStatDTO> rList = diaryService.getEmotionStats(userNo);
+
+            log.info("{}.getEmotionStats End!", this.getClass().getName());
+            return ResponseEntity.ok(
+                    CommonResponse.<List<EmotionStatDTO>>builder()
+                            .httpStatus(HttpStatus.OK)
+                            .message("감정 통계 조회 성공")
+                            .data(rList)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("통계 조회 중 에러: ", e);
+            log.info("{}.getEmotionStats End!", this.getClass().getName());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(CommonResponse.<List<EmotionStatDTO>>builder()
+                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .message("서버 조회 오류")
+                            .build());
+        }
     }
 }

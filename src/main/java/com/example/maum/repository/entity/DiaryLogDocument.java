@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -43,7 +44,7 @@ public class DiaryLogDocument {
     private String analysisSum;
 
     @Field("EMO_RES")
-    private List<EmotionResult> emoRes;
+    private Map<String, Double> emoRes;
 
     @Field("DEP_RES")
     private DepressionResult depRes;
@@ -56,18 +57,6 @@ public class DiaryLogDocument {
 
     @Field("VERSION")
     private String version;
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class EmotionResult {
-        @Field("EMOTION")
-        private String emotion;
-
-        @Field("SCORE")
-        private Double score;
-    }
 
     @Getter
     @Setter
