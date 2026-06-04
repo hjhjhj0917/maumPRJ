@@ -67,5 +67,5 @@ spring:
         use_sql_comments: true
 
 server:
-  port: 11000
+  port: 8080
 

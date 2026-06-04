@@ -156,7 +156,7 @@ public class JwtTokenService implements IJwtTokenService {
 
         ResponseCookie at = ResponseCookie.from(accessCookie, accessToken)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .sameSite("Lax")
                 .maxAge(accessTtlSec)
@@ -164,7 +164,7 @@ public class JwtTokenService implements IJwtTokenService {
 
         ResponseCookie rt = ResponseCookie.from(refreshCookie, refreshToken)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .sameSite("Lax")
                 .maxAge(refreshTtlSec)
@@ -172,7 +172,7 @@ public class JwtTokenService implements IJwtTokenService {
 
         ResponseCookie loginFlag = ResponseCookie.from("isLoggedIn", "true")
                 .httpOnly(false)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .sameSite("Lax")
                 .maxAge(refreshTtlSec)
