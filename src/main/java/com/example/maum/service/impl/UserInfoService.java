@@ -380,7 +380,7 @@ public class UserInfoService implements IUserInfoService {
             UserInfoEntity entity = rEntity.get();
             String rProfileImgUrl = pProfileImageUrl;
 
-            if (pProfileImageUrl != null && pProfileImageUrl.startsWith("/images/account/profile") && pProfileImageUrl.endsWith(".png")) {
+            if (pProfileImageUrl != null && pProfileImageUrl.startsWith("/images/account/profile") && pProfileImageUrl.endsWith(".webp")) {
                 rProfileImgUrl = pProfileImageUrl;
             }
 

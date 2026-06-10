@@ -65,6 +65,7 @@ public record UserInfoDTO(
                         .build();
         }
 
+        /* DTO를 Entity로 변환 */
         public static UserInfoEntity of(UserInfoDTO dto) {
 
                 return UserInfoEntity.builder()
@@ -80,6 +81,7 @@ public record UserInfoDTO(
                         .build();
         }
 
+        /* Entity를 DTO로 변환 */
         public static UserInfoDTO from(UserInfoEntity entity) throws Exception {
 
                 return UserInfoDTO.builder()
