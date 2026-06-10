@@ -45,8 +45,8 @@ public class LoginController {
                     new UsernamePasswordAuthenticationToken(pDTO.userId(), pDTO.password()) /* 인증전 단계에서 미인증 토큰 생성 */
             );
 
-            AuthInfo principal = (AuthInfo) auth.getPrincipal();
-            UserInfoDTO u = principal.userInfoDTO();
+            AuthInfo principal = (AuthInfo) auth.getPrincipal(); /* 검증이 완료된 정보를 가져와서 (AuthInfo) 전역 커스텀 클래스로 포장 */
+            UserInfoDTO u = principal.userInfoDTO(); /* 포장된 실질적인 유저의 상세 데이터 꺼냄 */
 
             jwtTokenService.issueTokens(u, response);
 
