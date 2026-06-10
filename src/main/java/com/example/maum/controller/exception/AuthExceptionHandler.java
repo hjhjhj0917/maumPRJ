@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class AuthExceptionHandler {
 
-    @ExceptionHandler(AuthenticationException.class)
+    @ExceptionHandler(AuthenticationException.class) /* 인증(로그인)과 관련된 보안 예외 처리 */
     public ResponseEntity<CommonResponse<MsgDTO>> handleAuthentication(AuthenticationException ex) {
 
         log.warn("Authentication failed: {}", ex.getClass().getSimpleName());

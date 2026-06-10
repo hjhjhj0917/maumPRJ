@@ -47,21 +47,13 @@ public class DiaryController {
 
         if (generatedDiaryNo > 0) {
             return ResponseEntity.ok(
-                    CommonResponse.<Integer>builder()
-                            .httpStatus(HttpStatus.OK)
-                            .message("저장이 완료되었습니다.")
-                            .data(generatedDiaryNo)
-                            .build()
+                    CommonResponse.of(HttpStatus.OK, "저장이 완료되었습니다.", generatedDiaryNo)
             );
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(CommonResponse.<Integer>builder()
-                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .message("오류로 인해 저장이 실패하였습니다.")
-                            .build());
+                    .body(CommonResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "오류로 인해 저장이 실패하였습니다.", null));
         }
     }
-
 
     @PostMapping(value = "diaryUpdate")
     public ResponseEntity<CommonResponse<Integer>> diaryUpdate(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -84,13 +76,14 @@ public class DiaryController {
         log.info("{}.diaryUpdate End!", this.getClass().getName());
 
         if (rDTO.result() == 1) {
-            return ResponseEntity.ok(CommonResponse.<Integer>builder().httpStatus(HttpStatus.OK).message(rDTO.msg()).data(diaryNo).build());
+            return ResponseEntity.ok(
+                    CommonResponse.of(HttpStatus.OK, rDTO.msg(), diaryNo)
+            );
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(CommonResponse.<Integer>builder().httpStatus(HttpStatus.INTERNAL_SERVER_ERROR).message(rDTO.msg()).build());
+                    .body(CommonResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, rDTO.msg(), null));
         }
     }
-
 
     @PostMapping(value = "diaryDelete")
     public ResponseEntity<CommonResponse<Integer>> diaryDelete(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -108,13 +101,14 @@ public class DiaryController {
         log.info("{}.diaryDelete End!", this.getClass().getName());
 
         if (rDTO.result() == 1) {
-            return ResponseEntity.ok(CommonResponse.<Integer>builder().httpStatus(HttpStatus.OK).message(rDTO.msg()).data(diaryNo).build());
+            return ResponseEntity.ok(
+                    CommonResponse.of(HttpStatus.OK, rDTO.msg(), diaryNo)
+            );
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(CommonResponse.<Integer>builder().httpStatus(HttpStatus.INTERNAL_SERVER_ERROR).message(rDTO.msg()).build());
+                    .body(CommonResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, rDTO.msg(), null));
         }
     }
-
 
     @GetMapping("/monthly")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getMonthlyDiaryList(DiaryDTO pDTO, @AuthenticationPrincipal Jwt jwt) {
@@ -135,26 +129,17 @@ public class DiaryController {
             log.info("{}.getMonthlyDiaryList End!", this.getClass().getName());
 
             return ResponseEntity.ok(
-                    CommonResponse.<List<DiaryDTO>>builder()
-                            .httpStatus(HttpStatus.OK)
-                            .message("조회 성공")
-                            .data(rList)
-                            .build()
+                    CommonResponse.of(HttpStatus.OK, "조회 성공", rList)
             );
 
         } catch (Exception e) {
             log.error("조회 중 에러 발생: ", e);
-
             log.info("{}.getMonthlyDiaryList End!", this.getClass().getName());
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(CommonResponse.<List<DiaryDTO>>builder()
-                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .message("서버 조회 오류")
-                            .build());
+                    .body(CommonResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "서버 조회 오류", null));
         }
     }
-
 
     @GetMapping("/detail")
     public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@RequestParam(value = "diaryNo") Integer diaryNo, @AuthenticationPrincipal Jwt jwt) {
@@ -174,26 +159,17 @@ public class DiaryController {
             log.info("{}.getDiaryDetail End!", this.getClass().getName());
 
             return ResponseEntity.ok(
-                    CommonResponse.<DiaryDTO>builder()
-                            .httpStatus(HttpStatus.OK)
-                            .message("일기 조회 성공")
-                            .data(rDTO)
-                            .build()
+                    CommonResponse.of(HttpStatus.OK, "일기 조회 성공", rDTO)
             );
 
         } catch (Exception e) {
             log.error("일기 상세 조회 중 오류 발생: ", e);
-
             log.info("{}.getDiaryDetail End!", this.getClass().getName());
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(CommonResponse.<DiaryDTO>builder()
-                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .message(e.getMessage())
-                            .build());
+                    .body(CommonResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), null));
         }
     }
-
 
     @GetMapping("/search")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> searchDiaryList(@RequestParam(value = "keyword") String keyword, @AuthenticationPrincipal Jwt jwt) {
@@ -213,28 +189,19 @@ public class DiaryController {
             log.info("{}.searchDiaryList End!", this.getClass().getName());
 
             return ResponseEntity.ok(
-                    CommonResponse.<List<DiaryDTO>>builder()
-                            .httpStatus(HttpStatus.OK)
-                            .message("검색 결과 조회 성공")
-                            .data(rList)
-                            .build()
+                    CommonResponse.of(HttpStatus.OK, "검색 결과 조회 성공", rList)
             );
         } catch (Exception e) {
             log.error("검색 중 에러 발생: ", e);
             log.info("{}.searchDiaryList End!", this.getClass().getName());
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(CommonResponse.<List<DiaryDTO>>builder()
-                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .message("서버 조회 오류")
-                            .build());
+                    .body(CommonResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "서버 조회 오류", null));
         }
     }
 
-
     @GetMapping("/filter")
-    public ResponseEntity<CommonResponse<List<DiaryDTO>>> filterDiaryList(@RequestParam(value = "colors") List<String> colors,
-                                                                          @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<CommonResponse<List<DiaryDTO>>> filterDiaryList(@RequestParam(value = "colors") List<String> colors, @AuthenticationPrincipal Jwt jwt) {
 
         log.info("{}.filterDiaryList Start!", this.getClass().getName());
 
@@ -246,24 +213,16 @@ public class DiaryController {
             log.info("{}.filterDiaryList End!", this.getClass().getName());
 
             return ResponseEntity.ok(
-                    CommonResponse.<List<DiaryDTO>>builder()
-                            .httpStatus(HttpStatus.OK)
-                            .message("필터 결과 조회 성공")
-                            .data(rList)
-                            .build()
+                    CommonResponse.of(HttpStatus.OK, "필터 결과 조회 성공", rList)
             );
         } catch (Exception e) {
             log.error("필터 조회 중 에러: ", e);
             log.info("{}.filterDiaryList End!", this.getClass().getName());
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(CommonResponse.<List<DiaryDTO>>builder()
-                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .message("서버 조회 오류")
-                            .build());
+                    .body(CommonResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "서버 조회 오류", null));
         }
     }
-
 
     @GetMapping("/recent")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getRecentDiaryList(@AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -284,14 +243,9 @@ public class DiaryController {
         log.info("{}.getRecentDiaryList End!", this.getClass().getName());
 
         return ResponseEntity.ok(
-                CommonResponse.<List<DiaryDTO>>builder()
-                        .httpStatus(HttpStatus.OK)
-                        .message("최근 일기 조회 성공")
-                        .data(rList)
-                        .build()
+                CommonResponse.of(HttpStatus.OK, "최근 일기 조회 성공", rList)
         );
     }
-
 
     @GetMapping("/emotions/stats")
     public ResponseEntity<CommonResponse<List<EmotionStatDTO>>> getEmotionStats(@AuthenticationPrincipal Jwt jwt) {
@@ -302,20 +256,13 @@ public class DiaryController {
 
             log.info("{}.getEmotionStats End!", this.getClass().getName());
             return ResponseEntity.ok(
-                    CommonResponse.<List<EmotionStatDTO>>builder()
-                            .httpStatus(HttpStatus.OK)
-                            .message("감정 통계 조회 성공")
-                            .data(rList)
-                            .build()
+                    CommonResponse.of(HttpStatus.OK, "감정 통계 조회 성공", rList)
             );
         } catch (Exception e) {
             log.error("통계 조회 중 에러: ", e);
             log.info("{}.getEmotionStats End!", this.getClass().getName());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(CommonResponse.<List<EmotionStatDTO>>builder()
-                            .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-                            .message("서버 조회 오류")
-                            .build());
+                    .body(CommonResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "서버 조회 오류", null));
         }
     }
 }

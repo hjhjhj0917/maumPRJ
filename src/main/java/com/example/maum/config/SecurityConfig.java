@@ -62,18 +62,15 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/favicon.ico", "/html/**").permitAll()
                         .requestMatchers("/api/v1/reg/**", "/api/v1/login/**").permitAll()
                         .requestMatchers(
-                                "/api/v1/account/userInfo",
-                                "/api/v1/account/logout",
-                                "/api/v1/account/updateProfileImg",
-                                "/api/v1/account/verifyCurrentPassword",
-                                "/api/v1/account/updateAccount",
-                                "/api/v1/account/sendWithdrawEmailCode",
-                                "/api/v1/account/deleteUser"
-                        ).authenticated()
-                        .requestMatchers("/api/v1/account/**").permitAll()
+                                "/api/v1/account/getEmailExists",
+                                "/api/v1/account/verifyEmailCode",
+                                "/api/v1/account/findUserId",
+                                "/api/v1/account/getUserId",
+                                "/api/v1/account/findUserPw",
+                                "/api/v1/account/updateUserPw"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2

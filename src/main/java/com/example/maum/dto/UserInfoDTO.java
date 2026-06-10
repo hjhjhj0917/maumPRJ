@@ -49,6 +49,7 @@ public record UserInfoDTO(
 
         String existsYn) {
 
+        /* 회원 정보와 암호화된 비밀번호 그리고 역할을 부여받아서 DTO를 다시 반환함 +*/
         public static UserInfoDTO createUser(UserInfoDTO pDTO, String password, String roles) throws Exception {
 
                 return UserInfoDTO.builder()
