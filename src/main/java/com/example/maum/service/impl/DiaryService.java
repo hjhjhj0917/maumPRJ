@@ -261,7 +261,7 @@ public class DiaryService implements IDiaryService {
     }
 
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true) /* 메모리 사용을 줄이기 위해 */
     @Override
     public List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception {
 

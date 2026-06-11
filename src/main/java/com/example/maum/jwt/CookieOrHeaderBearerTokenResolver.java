@@ -18,7 +18,7 @@ public class CookieOrHeaderBearerTokenResolver implements BearerTokenResolver {
         this.delegate.setAllowUriQueryParameter(false);
     }
 
-    @Override
+    @Override /* 쿠키에 토큰이 존재하는지 확인 */
     public String resolve(HttpServletRequest request) {
 
         String fromCookie = extractFormCookie(request);
