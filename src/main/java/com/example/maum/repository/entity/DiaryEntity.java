@@ -57,17 +57,4 @@ public class DiaryEntity implements Serializable {
     @Column(name = "CREATED_AT", nullable = false)
     private LocalDate createdAt;
 
-    public void updateAnalysisResult(String summary, String mainEmotion, String emotionColor, Integer depLvl, BigDecimal depScore, Integer symptomYn) {
-        this.summary = summary;
-        this.mainEmotion = mainEmotion;
-        this.emotionColor = emotionColor;
-        this.depLvl = depLvl;
-        this.depScore = depScore;
-        this.symptomYn = symptomYn;
-    }
-
-    public void updateDiary(String title, String content) {
-        this.title = title;
-        this.content = content;
-    }
 }

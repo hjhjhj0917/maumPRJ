@@ -101,13 +101,19 @@ public class UserInfoService implements IUserInfoService {
 
         log.info("{}.getUserIdExists Start!", this.getClass().getName());
 
-        UserInfoDTO rDTO = userInfoRepository.findByUserId(pDTO.userId())
-                .map(e -> UserInfoDTO.builder()
-                        .existsYn("Y")
-                        .build())
-                .orElseGet(() -> UserInfoDTO.builder()
-                        .existsYn("N")
-                        .build());
+        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(pDTO.userId());
+
+        UserInfoDTO rDTO;
+
+        if (rEntity.isPresent()) {
+            rDTO = UserInfoDTO.builder()
+                    .existsYn("Y")
+                    .build();
+        } else {
+            rDTO = UserInfoDTO.builder()
+                    .existsYn("N")
+                    .build();
+        }
 
         log.info("exists: {}", rDTO.existsYn());
 
@@ -373,21 +379,17 @@ public class UserInfoService implements IUserInfoService {
         String userNo = CmmUtil.nvl(pDTO.userNo());
         String pProfileImageUrl = CmmUtil.nvl(pDTO.profileImgUrl());
 
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserNo(userNo);
+        String rProfileImgUrl = pProfileImageUrl;
 
-        int res;
-        if (rEntity.isPresent()) {
-            UserInfoEntity entity = rEntity.get();
-            String rProfileImgUrl = pProfileImageUrl;
+        if (pProfileImageUrl != null && pProfileImageUrl.startsWith("/images/account/profile") && pProfileImageUrl.endsWith(".webp")) {
+            rProfileImgUrl = pProfileImageUrl;
+        }
 
-            if (pProfileImageUrl != null && pProfileImageUrl.startsWith("/images/account/profile") && pProfileImageUrl.endsWith(".webp")) {
-                rProfileImgUrl = pProfileImageUrl;
-            }
+        int updatedRows = userInfoRepository.updateProfileImgDirectly(userNo, rProfileImgUrl);
 
-            entity.updateProfileImg(rProfileImgUrl);
+        int res = 0;
+        if (updatedRows > 0) {
             res = 1;
-        } else {
-            res = 0;
         }
 
         log.info("{}.updateProfileImg End!", this.getClass().getName());
@@ -419,7 +421,10 @@ public class UserInfoService implements IUserInfoService {
             Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(userId);
 
             if (rEntity.isPresent()) {
-                rEntity.get().updatePassword(bCryptPasswordEncoder.encode(password));
+                userInfoRepository.updatePasswordDirectly(
+                        rEntity.get().getUserNo(),
+                        bCryptPasswordEncoder.encode(password)
+                );
                 res = 1;
 
                 redisService.deleteValues("AUTH:" + encEmail);
@@ -491,29 +496,26 @@ public class UserInfoService implements IUserInfoService {
         log.info("{}.updateAccount Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(pDTO.userNo());
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserNo(userNo);
+        int updatedCount = 0;
+
+        String password = CmmUtil.nvl(pDTO.password());
+        if (!password.isEmpty()) {
+            updatedCount += userInfoRepository.updatePasswordDirectly(userNo, bCryptPasswordEncoder.encode(password));
+        }
+
+        String email = CmmUtil.nvl(pDTO.email());
+        if (!email.isEmpty()) {
+            updatedCount += userInfoRepository.updateEmailDirectly(userNo, email);
+        }
+
+        String addr = CmmUtil.nvl(pDTO.addr());
+        String detailAddr = CmmUtil.nvl(pDTO.detailAddr());
+        if (!addr.isEmpty()) {
+            updatedCount += userInfoRepository.updateAddressDirectly(userNo, addr, detailAddr);
+        }
 
         int res = 0;
-
-        if (rEntity.isPresent()) {
-            UserInfoEntity entity = rEntity.get();
-
-            String password = CmmUtil.nvl(pDTO.password());
-            if (!password.isEmpty()) {
-                entity.updatePassword(bCryptPasswordEncoder.encode(password));
-            }
-
-            String email = CmmUtil.nvl(pDTO.email());
-            if (!email.isEmpty()) {
-                entity.updateEmail(email);
-            }
-
-            String addr = CmmUtil.nvl(pDTO.addr());
-            String detailAddr = CmmUtil.nvl(pDTO.detailAddr());
-            if (!addr.isEmpty()) {
-                entity.updateAddress(addr, detailAddr);
-            }
-
+        if (updatedCount > 0) {
             res = 1;
         }
 
@@ -545,15 +547,19 @@ public class UserInfoService implements IUserInfoService {
     @Transactional
     @Override
     public int deleteUser(UserInfoDTO pDTO) throws Exception {
+
+        log.info("{}.deleteUser Start!", this.getClass().getName());
+
         String userNo = CmmUtil.nvl(pDTO.userNo());
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserNo(userNo);
+
+        int updatedRows = userInfoRepository.updateUserStatusDirectly(userNo, "N");
 
         int res = 0;
-
-        if (rEntity.isPresent()) {
-            rEntity.get().updateUserStatus("N");
+        if (updatedRows > 0) {
             res = 1;
         }
+
+        log.info("{}.deleteUser End!", this.getClass().getName());
 
         return res;
     }
