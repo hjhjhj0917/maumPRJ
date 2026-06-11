@@ -62,8 +62,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/reg/**", "/api/v1/login/**").permitAll()
                         .requestMatchers(
+                                "/api/v1/reg/**", "/api/v1/login/**",
                                 "/api/v1/account/getEmailExists",
                                 "/api/v1/account/verifyEmailCode",
                                 "/api/v1/account/findUserId",
@@ -73,13 +73,13 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2 /* oauth2 토큰 만료나 이상시 클라이언트 401에러를 뱉어냄 */
-                        .bearerTokenResolver(new CookieOrHeaderBearerTokenResolver(accessTokenName))
-                        .jwt(jwt -> jwt
-                                .decoder(jwtDecoder) /* 여기서 인증정보 확인 */
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter) /* 인증정보 저장 */
-                        )
-                )
+                    .oauth2ResourceServer(oauth2 -> oauth2 /* oauth2 토큰 만료나 이상시 클라이언트 401에러를 뱉어냄 */
+                            .bearerTokenResolver(new CookieOrHeaderBearerTokenResolver(accessTokenName))
+                            .jwt(jwt -> jwt
+                                    .decoder(jwtDecoder) /* 여기서 인증정보 확인 */
+                                    .jwtAuthenticationConverter(jwtAuthenticationConverter) /* 인증정보 저장 */
+                            )
+                    )
                 .addFilterBefore(redisBlacklistFilter, BearerTokenAuthenticationFilter.class)
                 .logout(AbstractHttpConfigurer::disable);
 

@@ -441,7 +441,7 @@ public class UserInfoService implements IUserInfoService {
     }
 
 
-    @SneakyThrows
+    @SneakyThrows /* try-catch나 throw 없이도 예외를 밖으로 던질 수 있음 */
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
 
