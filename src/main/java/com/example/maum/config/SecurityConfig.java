@@ -73,11 +73,11 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(oauth2 -> oauth2
+                .oauth2ResourceServer(oauth2 -> oauth2 /* oauth2 토큰 만료나 이상시 클라이언트 401에러를 뱉어냄 */
                         .bearerTokenResolver(new CookieOrHeaderBearerTokenResolver(accessTokenName))
                         .jwt(jwt -> jwt
-                                .decoder(jwtDecoder)
-                                .jwtAuthenticationConverter(jwtAuthenticationConverter)
+                                .decoder(jwtDecoder) /* 여기서 인증정보 확인 */
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter) /* 인증정보 저장 */
                         )
                 )
                 .addFilterBefore(redisBlacklistFilter, BearerTokenAuthenticationFilter.class)
