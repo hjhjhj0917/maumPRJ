@@ -2,6 +2,7 @@ package com.example.maum.controller;
 
 import com.example.maum.controller.response.CommonResponse;
 import com.example.maum.dto.ChatBotDTO;
+import com.example.maum.dto.ChatMessageDTO;
 import com.example.maum.service.IChatBotService;
 import com.example.maum.util.CmmUtil;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,8 @@ public class ChatBotController {
 
     private final IChatBotService chatBotService;
 
-    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE) /* 한 번에 처리하는게 아니라 조각조각 처리 */
+    public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception { /* 조가조각 처리가 가능한 객체 */
 
         log.info("{}.chatStream Start!", this.getClass().getName());
 
@@ -39,18 +40,22 @@ public class ChatBotController {
                 .message(message)
                 .build();
 
-        return chatBotService.streamChat(pDTO);
+        Flux<String> res = chatBotService.streamChat(pDTO);
+
+        log.info("{}.chatStream End!", this.getClass().getName());
+
+        return res;
     }
 
 
     @GetMapping("/history")
-    public ResponseEntity<CommonResponse<List<Object>>> getHistory(@AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<List<ChatMessageDTO>>> getHistory(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.getHistory Start!", this.getClass().getName());
 
         final String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        List<Object> rList = chatBotService.getHistory(userNo);
+        List<ChatMessageDTO> rList = chatBotService.getHistory(userNo);
 
         log.info("{}.getHistory End!", this.getClass().getName());
 
