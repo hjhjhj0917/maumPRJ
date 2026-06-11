@@ -3,7 +3,6 @@ package com.example.maum.repository.entity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -13,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "DIARY_LOGS")
@@ -59,7 +57,6 @@ public class DiaryLogDocument {
     private String version;
 
     @Getter
-    @Setter
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DepressionResult {

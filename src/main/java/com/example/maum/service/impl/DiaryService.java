@@ -28,7 +28,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -72,16 +71,16 @@ public class DiaryService implements IDiaryService {
         return "#D9D9D9";
     }
 
+    private void requestAnalysisAndUpdate(DiaryEntity entity, String newTitle, String newContent) {
 
-    private void requestAnalysisAndUpdate(DiaryEntity entity, String content) {
         try {
             Map<String, Object> requestMap = new HashMap<>();
 
             requestMap.put("diary_no", entity.getDiaryNo());
             requestMap.put("user_no", entity.getUserNo());
-            requestMap.put("title", entity.getTitle());
+            requestMap.put("title", newTitle);
             requestMap.put("created_at", entity.getCreatedAt());
-            requestMap.put("content", content);
+            requestMap.put("content", newContent);
             requestMap.put("disease_type", "depression");
 
             ResponseEntity<Map> response = restClient.post()
@@ -105,9 +104,16 @@ public class DiaryService implements IDiaryService {
                     Object isSymptomObj = depRes.get("is_symptom");
                     Integer symptomYn = (isSymptomObj instanceof Boolean && (Boolean) isSymptomObj) ? 1 : 0;
 
-                    entity.updateAnalysisResult(summary, mainEmotion, emotionColor, depLvl, depScore, symptomYn);
+                    diaryRepository.updateAnalysisResultDirectly(
+                            Long.valueOf(entity.getDiaryNo()),
+                            summary,
+                            mainEmotion,
+                            emotionColor,
+                            depLvl,
+                            depScore,
+                            symptomYn
+                    );
 
-                    diaryRepository.save(entity);
                     log.info("분석 결과 DB 반영 완료 (Color: {})", emotionColor);
 
                 } catch (Exception parseEx) {
@@ -123,7 +129,6 @@ public class DiaryService implements IDiaryService {
 
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
-
 
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
@@ -146,9 +151,10 @@ public class DiaryService implements IDiaryService {
                     .build();
 
             pEntity = diaryRepository.save(pEntity);
+
             res = pEntity.getDiaryNo();
 
-            requestAnalysisAndUpdate(pEntity, pDTO.content());
+            requestAnalysisAndUpdate(pEntity, pEntity.getTitle(), pEntity.getContent());
 
         } catch (Exception e) {
             res = 0;
@@ -159,7 +165,6 @@ public class DiaryService implements IDiaryService {
 
         return res;
     }
-
 
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
@@ -182,10 +187,9 @@ public class DiaryService implements IDiaryService {
             DiaryEntity entity = rEntity.get();
 
             if (entity.getUserNo().equals(userNo)) {
-                entity.updateDiary(title, content);
-                diaryRepository.save(entity);
+                diaryRepository.updateDiaryDirectly(Long.valueOf(diaryNo), title, content);
 
-                requestAnalysisAndUpdate(entity, content);
+                requestAnalysisAndUpdate(entity, title, content);
 
                 res = 1;
                 msg = "일기가 성공적으로 수정 및 재분석되었습니다.";
@@ -205,7 +209,6 @@ public class DiaryService implements IDiaryService {
 
         return rDTO;
     }
-
 
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
@@ -260,8 +263,7 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
-
-    @Transactional(readOnly = true) /* 메모리 사용을 줄이기 위해 */
+    @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception {
 
@@ -294,21 +296,22 @@ public class DiaryService implements IDiaryService {
 
         log.info("Found {} diary entities.", entities.size());
 
-        List<DiaryDTO> rList = entities.stream()
-                .map(e -> DiaryDTO.builder()
-                        .diaryNo(e.getDiaryNo())
-                        .userNo(e.getUserNo())
-                        .title(e.getTitle())
-                        .emotionColor(e.getEmotionColor())
-                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                        .build())
-                .collect(Collectors.toList());
+        List<DiaryDTO> rList = new ArrayList<>();
+        for (DiaryEntity e : entities) {
+            DiaryDTO dto = DiaryDTO.builder()
+                    .diaryNo(e.getDiaryNo())
+                    .userNo(e.getUserNo())
+                    .title(e.getTitle())
+                    .emotionColor(e.getEmotionColor())
+                    .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                    .build();
+            rList.add(dto);
+        }
 
         log.info("{}.getMonthlyDiaryList End!", this.getClass().getName());
 
         return rList;
     }
-
 
     @Transactional(readOnly = true)
     @Override
@@ -348,7 +351,6 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
-
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> searchDiaryList(DiaryDTO pDTO) throws Exception {
@@ -358,20 +360,21 @@ public class DiaryService implements IDiaryService {
         List<DiaryEntity> entities = diaryRepository.findByUserNoAndTitleContainingOrderByCreatedAtDesc(
                 pDTO.userNo(), pDTO.title());
 
-        List<DiaryDTO> rList = entities.stream()
-                .map(e -> DiaryDTO.builder()
-                        .diaryNo(e.getDiaryNo())
-                        .title(e.getTitle())
-                        .emotionColor(e.getEmotionColor())
-                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                        .build())
-                .collect(Collectors.toList());
+        List<DiaryDTO> rList = new ArrayList<>();
+        for (DiaryEntity e : entities) {
+            DiaryDTO dto = DiaryDTO.builder()
+                    .diaryNo(e.getDiaryNo())
+                    .title(e.getTitle())
+                    .emotionColor(e.getEmotionColor())
+                    .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                    .build();
+            rList.add(dto);
+        }
 
         log.info("{}.searchDiaryList End!", this.getClass().getName());
 
         return rList;
     }
-
 
     @Transactional(readOnly = true)
     @Override
@@ -379,20 +382,23 @@ public class DiaryService implements IDiaryService {
 
         log.info("{}.getDiaryListByColors Start!", this.getClass().getName());
 
-        List<DiaryDTO> rList = diaryRepository.findByUserNoAndEmotionColorInOrderByCreatedAtDesc(userNo, colors).stream()
-                .map(e -> DiaryDTO.builder()
-                        .diaryNo(e.getDiaryNo())
-                        .title(e.getTitle())
-                        .emotionColor(e.getEmotionColor())
-                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                        .build())
-                .collect(Collectors.toList());
+        List<DiaryEntity> entities = diaryRepository.findByUserNoAndEmotionColorInOrderByCreatedAtDesc(userNo, colors);
+
+        List<DiaryDTO> rList = new ArrayList<>();
+        for (DiaryEntity e : entities) {
+            DiaryDTO dto = DiaryDTO.builder()
+                    .diaryNo(e.getDiaryNo())
+                    .title(e.getTitle())
+                    .emotionColor(e.getEmotionColor())
+                    .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                    .build();
+            rList.add(dto);
+        }
 
         log.info("{}.getDiaryListByColors End!", this.getClass().getName());
 
         return rList;
     }
-
 
     @Cacheable(value = "diaryCache", key = "#pDTO.userNo()", condition = "#pDTO.userNo() != null")
     @Override
@@ -404,14 +410,18 @@ public class DiaryService implements IDiaryService {
 
         log.info("userNo: {}", userNo);
 
-        List<DiaryDTO> rList = diaryRepository.findTop20ByUserNoOrderByCreatedAtDesc(userNo).stream()
-                .map(e -> DiaryDTO.builder()
-                        .diaryNo(e.getDiaryNo())
-                        .title(e.getTitle())
-                        .emotionColor(e.getEmotionColor())
-                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                        .build())
-                .collect(Collectors.toList());
+        List<DiaryEntity> entities = diaryRepository.findTop20ByUserNoOrderByCreatedAtDesc(userNo);
+
+        List<DiaryDTO> rList = new ArrayList<>();
+        for (DiaryEntity e : entities) {
+            DiaryDTO dto = DiaryDTO.builder()
+                    .diaryNo(e.getDiaryNo())
+                    .title(e.getTitle())
+                    .emotionColor(e.getEmotionColor())
+                    .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                    .build();
+            rList.add(dto);
+        }
 
         log.info("{}.getRecentDiaryList End!", this.getClass().getName());
 
@@ -438,14 +448,19 @@ public class DiaryService implements IDiaryService {
             }
         }
 
-        List<EmotionStatDTO> rList = countMap.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .map(entry -> new EmotionStatDTO(
-                        entry.getKey(),
-                        entry.getValue(),
-                        getEmotionColor(entry.getKey())
-                ))
-                .collect(Collectors.toList());
+        List<Map.Entry<String, Integer>> entryList = new ArrayList<>(countMap.entrySet());
+
+        entryList.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+
+        List<EmotionStatDTO> rList = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : entryList) {
+            EmotionStatDTO dto = new EmotionStatDTO(
+                    entry.getKey(),
+                    entry.getValue(),
+                    getEmotionColor(entry.getKey())
+            );
+            rList.add(dto);
+        }
 
         log.info("{}.getEmotionStats End!", this.getClass().getName());
 
