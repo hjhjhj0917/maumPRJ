@@ -14,7 +14,7 @@
 - **Build Tool**: Gradle
 
 ### AI & Data
-- **Language & API**: Python, Flask, PyTorch
+- **Language & API**: Python, FastAPI, PyTorch
 - **Model**: HyperCLOVA X (임베딩V2, HCX-007, RAG Reasoning), KoELECTRA, klue/bert-base
 
 ### Frontend & Infrastructure
