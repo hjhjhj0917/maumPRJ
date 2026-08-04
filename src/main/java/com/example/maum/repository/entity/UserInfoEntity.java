@@ -60,25 +60,4 @@ public class UserInfoEntity implements Serializable {
 
     @Column(name = "ROLES")
     private String roles;
-
-    public void updateProfileImg(String profileImgUrl) {
-        this.profileImgUrl = profileImgUrl;
-    }
-
-    public void updatePassword(String password) {
-        this.password = password;
-    }
-
-    public void updateEmail(String email) {
-        this.email = email;
-    }
-
-    public void updateAddress(String addr, String detailAddr) {
-        this.addr = addr;
-        this.detailAddr = detailAddr;
-    }
-
-    public void updateUserStatus(String userStatus) {
-        this.userStatus = userStatus;
-    }
 }
