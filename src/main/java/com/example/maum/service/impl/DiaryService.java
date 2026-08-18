@@ -297,6 +297,7 @@ public class DiaryService implements IDiaryService {
         log.info("Found {} diary entities.", entities.size());
 
         List<DiaryDTO> rList = new ArrayList<>();
+
         for (DiaryEntity e : entities) {
             DiaryDTO dto = DiaryDTO.builder()
                     .diaryNo(e.getDiaryNo())
@@ -361,6 +362,7 @@ public class DiaryService implements IDiaryService {
                 pDTO.userNo(), pDTO.title());
 
         List<DiaryDTO> rList = new ArrayList<>();
+
         for (DiaryEntity e : entities) {
             DiaryDTO dto = DiaryDTO.builder()
                     .diaryNo(e.getDiaryNo())
@@ -385,6 +387,7 @@ public class DiaryService implements IDiaryService {
         List<DiaryEntity> entities = diaryRepository.findByUserNoAndEmotionColorInOrderByCreatedAtDesc(userNo, colors);
 
         List<DiaryDTO> rList = new ArrayList<>();
+
         for (DiaryEntity e : entities) {
             DiaryDTO dto = DiaryDTO.builder()
                     .diaryNo(e.getDiaryNo())
@@ -413,6 +416,7 @@ public class DiaryService implements IDiaryService {
         List<DiaryEntity> entities = diaryRepository.findTop20ByUserNoOrderByCreatedAtDesc(userNo);
 
         List<DiaryDTO> rList = new ArrayList<>();
+
         for (DiaryEntity e : entities) {
             DiaryDTO dto = DiaryDTO.builder()
                     .diaryNo(e.getDiaryNo())
@@ -453,6 +457,7 @@ public class DiaryService implements IDiaryService {
         entryList.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
 
         List<EmotionStatDTO> rList = new ArrayList<>();
+
         for (Map.Entry<String, Integer> entry : entryList) {
             EmotionStatDTO dto = new EmotionStatDTO(
                     entry.getKey(),
