@@ -304,6 +304,7 @@ public class DiaryService implements IDiaryService {
                     .userNo(e.getUserNo())
                     .title(e.getTitle())
                     .emotionColor(e.getEmotionColor())
+                    .isFavorite(e.getIsFavorite())
                     .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
                     .build();
             rList.add(dto);
@@ -341,6 +342,7 @@ public class DiaryService implements IDiaryService {
                     .depLvl(rEntity.getDepLvl())
                     .depScore(rEntity.getDepScore())
                     .symptomYn(rEntity.getSymptomYn())
+                    .isFavorite(rEntity.getIsFavorite())
                     .createdAt(DateUtil.formatLocalDate(rEntity.getCreatedAt(), "yyyy-MM-dd"))
                     .build();
         } else {
@@ -368,6 +370,7 @@ public class DiaryService implements IDiaryService {
                     .diaryNo(e.getDiaryNo())
                     .title(e.getTitle())
                     .emotionColor(e.getEmotionColor())
+                    .isFavorite(e.getIsFavorite())
                     .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
                     .build();
             rList.add(dto);
@@ -393,6 +396,7 @@ public class DiaryService implements IDiaryService {
                     .diaryNo(e.getDiaryNo())
                     .title(e.getTitle())
                     .emotionColor(e.getEmotionColor())
+                    .isFavorite(e.getIsFavorite())
                     .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
                     .build();
             rList.add(dto);
