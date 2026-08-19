@@ -45,4 +45,12 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
             @Param("title") String title,
             @Param("content") String content
     );
+
+    @Modifying(clearAutomatically = true)
+    @Query("UPDATE DiaryEntity d SET d.isFavorite = :isFavorite WHERE d.diaryNo = :diaryNo AND d.userNo = :userNo")
+    int updateFavorite(
+            @Param("diaryNo") Integer diaryNo,
+            @Param("userNo") String userNo,
+            @Param("isFavorite") Integer isFavorite
+    );
 }

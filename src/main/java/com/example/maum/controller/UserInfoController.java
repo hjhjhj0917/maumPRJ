@@ -39,7 +39,7 @@ public class UserInfoController {
 
         log.info("{}.userInfo Start!", this.getClass().getName());
 
-        final String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
 
         UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
 
@@ -107,7 +107,7 @@ public class UserInfoController {
         log.info("{}.logout Start!", this.getClass().getName());
 
         String accessToken = bearerTokenResolver.resolve(request);
-        final String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
 
         long remainingMilliSeconds = 0;
         if (jwt.getExpiresAt() != null) {
@@ -246,7 +246,7 @@ public class UserInfoController {
 
         log.info("{}.updateProfileImg Start!", this.getClass().getName());
 
-        final String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
         String profileImage = CmmUtil.nvl(uDTO.profileImgUrl());
 
         log.info("프로필 변경 요청 - userNo: {}, profileImage: {}", userNo, profileImage);
@@ -278,7 +278,7 @@ public class UserInfoController {
 
         log.info("{}.verifyCurrentPassword Start!", this.getClass().getName());
 
-        final String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
         String password = CmmUtil.nvl(uDTO.password());
 
         log.info("userNo: {}, password: {}", userNo, EncryptUtil.encHashSHA256(password));
@@ -302,7 +302,7 @@ public class UserInfoController {
 
         log.info("{}.updateAccount Start!", this.getClass().getName());
 
-        final String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
         String password = CmmUtil.nvl(uDTO.password());
         String email = CmmUtil.nvl(uDTO.email());
         String addr = CmmUtil.nvl(uDTO.addr());
@@ -358,7 +358,7 @@ public class UserInfoController {
 
         log.info("{}.deleteUser Start!", this.getClass().getName());
 
-        final String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
         UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
 
         int res = Optional.of(userInfoService.deleteUser(pDTO)).orElse(0);
