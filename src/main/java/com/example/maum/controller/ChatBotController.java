@@ -15,7 +15,9 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/chat")
@@ -30,7 +32,7 @@ public class ChatBotController {
 
         log.info("{}.chatStream Start!", this.getClass().getName());
 
-        final String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
         String message = CmmUtil.nvl(cDTO.message());
 
         log.info("userNo: {}, message: {}", userNo, message);
@@ -40,7 +42,8 @@ public class ChatBotController {
                 .message(message)
                 .build();
 
-        Flux<String> res = chatBotService.streamChat(pDTO);
+        Flux<String> res = Optional.ofNullable(chatBotService.streamChat(pDTO))
+                .orElseGet(Flux::empty);
 
         log.info("{}.chatStream End!", this.getClass().getName());
 
@@ -53,9 +56,10 @@ public class ChatBotController {
 
         log.info("{}.getHistory Start!", this.getClass().getName());
 
-        final String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        List<ChatMessageDTO> rList = chatBotService.getHistory(userNo);
+        List<ChatMessageDTO> rList = Optional.ofNullable(chatBotService.getHistory(userNo))
+                .orElseGet(ArrayList::new);
 
         log.info("{}.getHistory End!", this.getClass().getName());
 
