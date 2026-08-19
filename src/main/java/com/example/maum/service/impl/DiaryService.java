@@ -472,8 +472,23 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    @Transactional
+//    @CacheEvict(value = "diaryCache", allEntries = true) 마이페이지 리스트에도 캐시를 적용할 건가 확인이 필요
     @Override
     public int updateFavorite(DiaryDTO pDTO) throws Exception {
-        return 0;
+
+        log.info("{}.updateFavorite Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(pDTO.userNo());
+        Integer diaryNo = pDTO.diaryNo();
+        Integer isFavorite = pDTO.isFavorite();
+
+        log.info("userNo: {}, diaryNo: {}, isFavorite: {}", userNo, diaryNo, isFavorite);
+
+        int res = diaryRepository.updateFavorite(diaryNo, userNo, isFavorite);
+
+        log.info("{}.updateFavorite End!", this.getClass().getName());
+
+        return res;
     }
 }

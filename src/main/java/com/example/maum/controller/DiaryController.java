@@ -236,4 +236,37 @@ public class DiaryController {
                 CommonResponse.of(HttpStatus.OK, "감정 통계 조회 성공", rList)
         );
     }
+
+    @PostMapping("/favorite")
+    public ResponseEntity<CommonResponse<Integer>> diaryFavorite(@RequestBody DiaryDTO dDTO,
+                                                                 @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.diaryFavorite Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+        Integer diaryNo = dDTO.diaryNo();
+        Integer isFavorite = dDTO.isFavorite();
+
+        log.info("userNo: {}, diaryNo: {}, isFavorite: {}", userNo, diaryNo, isFavorite);
+
+        DiaryDTO pDTO = DiaryDTO.builder()
+                .diaryNo(diaryNo)
+                .userNo(userNo)
+                .isFavorite(isFavorite)
+                .build();
+
+        int res = diaryService.updateFavorite(pDTO);
+
+        if (res == 0) {
+            throw new IllegalArgumentException("본인의 일기만 변경할 수 있거나, 존재하지 않는 일기입니다.");
+        }
+
+        String msg = (isFavorite == 1) ? "즐겨찾기에 추가되었습니다." : "즐겨찾기가 해제되었습니다.";
+
+        log.info("{}.diaryFavorite End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, msg, diaryNo)
+        );
+    }
 }
