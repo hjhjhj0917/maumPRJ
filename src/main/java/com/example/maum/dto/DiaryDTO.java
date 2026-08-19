@@ -18,6 +18,7 @@ public record DiaryDTO(
         Integer depLvl,
         BigDecimal depScore,
         Integer symptomYn,
-        String createdAt
+        String createdAt,
+        Integer isFavorite
 ) {
 }

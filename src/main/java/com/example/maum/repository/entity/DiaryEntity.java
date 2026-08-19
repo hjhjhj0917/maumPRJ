@@ -57,4 +57,7 @@ public class DiaryEntity implements Serializable {
     @Column(name = "CREATED_AT", nullable = false)
     private LocalDate createdAt;
 
+    @Column(name = "IS_FAVORITE")
+    private Integer isFavorite;
+
 }

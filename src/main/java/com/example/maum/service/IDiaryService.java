@@ -16,6 +16,8 @@ public interface IDiaryService {
 
     MsgDTO diaryDelete(DiaryDTO pDTO) throws Exception;
 
+    int updateFavorite(DiaryDTO pDTO) throws Exception;
+
 
     /* [Diary Retrieval] */
 
