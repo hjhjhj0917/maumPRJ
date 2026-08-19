@@ -247,9 +247,11 @@ public class DiaryController {
         );
     }
 
-    @GetMapping("/emotions/stats")
+    @GetMapping("/emotions/stats") // 공통 에러 처리가 있는데 Throw 안한고 try-catch 사용한 이유 -> 아니면 수정하기
     public ResponseEntity<CommonResponse<List<EmotionStatDTO>>> getEmotionStats(@AuthenticationPrincipal Jwt jwt) {
+
         log.info("{}.getEmotionStats Start!", this.getClass().getName());
+
         try {
             String userNo = CmmUtil.nvl(jwt.getSubject());
             List<EmotionStatDTO> rList = diaryService.getEmotionStats(userNo);
@@ -265,4 +267,24 @@ public class DiaryController {
                     .body(CommonResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, "서버 조회 오류", null));
         }
     }
+
+//    @GetMapping("/favorite")
+//    public ResponseEntity<CommonResponse<Integer>> diaryFavorite(@RequestBody DiaryDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+//
+//        log.info("{}.diaryFavorite Start!", this.getClass().getName());
+//
+//        final String userNo = CmmUtil.nvl(jwt.getSubject());
+//
+//        DiaryDTO pDTO = DiaryDTO.builder()
+//                .diaryNo(dDTO.diaryNo())
+//                .userNo(userNo)
+//                .isFavorite(dDTO.isFavorite())
+//                .build();
+//
+//        int res = diaryService.updateFavorite(pDTO);
+//
+//
+//
+//        log.info("{}.diaryFavorite End!", this.getClass().getName());
+//    }
 }
