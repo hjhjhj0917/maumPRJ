@@ -471,4 +471,9 @@ public class DiaryService implements IDiaryService {
 
         return rList;
     }
+
+    @Override
+    public int updateFavorite(DiaryDTO pDTO) throws Exception {
+        return 0;
+    }
 }

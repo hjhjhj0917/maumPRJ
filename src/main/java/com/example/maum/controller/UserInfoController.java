@@ -241,7 +241,8 @@ public class UserInfoController {
 
 
     @PostMapping(value = "updateProfileImg")
-    public ResponseEntity<CommonResponse<MsgDTO>> updateProfileImg(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<MsgDTO>> updateProfileImg(@RequestBody UserInfoDTO uDTO,
+                                                                   @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.updateProfileImg Start!", this.getClass().getName());
 
@@ -272,7 +273,8 @@ public class UserInfoController {
 
 
     @PostMapping(value = "verifyCurrentPassword")
-    public ResponseEntity<CommonResponse<MsgDTO>> verifyCurrentPassword(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<MsgDTO>> verifyCurrentPassword(@RequestBody UserInfoDTO uDTO,
+                                                                        @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.verifyCurrentPassword Start!", this.getClass().getName());
 
@@ -295,7 +297,8 @@ public class UserInfoController {
 
 
     @PostMapping(value = "updateAccount")
-    public ResponseEntity<CommonResponse<MsgDTO>> updateAccount(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<MsgDTO>> updateAccount(@RequestBody UserInfoDTO uDTO,
+                                                                @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.updateAccount Start!", this.getClass().getName());
 
@@ -329,7 +332,8 @@ public class UserInfoController {
 
 
     @PostMapping(value = "sendWithdrawEmailCode")
-    public ResponseEntity<CommonResponse<MsgDTO>> sendWithdrawEmailCode(@RequestBody UserInfoDTO uDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<MsgDTO>> sendWithdrawEmailCode(@RequestBody UserInfoDTO uDTO,
+                                                                        @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.sendWithdrawEmailCode Start!", this.getClass().getName());
 
