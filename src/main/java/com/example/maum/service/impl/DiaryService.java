@@ -40,6 +40,9 @@ public class DiaryService implements IDiaryService {
 
     private final RestClient restClient = createRestClientWithTimeout();
 
+    /*
+    RestClient 타임아웃 설정
+    */
     private RestClient createRestClientWithTimeout() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(10000);
@@ -50,6 +53,9 @@ public class DiaryService implements IDiaryService {
                 .build();
     }
 
+    /*
+    감정에 따른 색상 코드 반환
+    */
     private String getEmotionColor(String emotion) {
         List<String> yellow = Arrays.asList("즐거움/신남", "행복", "기쁨", "뿌듯함", "흐뭇함(귀여움/예쁨)", "감동/감탄", "고마움", "환영/호의");
         List<String> mint = Arrays.asList("안심/신뢰", "존경", "아껴주는", "편안/쾌적");
@@ -71,6 +77,9 @@ public class DiaryService implements IDiaryService {
         return "#D9D9D9";
     }
 
+    /*
+    파이썬 AI 서버로 감정 분석 요청
+    */
     private void requestAnalysisAndUpdate(DiaryEntity entity, String newTitle, String newContent) {
 
         try {
@@ -130,6 +139,9 @@ public class DiaryService implements IDiaryService {
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
 
+    /*
+    일기 등록
+    */
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -166,6 +178,9 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
+    /*
+    일기 수정
+    */
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -210,6 +225,9 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+    /*
+    일기 삭제
+    */
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -263,6 +281,9 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+    /*
+    월별 일기 목록 조회
+    */
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception {
@@ -315,6 +336,9 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    /*
+    일기 상세 보기
+    */
     @Transactional(readOnly = true)
     @Override
     public DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception {
@@ -354,6 +378,9 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+    /*
+    일기 제목 검색
+    */
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> searchDiaryList(DiaryDTO pDTO) throws Exception {
@@ -381,6 +408,9 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    /*
+    감정 필터 검색
+    */
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getDiaryListByColors(String userNo, List<String> colors) throws Exception {
@@ -407,6 +437,9 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    /*
+    최근 일기 목록 조회
+    */
     @Cacheable(value = "diaryCache", key = "#pDTO.userNo()", condition = "#pDTO.userNo() != null")
     @Override
     public List<DiaryDTO> getRecentDiaryList(DiaryDTO pDTO) throws Exception {
@@ -436,7 +469,9 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
-
+    /*
+    마이페이지 감정 통계 조회
+    */
     @Override
     public List<EmotionStatDTO> getEmotionStats(String userNoStr) throws Exception {
 
@@ -476,6 +511,9 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    /*
+    즐겨찾기
+    */
     @Transactional
 //    @CacheEvict(value = "diaryCache", allEntries = true) 마이페이지 리스트에도 캐시를 적용할 건가 확인이 필요
     @Override

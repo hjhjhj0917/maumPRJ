@@ -26,6 +26,9 @@ public class DiaryController {
 
     private final DiaryService diaryService;
 
+    /*
+    일기 등록
+    */
     @PostMapping(value = "diaryInsert")
     public ResponseEntity<CommonResponse<Integer>> diaryInsert(@RequestBody DiaryDTO dDTO,
                                                                @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -55,6 +58,9 @@ public class DiaryController {
         );
     }
 
+    /*
+    일기 수정
+    */
     @PostMapping(value = "diaryUpdate")
     public ResponseEntity<CommonResponse<Integer>> diaryUpdate(@RequestBody DiaryDTO dDTO,
                                                                @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -85,6 +91,9 @@ public class DiaryController {
         );
     }
 
+    /*
+    일기 삭제
+    */
     @PostMapping(value = "diaryDelete")
     public ResponseEntity<CommonResponse<Integer>> diaryDelete(@RequestBody DiaryDTO dDTO,
                                                                @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -110,6 +119,9 @@ public class DiaryController {
         );
     }
 
+    /*
+    월별 일기 목록 조회
+    */
     @GetMapping("/monthly")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getMonthlyDiaryList(DiaryDTO pDTO,
                                                                               @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -133,6 +145,9 @@ public class DiaryController {
         );
     }
 
+    /*
+    일기 상세 보기
+    */
     @GetMapping("/detail")
     public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@RequestParam(value = "diaryNo") Integer diaryNo,
                                                                    @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -156,6 +171,9 @@ public class DiaryController {
         );
     }
 
+    /*
+    일기 제목 검색
+    */
     @GetMapping("/search")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> searchDiaryList(@RequestParam(value = "keyword") String keyword,
                                                                           @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -179,6 +197,9 @@ public class DiaryController {
         );
     }
 
+    /*
+    감정 필터 검색
+    */
     @GetMapping("/filter")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> filterDiaryList(@RequestParam(value = "colors") List<String> colors,
                                                                           @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -197,6 +218,9 @@ public class DiaryController {
         );
     }
 
+    /*
+    최근 일기 목록 조회
+    */
     @GetMapping("/recent")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getRecentDiaryList(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -220,6 +244,9 @@ public class DiaryController {
         );
     }
 
+    /*
+    마이페이지 감정 통계 조회
+    */
     @GetMapping("/emotions/stats")
     public ResponseEntity<CommonResponse<List<EmotionStatDTO>>> getEmotionStats(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -237,6 +264,9 @@ public class DiaryController {
         );
     }
 
+    /*
+    즐겨찾기
+    */
     @PostMapping("/favorite")
     public ResponseEntity<CommonResponse<Integer>> diaryFavorite(@RequestBody DiaryDTO dDTO,
                                                                  @AuthenticationPrincipal Jwt jwt) throws Exception {
