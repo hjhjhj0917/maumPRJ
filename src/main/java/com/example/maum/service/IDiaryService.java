@@ -49,6 +49,11 @@ public interface IDiaryService {
     List<DiaryDTO> getRecentDiaryList(DiaryDTO pDTO) throws Exception;
 
     /*
+    즐겨찾기 일기 목록 조회 (월 구분 없이 전체)
+    */
+    List<DiaryDTO> getFavoriteDiaryList(DiaryDTO pDTO) throws Exception;
+
+    /*
     마이페이지 감정 통계 조회
     */
     List<EmotionStatDTO> getEmotionStats(String userNoStr) throws Exception;

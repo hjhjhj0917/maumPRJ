@@ -22,6 +22,8 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
 
     List<DiaryEntity> findTop20ByUserNoOrderByCreatedAtDesc(String userNo);
 
+    List<DiaryEntity> findByUserNoAndIsFavoriteOrderByCreatedAtDesc(String userNo, Integer isFavorite);
+
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE DIARY SET SUMMARY = :summary, MAIN_EMOTION = :mainEmotion, " +
             "EMOTION_COLOR = :emotionColor, DEP_LVL = :depLvl, DEP_SCORE = :depScore, SYMPTOM_YN = :symptomYn " +
