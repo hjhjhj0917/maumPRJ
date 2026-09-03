@@ -470,6 +470,41 @@ public class DiaryService implements IDiaryService {
     }
 
     /*
+    즐겨찾기 일기 목록 조회
+    */
+    @Transactional(readOnly = true)
+    @Override
+    public List<DiaryDTO> getFavoriteDiaryList(DiaryDTO pDTO) throws Exception {
+
+        log.info("{}.getFavoriteDiaryList Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(pDTO.userNo());
+
+        List<DiaryEntity> entities = Optional.ofNullable(
+                diaryRepository.findByUserNoAndIsFavoriteOrderByCreatedAtDesc(userNo, 1)
+        ).orElseGet(ArrayList::new);
+
+        log.info("Found {} favorite diary entities.", entities.size());
+
+        List<DiaryDTO> rList = new ArrayList<>();
+
+        for (DiaryEntity e : entities) {
+            DiaryDTO dto = DiaryDTO.builder()
+                    .diaryNo(e.getDiaryNo())
+                    .title(e.getTitle())
+                    .emotionColor(e.getEmotionColor())
+                    .isFavorite(e.getIsFavorite())
+                    .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                    .build();
+            rList.add(dto);
+        }
+
+        log.info("{}.getFavoriteDiaryList End!", this.getClass().getName());
+
+        return rList;
+    }
+
+    /*
     마이페이지 감정 통계 조회
     */
     @Override

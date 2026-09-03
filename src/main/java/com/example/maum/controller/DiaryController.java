@@ -245,6 +245,30 @@ public class DiaryController {
     }
 
     /*
+    즐겨찾기 일기 목록 조회
+    */
+    @GetMapping("/favorites")
+    public ResponseEntity<CommonResponse<List<DiaryDTO>>> getFavoriteDiaryList(@AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.getFavoriteDiaryList Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        DiaryDTO pDTO = DiaryDTO.builder()
+                .userNo(userNo)
+                .build();
+
+        List<DiaryDTO> rList = Optional.ofNullable(diaryService.getFavoriteDiaryList(pDTO))
+                .orElseGet(ArrayList::new);
+
+        log.info("{}.getFavoriteDiaryList End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, "즐겨찾기 목록 조회 성공", rList)
+        );
+    }
+
+    /*
     마이페이지 감정 통계 조회
     */
     @GetMapping("/emotions/stats")
