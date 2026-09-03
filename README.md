@@ -15,7 +15,7 @@
 
 ### AI & Data
 - **Language & API**: Python, FastAPI, PyTorch
-- **Model**: HyperCLOVA X (임베딩V2, HCX-007, RAG Reasoning), KoELECTRA, klue/bert-base
+- **Model**: HyperCLOVA X (임베딩V2, HCX-007, RAG Reasoning), KoELECTRA, klue/roberta-base
 
 ### Frontend & Infrastructure
 - **Frontend**: JavaScript, React
@@ -32,7 +32,7 @@
 
 ### 2. AI 기반 감정 및 우울증 분석
 - **KoELECTRA 감정 분석**: 한국어 감정 분류 데이터셋(KOTE)으로 파인튜닝된 KoELECTRA 모델을 적용하여 작성된 일기 텍스트의 감정을 정밀하게 분류합니다.
-- **우울증 예측 모델**: AI Hub에서 제공하는 심리상담 데이터를 활용, `klue/bert-base` 모델을 파인튜닝하여 우울증 모델을 구현했습니다.
+- **우울증 예측 모델**: AI Hub에서 제공하는 심리상담 데이터를 활용, `klue/roberta-base` 모델을 파인튜닝하여 우울증 모델을 구현했습니다.
 
 ### 3. HyperCLOVA X & RAG 기반 챗봇 서비스
 - **데이터 벡터화**: 공공 API 데이터를 HyperCLOVA X 임베딩 V2 모델로 벡터화한 후 MongoDB에 저장합니다.
