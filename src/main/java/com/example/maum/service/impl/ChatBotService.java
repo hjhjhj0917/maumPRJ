@@ -65,7 +65,9 @@ public class ChatBotService implements IChatBotService {
                 .bodyToFlux(String.class) /* 응답을 여러 조각으로 받음 */
                 .doOnNext(data -> { /* 실시간 데이터 처리 */
                     log.info("Python Raw Data: {}", data);
-                    botResponse.append(data); // 데이터 축적
+                    if (!data.startsWith("[[AUDIO]]")) { // TTS 음성 데이터는 대화 기록에 저장하지 않음
+                        botResponse.append(data);
+                    }
                 })
                 .doOnComplete(() -> { /* 스트림 종료후 저장 */
                     log.info("{}.streamChat Data Stream Completed!", this.getClass().getName());
