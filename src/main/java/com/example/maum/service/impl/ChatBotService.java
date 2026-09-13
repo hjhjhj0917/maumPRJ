@@ -46,6 +46,29 @@ public class ChatBotService implements IChatBotService {
         String userNo = pDTO.userNo();
         String redisKey = "chat:" + userNo;
 
+        // 이번 사용자 메시지를 저장하기 전, 직전까지의 대화 기록을 먼저 읽어서 Python으로 같이 넘김
+        // (최근 4턴 = 8개 메시지까지만 — 너무 많이 보내면 토큰 낭비되고 오래된 맥락은 중요도가 낮음)
+        List<ChatMessageDTO> recentHistory = new ArrayList<>();
+        try {
+            List<Object> rawHistory = redisService.getList(redisKey);
+            int fromIndex = Math.max(0, rawHistory.size() - 8);
+            for (Object item : rawHistory.subList(fromIndex, rawHistory.size())) {
+                try {
+                    recentHistory.add(objectMapper.readValue(item.toString(), ChatMessageDTO.class));
+                } catch (Exception e) {
+                    log.error("대화 기록 JSON 파싱 에러: ", e);
+                }
+            }
+        } catch (Exception e) {
+            log.error("대화 기록 조회 에러: ", e);
+        }
+
+        ChatBotDTO requestDTO = ChatBotDTO.builder()
+                .userNo(pDTO.userNo())
+                .message(pDTO.message())
+                .history(recentHistory)
+                .build();
+
         // 사용자 메시지 저장
         try {
             String userMsgJson = objectMapper.writeValueAsString( /* JSON 직렬화를 위한 타입변경 */
@@ -60,12 +83,13 @@ public class ChatBotService implements IChatBotService {
         return webClient.post()
                 .uri("/api/rag-chat")
                 .header("Accept", "text/plain") /* 파이썬에서 순수 텍스트를 받기로 함 */
-                .bodyValue(pDTO)
+                .bodyValue(requestDTO)
                 .retrieve() /* 응답 상태 준비 */
                 .bodyToFlux(String.class) /* 응답을 여러 조각으로 받음 */
                 .doOnNext(data -> { /* 실시간 데이터 처리 */
                     log.info("Python Raw Data: {}", data);
-                    if (!data.startsWith("[[AUDIO]]")) { // TTS 음성 데이터는 대화 기록에 저장하지 않음
+                    // TTS 음성 데이터와 카드 JSON은 대화 기록(히스토리)에 노이즈만 되므로 저장하지 않음
+                    if (!data.startsWith("[[AUDIO]]") && !data.startsWith("[[CARD]]")) {
                         botResponse.append(data);
                     }
                 })
