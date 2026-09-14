@@ -1,8 +1,10 @@
 package com.example.maum.service;
 
 import com.example.maum.dto.DiaryDTO;
+import com.example.maum.dto.DiaryImageDTO;
 import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -72,4 +74,14 @@ public interface IDiaryService {
     사이드바 상단 고정
     */
     int updatePinned(DiaryDTO pDTO) throws Exception;
+
+    /*
+    일기 이미지 업로드 (GCS)
+    */
+    List<DiaryImageDTO> uploadDiaryImages(Integer diaryNo, String userNo, List<MultipartFile> images) throws Exception;
+
+    /*
+    일기 이미지 삭제
+    */
+    MsgDTO deleteDiaryImage(Integer imageNo, String userNo) throws Exception;
 }
