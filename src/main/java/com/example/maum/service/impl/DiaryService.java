@@ -1,13 +1,17 @@
 package com.example.maum.service.impl;
 
 import com.example.maum.dto.DiaryDTO;
+import com.example.maum.dto.DiaryImageDTO;
 import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
+import com.example.maum.repository.DiaryImageRepository;
 import com.example.maum.repository.DiaryLogRepository;
 import com.example.maum.repository.DiaryRepository;
 import com.example.maum.repository.entity.DiaryEntity;
+import com.example.maum.repository.entity.DiaryImageEntity;
 import com.example.maum.repository.entity.DiaryLogDocument;
 import com.example.maum.service.IDiaryService;
+import com.example.maum.service.IGcsService;
 import com.example.maum.util.CmmUtil;
 import com.example.maum.util.DateUtil;
 import lombok.RequiredArgsConstructor;
@@ -23,19 +27,25 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class DiaryService implements IDiaryService {
 
+    private static final int MAX_DIARY_IMAGE_COUNT = 3;
+
     private final DiaryRepository diaryRepository;
     private final DiaryLogRepository diaryLogRepository;
+    private final DiaryImageRepository diaryImageRepository;
+    private final IGcsService gcsService;
     private final MongoTemplate mongoTemplate;
 
     private final RestClient restClient = createRestClientWithTimeout();
@@ -250,6 +260,12 @@ public class DiaryService implements IDiaryService {
 
             if (entity.getUserNo().equals(userNo)) {
 
+                // DB 행은 FK cascade로 같이 지워지지만, GCS에 올라간 실제 파일은 직접 지워야 함
+                List<DiaryImageEntity> images = diaryImageRepository.findByDiaryNoOrderByImageOrderAsc(diaryNo);
+                for (DiaryImageEntity image : images) {
+                    gcsService.deleteImage(image.getImageUrl());
+                }
+
                 diaryRepository.delete(entity);
 
                 try {
@@ -355,6 +371,16 @@ public class DiaryService implements IDiaryService {
                 throw new Exception("해당 일기에 대한 접근 권한이 없습니다.");
             }
 
+            List<DiaryImageDTO> images = diaryImageRepository.findByDiaryNoOrderByImageOrderAsc(rEntity.getDiaryNo())
+                    .stream()
+                    .map(img -> DiaryImageDTO.builder()
+                            .imageNo(img.getImageNo())
+                            .diaryNo(img.getDiaryNo())
+                            .imageUrl(img.getImageUrl())
+                            .imageOrder(img.getImageOrder())
+                            .build())
+                    .collect(Collectors.toList());
+
             rDTO = DiaryDTO.builder()
                     .diaryNo(rEntity.getDiaryNo())
                     .userNo(rEntity.getUserNo())
@@ -368,6 +394,7 @@ public class DiaryService implements IDiaryService {
                     .symptomYn(rEntity.getSymptomYn())
                     .isFavorite(rEntity.getIsFavorite())
                     .createdAt(DateUtil.formatLocalDate(rEntity.getCreatedAt(), "yyyy-MM-dd"))
+                    .images(images)
                     .build();
         } else {
             throw new Exception("해당 일기를 찾을 수 없습니다.");
@@ -610,5 +637,84 @@ public class DiaryService implements IDiaryService {
         log.info("{}.updatePinned End!", this.getClass().getName());
 
         return res;
+    }
+
+    /*
+    일기 이미지 업로드 (GCS) - 일기당 최대 MAX_DIARY_IMAGE_COUNT장까지 허용
+    */
+    @Transactional
+    @Override
+    public List<DiaryImageDTO> uploadDiaryImages(Integer diaryNo, String userNo, List<MultipartFile> images) throws Exception {
+
+        log.info("{}.uploadDiaryImages Start!", this.getClass().getName());
+
+        DiaryEntity entity = diaryRepository.findById(diaryNo)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 일기입니다."));
+
+        if (!entity.getUserNo().equals(userNo)) {
+            throw new IllegalArgumentException("본인의 일기에만 이미지를 추가할 수 있습니다.");
+        }
+
+        int existingCount = diaryImageRepository.countByDiaryNo(diaryNo);
+
+        if (existingCount + images.size() > MAX_DIARY_IMAGE_COUNT) {
+            throw new IllegalArgumentException("이미지는 최대 " + MAX_DIARY_IMAGE_COUNT + "장까지 등록할 수 있습니다.");
+        }
+
+        List<DiaryImageDTO> rList = new ArrayList<>();
+        int order = existingCount;
+
+        for (MultipartFile image : images) {
+            String imageUrl = gcsService.uploadImage(image, diaryNo);
+
+            DiaryImageEntity savedEntity = diaryImageRepository.save(
+                    DiaryImageEntity.builder()
+                            .diaryNo(diaryNo)
+                            .imageUrl(imageUrl)
+                            .imageOrder(order++)
+                            .build()
+            );
+
+            rList.add(DiaryImageDTO.builder()
+                    .imageNo(savedEntity.getImageNo())
+                    .diaryNo(diaryNo)
+                    .imageUrl(savedEntity.getImageUrl())
+                    .imageOrder(savedEntity.getImageOrder())
+                    .build());
+        }
+
+        log.info("{}.uploadDiaryImages End!", this.getClass().getName());
+
+        return rList;
+    }
+
+    /*
+    일기 이미지 삭제
+    */
+    @Transactional
+    @Override
+    public MsgDTO deleteDiaryImage(Integer imageNo, String userNo) throws Exception {
+
+        log.info("{}.deleteDiaryImage Start!", this.getClass().getName());
+
+        Optional<DiaryImageEntity> oImage = diaryImageRepository.findById(imageNo);
+
+        if (oImage.isEmpty()) {
+            return MsgDTO.builder().result(0).msg("존재하지 않는 이미지입니다.").build();
+        }
+
+        DiaryImageEntity image = oImage.get();
+        Optional<DiaryEntity> oEntity = diaryRepository.findById(image.getDiaryNo());
+
+        if (oEntity.isEmpty() || !oEntity.get().getUserNo().equals(userNo)) {
+            return MsgDTO.builder().result(0).msg("본인의 일기 이미지만 삭제할 수 있습니다.").build();
+        }
+
+        diaryImageRepository.delete(image);
+        gcsService.deleteImage(image.getImageUrl());
+
+        log.info("{}.deleteDiaryImage End!", this.getClass().getName());
+
+        return MsgDTO.builder().result(1).msg("이미지가 삭제되었습니다.").build();
     }
 }

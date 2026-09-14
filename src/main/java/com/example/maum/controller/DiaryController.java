@@ -2,6 +2,7 @@ package com.example.maum.controller;
 
 import com.example.maum.controller.response.CommonResponse;
 import com.example.maum.dto.DiaryDTO;
+import com.example.maum.dto.DiaryImageDTO;
 import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
 import com.example.maum.service.impl.DiaryService;
@@ -9,10 +10,12 @@ import com.example.maum.util.CmmUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -386,6 +389,53 @@ public class DiaryController {
 
         return ResponseEntity.ok(
                 CommonResponse.of(HttpStatus.OK, msg, diaryNo)
+        );
+    }
+
+    /*
+    일기 이미지 업로드 (GCS, 일기당 최대 3장)
+    */
+    @PostMapping(value = "/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<CommonResponse<List<DiaryImageDTO>>> uploadDiaryImages(
+            @RequestParam("diaryNo") Integer diaryNo,
+            @RequestParam("images") List<MultipartFile> images,
+            @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.uploadDiaryImages Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        List<DiaryImageDTO> rList = diaryService.uploadDiaryImages(diaryNo, userNo, images);
+
+        log.info("{}.uploadDiaryImages End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, "이미지가 업로드되었습니다.", rList)
+        );
+    }
+
+    /*
+    일기 이미지 삭제
+    */
+    @PostMapping(value = "/images/delete")
+    public ResponseEntity<CommonResponse<Integer>> deleteDiaryImage(@RequestBody DiaryImageDTO dDTO,
+                                                                     @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.deleteDiaryImage Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+        Integer imageNo = dDTO.imageNo();
+
+        MsgDTO rDTO = diaryService.deleteDiaryImage(imageNo, userNo);
+
+        if (rDTO.result() != 1) {
+            throw new IllegalArgumentException(rDTO.msg());
+        }
+
+        log.info("{}.deleteDiaryImage End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, rDTO.msg(), imageNo)
         );
     }
 }

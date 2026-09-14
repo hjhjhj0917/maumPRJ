@@ -5,6 +5,12 @@ spring:
   application:
     name: maum
 
+  # 일기 이미지 업로드(최대 3장) 등 멀티파트 요청 용량 제한 - 기본값(파일당 1MB, 요청당 10MB)이 너무 작아서 상향
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 30MB
+
   # Database Connection
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
@@ -68,4 +74,9 @@ spring:
 
 server:
   port: 8080
+  tomcat:
+    # 요청 크기가 위 multipart 제한을 넘었을 때, Tomcat이 남은 바이트를 다 읽고 정상적으로
+    # 413 에러를 내려줄 수 있도록 하는 한도 - 기본값(2MB)이 작아서 사진 여러 장 업로드 시
+    # 에러 응답 없이 연결이 그냥 끊겨버림(ERR_CONNECTION_RESET) - 그래서 상향함
+    max-swallow-size: 30MB
 
