@@ -20,7 +20,7 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
 
     List<DiaryEntity> findByUserNoAndEmotionColorInOrderByCreatedAtDesc(String userNo, List<String> colors);
 
-    List<DiaryEntity> findTop20ByUserNoOrderByCreatedAtDesc(String userNo);
+    List<DiaryEntity> findTop20ByUserNoOrderByIsPinnedDescCreatedAtDesc(String userNo);
 
     List<DiaryEntity> findByUserNoAndIsFavoriteOrderByCreatedAtDesc(String userNo, Integer isFavorite);
 
@@ -54,5 +54,24 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
             @Param("diaryNo") Integer diaryNo,
             @Param("userNo") String userNo,
             @Param("isFavorite") Integer isFavorite
+    );
+
+    // 제목만 바꾸는 경우 diaryUpdate(전체 수정)처럼 CONTENT까지 다시 보낼 필요 없게, 제목만 직접 수정
+    @Modifying(clearAutomatically = true)
+    @Query(value = "UPDATE DIARY SET TITLE = :title WHERE DIARY_NO = :diaryNo AND USER_NO = :userNo",
+            nativeQuery = true)
+    int updateTitleDirectly(
+            @Param("diaryNo") Integer diaryNo,
+            @Param("userNo") String userNo,
+            @Param("title") String title
+    );
+
+    @Modifying(clearAutomatically = true)
+    @Query(value = "UPDATE DIARY SET IS_PINNED = :isPinned WHERE DIARY_NO = :diaryNo AND USER_NO = :userNo",
+            nativeQuery = true)
+    int updatePinnedDirectly(
+            @Param("diaryNo") Integer diaryNo,
+            @Param("userNo") String userNo,
+            @Param("isPinned") Integer isPinned
     );
 }

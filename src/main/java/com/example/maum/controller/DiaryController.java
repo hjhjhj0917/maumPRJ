@@ -323,4 +323,69 @@ public class DiaryController {
                 CommonResponse.of(HttpStatus.OK, msg, diaryNo)
         );
     }
+
+    /*
+    제목만 수정 (사이드바 인라인 이름변경)
+    */
+    @PostMapping("/title")
+    public ResponseEntity<CommonResponse<Integer>> diaryUpdateTitle(@RequestBody DiaryDTO dDTO,
+                                                                     @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.diaryUpdateTitle Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+        Integer diaryNo = dDTO.diaryNo();
+
+        DiaryDTO pDTO = DiaryDTO.builder()
+                .diaryNo(diaryNo)
+                .userNo(userNo)
+                .title(CmmUtil.nvl(dDTO.title()))
+                .build();
+
+        int res = diaryService.updateTitle(pDTO);
+
+        if (res == 0) {
+            throw new IllegalArgumentException("본인의 일기만 변경할 수 있거나, 존재하지 않는 일기입니다.");
+        }
+
+        log.info("{}.diaryUpdateTitle End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, "제목이 변경되었습니다.", diaryNo)
+        );
+    }
+
+    /*
+    사이드바 상단 고정
+    */
+    @PostMapping("/pin")
+    public ResponseEntity<CommonResponse<Integer>> diaryPin(@RequestBody DiaryDTO dDTO,
+                                                             @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.diaryPin Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+        Integer diaryNo = dDTO.diaryNo();
+        Integer isPinned = dDTO.isPinned();
+
+        DiaryDTO pDTO = DiaryDTO.builder()
+                .diaryNo(diaryNo)
+                .userNo(userNo)
+                .isPinned(isPinned)
+                .build();
+
+        int res = diaryService.updatePinned(pDTO);
+
+        if (res == 0) {
+            throw new IllegalArgumentException("본인의 일기만 변경할 수 있거나, 존재하지 않는 일기입니다.");
+        }
+
+        String msg = (isPinned == 1) ? "상단에 고정되었습니다." : "고정이 해제되었습니다.";
+
+        log.info("{}.diaryPin End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, msg, diaryNo)
+        );
+    }
 }

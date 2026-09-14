@@ -10,6 +10,7 @@ import java.util.List;
 public record ChatBotDTO(
         String userNo,
         String message,
+        Integer chatRoomNo,
         List<ChatMessageDTO> history
 ) {
 }

@@ -62,4 +62,14 @@ public interface IDiaryService {
     즐겨찾기
     */
     int updateFavorite(DiaryDTO pDTO) throws Exception;
+
+    /*
+    제목만 수정 (사이드바 인라인 이름변경용)
+    */
+    int updateTitle(DiaryDTO pDTO) throws Exception;
+
+    /*
+    사이드바 상단 고정
+    */
+    int updatePinned(DiaryDTO pDTO) throws Exception;
 }
