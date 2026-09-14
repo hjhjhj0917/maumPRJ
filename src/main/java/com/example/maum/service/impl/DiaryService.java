@@ -450,7 +450,7 @@ public class DiaryService implements IDiaryService {
 
         log.info("userNo: {}", userNo);
 
-        List<DiaryEntity> entities = diaryRepository.findTop20ByUserNoOrderByCreatedAtDesc(userNo);
+        List<DiaryEntity> entities = diaryRepository.findTop20ByUserNoOrderByIsPinnedDescCreatedAtDesc(userNo);
 
         List<DiaryDTO> rList = new ArrayList<>();
 
@@ -459,6 +459,7 @@ public class DiaryService implements IDiaryService {
                     .diaryNo(e.getDiaryNo())
                     .title(e.getTitle())
                     .emotionColor(e.getEmotionColor())
+                    .isPinned(e.getIsPinned())
                     .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
                     .build();
             rList.add(dto);
@@ -565,6 +566,48 @@ public class DiaryService implements IDiaryService {
         int res = diaryRepository.updateFavorite(diaryNo, userNo, isFavorite);
 
         log.info("{}.updateFavorite End!", this.getClass().getName());
+
+        return res;
+    }
+
+    /*
+    제목만 수정 (사이드바 인라인 이름변경용)
+    */
+    @Transactional
+    @CacheEvict(value = "diaryCache", allEntries = true)
+    @Override
+    public int updateTitle(DiaryDTO pDTO) throws Exception {
+
+        log.info("{}.updateTitle Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(pDTO.userNo());
+        Integer diaryNo = pDTO.diaryNo();
+        String title = CmmUtil.nvl(pDTO.title());
+
+        int res = diaryRepository.updateTitleDirectly(diaryNo, userNo, title);
+
+        log.info("{}.updateTitle End!", this.getClass().getName());
+
+        return res;
+    }
+
+    /*
+    사이드바 상단 고정
+    */
+    @Transactional
+    @CacheEvict(value = "diaryCache", allEntries = true)
+    @Override
+    public int updatePinned(DiaryDTO pDTO) throws Exception {
+
+        log.info("{}.updatePinned Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(pDTO.userNo());
+        Integer diaryNo = pDTO.diaryNo();
+        Integer isPinned = pDTO.isPinned();
+
+        int res = diaryRepository.updatePinnedDirectly(diaryNo, userNo, isPinned);
+
+        log.info("{}.updatePinned End!", this.getClass().getName());
 
         return res;
     }

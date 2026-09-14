@@ -2,18 +2,24 @@ package com.example.maum.service.impl;
 
 import com.example.maum.dto.ChatBotDTO;
 import com.example.maum.dto.ChatMessageDTO;
+import com.example.maum.dto.ChatRoomDTO;
+import com.example.maum.repository.ChatMessageRepository;
+import com.example.maum.repository.ChatRoomRepository;
+import com.example.maum.repository.entity.ChatMessageEntity;
+import com.example.maum.repository.entity.ChatRoomEntity;
 import com.example.maum.service.IChatBotService;
-import com.example.maum.service.IRedisService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-import tools.jackson.databind.ObjectMapper;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -21,61 +27,69 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatBotService implements IChatBotService {
 
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private WebClient webClient;
 
-    private final IRedisService redisService;
+    private final ChatRoomRepository chatRoomRepository;
 
-    private final ObjectMapper objectMapper;
+    private final ChatMessageRepository chatMessageRepository;
 
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
 
-        @PostConstruct /* 통신 설정 안에 같이 다 들어와야 실행한다 */
-        public void init() {
-            this.webClient = WebClient.builder()
-                    .baseUrl(pythonApiUrl)
-                    .build();
-        }
+    @PostConstruct /* 통신 설정 안에 같이 다 들어와야 실행한다 */
+    public void init() {
+        this.webClient = WebClient.builder()
+                .baseUrl(pythonApiUrl)
+                .build();
+    }
 
     @Override
+    @Transactional // updateTitleAndTouch/touchUpdatedAt이 @Modifying 커스텀 쿼리라 트랜잭션이 명시적으로 필요함
+    // (여기서 여는 트랜잭션은 메서드 안의 동기적인 DB 조회/수정 구간까지만 걸리고,
+    //  Flux를 리턴한 뒤 비동기로 진행되는 스트리밍/오디오 처리에는 영향 없음)
     public Flux<String> streamChat(ChatBotDTO pDTO) {
 
         log.info("{}.streamChat Start!", this.getClass().getName());
 
         String userNo = pDTO.userNo();
-        String redisKey = "chat:" + userNo;
+        Integer chatRoomNo = pDTO.chatRoomNo();
 
-        // 이번 사용자 메시지를 저장하기 전, 직전까지의 대화 기록을 먼저 읽어서 Python으로 같이 넘김
-        // (최근 4턴 = 8개 메시지까지만 — 너무 많이 보내면 토큰 낭비되고 오래된 맥락은 중요도가 낮음)
-        List<ChatMessageDTO> recentHistory = new ArrayList<>();
-        try {
-            List<Object> rawHistory = redisService.getList(redisKey);
-            int fromIndex = Math.max(0, rawHistory.size() - 8);
-            for (Object item : rawHistory.subList(fromIndex, rawHistory.size())) {
-                try {
-                    recentHistory.add(objectMapper.readValue(item.toString(), ChatMessageDTO.class));
-                } catch (Exception e) {
-                    log.error("대화 기록 JSON 파싱 에러: ", e);
-                }
-            }
-        } catch (Exception e) {
-            log.error("대화 기록 조회 에러: ", e);
+        // 이 채팅방이 실제로 이 유저 소유인지 확인 (다른 유저 방에 메시지가 끼어들지 않게)
+        ChatRoomEntity room = chatRoomRepository.findByChatRoomNoAndUserNo(chatRoomNo, userNo)
+                .orElse(null);
+
+        if (room == null) {
+            log.error("존재하지 않거나 권한이 없는 채팅방입니다. chatRoomNo: {}, userNo: {}", chatRoomNo, userNo);
+            return Flux.just("채팅방을 찾을 수 없어요. 새로고침 후 다시 시도해주세요.");
         }
 
+        // 최근 8개(4턴)를 최신순으로 가져와서 시간순으로 다시 뒤집음 — Gemini에 넘길 맥락용
+        List<ChatMessageEntity> recentMessages = chatMessageRepository
+                .findTop8ByChatRoomNoOrderByCreatedAtDesc(chatRoomNo);
+        Collections.reverse(recentMessages);
+
+        List<ChatMessageDTO> recentHistory = recentMessages.stream()
+                .map(m -> ChatMessageDTO.builder().role(m.getRole()).content(m.getContent()).build())
+                .toList();
+
         ChatBotDTO requestDTO = ChatBotDTO.builder()
-                .userNo(pDTO.userNo())
+                .userNo(userNo)
                 .message(pDTO.message())
                 .history(recentHistory)
                 .build();
 
         // 사용자 메시지 저장
-        try {
-            String userMsgJson = objectMapper.writeValueAsString( /* JSON 직렬화를 위한 타입변경 */
-                    ChatMessageDTO.builder().role("user").content(pDTO.message()).build());
-            redisService.pushMessage(redisKey, userMsgJson);
-        } catch (Exception e) {
-            log.error("사용자 메시지 JSON 변환 에러: ", e);
+        saveMessage(chatRoomNo, "user", pDTO.message());
+
+        // 방 제목이 비어있으면(첫 메시지) 사용자 메시지 앞부분으로 자동 설정, 아니면 최근 활동 시각만 갱신
+        LocalDateTime now = LocalDateTime.now();
+        if (room.getRoomTitle() == null || room.getRoomTitle().isBlank()) {
+            String autoTitle = pDTO.message().length() > 30 ? pDTO.message().substring(0, 30) + "..." : pDTO.message();
+            chatRoomRepository.updateTitleAndTouch(chatRoomNo, autoTitle, now);
+        } else {
+            chatRoomRepository.touchUpdatedAt(chatRoomNo, now);
         }
 
         StringBuilder botResponse = new StringBuilder();
@@ -88,49 +102,122 @@ public class ChatBotService implements IChatBotService {
                 .bodyToFlux(String.class) /* 응답을 여러 조각으로 받음 */
                 .doOnNext(data -> { /* 실시간 데이터 처리 */
                     log.info("Python Raw Data: {}", data);
-                    // TTS 음성 데이터와 카드 JSON은 대화 기록(히스토리)에 노이즈만 되므로 저장하지 않음
-                    if (!data.startsWith("[[AUDIO]]") && !data.startsWith("[[CARD]]")) {
+                    // TTS 음성 데이터, 카드 JSON, 텍스트 완료 마커는 대화 기록에 노이즈만 되므로 저장하지 않음
+                    if (!data.startsWith("[[AUDIO]]") && !data.startsWith("[[CARD]]") && !data.startsWith("[[TEXT_DONE]]")) {
                         botResponse.append(data);
-                    }
-                })
-                .doOnComplete(() -> { /* 스트림 종료후 저장 */
-                    log.info("{}.streamChat Data Stream Completed!", this.getClass().getName());
-
-                    try {
-                        /* <br>과 <sp> 태그를 변환하여 저장 */
-                        String cleanBotResponse = botResponse.toString()
-                                .replace("<br>", "  \n")
-                                .replace("<sp>", " ");
-
-                        String botMsgJson = objectMapper.writeValueAsString(
-                                ChatMessageDTO.builder().role("bot").content(cleanBotResponse).build());
-                        redisService.pushMessage(redisKey, botMsgJson);
-                    } catch (Exception e) {
-                        log.error("챗봇 응답 JSON 변환 에러: ", e);
                     }
                 })
                 .onErrorResume(e -> { /* 예외처리 회로 차단 */
                     log.error("Python Communication Error: ", e);
                     return Flux.just("연결 중에 문제가 발생했어요. 잠시 후 다시 시도해주세요.");
+                })
+                // doOnComplete는 클라이언트가 응답을 다 받자마자 구독을 취소해버리는 경우
+                // 호출이 안 될 수 있어서(그러면 봇 답변이 저장 안 됨), 완료/에러/취소
+                // 어떤 경우에도 반드시 실행되는 doFinally로 저장 로직을 옮김
+                .doFinally(signalType -> {
+                    log.info("{}.streamChat Data Stream Finished! signal: {}", this.getClass().getName(), signalType);
+
+                    if (botResponse.isEmpty()) {
+                        return;
+                    }
+
+                    /* <br>과 <sp> 태그를 변환하여 저장 */
+                    String cleanBotResponse = botResponse.toString()
+                            .replace("<br>", "  \n")
+                            .replace("<sp>", " ");
+
+                    saveMessage(chatRoomNo, "bot", cleanBotResponse);
                 });
     }
 
     @Override
-    public List<ChatMessageDTO> getHistory(String userNo) throws Exception {
-        log.info("{}.getHistory Start!", this.getClass().getName());
+    public ChatRoomDTO createRoom(String userNo) {
+        log.info("{}.createRoom Start!", this.getClass().getName());
 
-        List<Object> rawHistory = redisService.getList("chat:" + userNo);
+        LocalDateTime now = LocalDateTime.now();
+        ChatRoomEntity room = ChatRoomEntity.builder()
+                .userNo(userNo)
+                .isPinned(0)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
 
-        List<ChatMessageDTO> history = new ArrayList<>();
+        ChatRoomEntity saved = chatRoomRepository.save(room);
 
-        for (Object item : rawHistory) {
-            try {
-                history.add(objectMapper.readValue(item.toString(), ChatMessageDTO.class));
-            } catch (Exception e) {
-                log.error("채팅 내역 JSON 파싱 에러: ", e);
-            }
+        return toRoomDTO(saved);
+    }
+
+    @Override
+    public List<ChatRoomDTO> getRooms(String userNo) {
+        log.info("{}.getRooms Start!", this.getClass().getName());
+
+        return chatRoomRepository.findByUserNoOrderByIsPinnedDescUpdatedAtDesc(userNo).stream()
+                .map(this::toRoomDTO)
+                .toList();
+    }
+
+    @Override
+    public List<ChatMessageDTO> getRoomMessages(String userNo, Integer chatRoomNo) throws Exception {
+        log.info("{}.getRoomMessages Start!", this.getClass().getName());
+
+        ChatRoomEntity room = chatRoomRepository.findByChatRoomNoAndUserNo(chatRoomNo, userNo)
+                .orElseThrow(() -> new Exception("존재하지 않거나 권한이 없는 채팅방입니다."));
+
+        return chatMessageRepository.findByChatRoomNoOrderByCreatedAtAsc(room.getChatRoomNo()).stream()
+                .map(m -> ChatMessageDTO.builder().role(m.getRole()).content(m.getContent()).build())
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void renameRoom(String userNo, Integer chatRoomNo, String roomTitle) throws Exception {
+        log.info("{}.renameRoom Start!", this.getClass().getName());
+
+        int res = chatRoomRepository.updateTitleDirectly(chatRoomNo, userNo, roomTitle);
+        if (res == 0) {
+            throw new Exception("존재하지 않거나 권한이 없는 채팅방입니다.");
         }
+    }
 
-        return history;
+    @Override
+    @Transactional
+    public void pinRoom(String userNo, Integer chatRoomNo, Integer isPinned) throws Exception {
+        log.info("{}.pinRoom Start!", this.getClass().getName());
+
+        int res = chatRoomRepository.updatePinnedDirectly(chatRoomNo, userNo, isPinned);
+        if (res == 0) {
+            throw new Exception("존재하지 않거나 권한이 없는 채팅방입니다.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteRoom(String userNo, Integer chatRoomNo) throws Exception {
+        log.info("{}.deleteRoom Start!", this.getClass().getName());
+
+        long res = chatRoomRepository.deleteByChatRoomNoAndUserNo(chatRoomNo, userNo);
+        if (res == 0) {
+            throw new Exception("존재하지 않거나 권한이 없는 채팅방입니다.");
+        }
+    }
+
+    private void saveMessage(Integer chatRoomNo, String role, String content) {
+        ChatMessageEntity message = ChatMessageEntity.builder()
+                .chatRoomNo(chatRoomNo)
+                .role(role)
+                .content(content)
+                .createdAt(LocalDateTime.now())
+                .build();
+        chatMessageRepository.save(message);
+    }
+
+    private ChatRoomDTO toRoomDTO(ChatRoomEntity entity) {
+        return ChatRoomDTO.builder()
+                .chatRoomNo(entity.getChatRoomNo())
+                .roomTitle(entity.getRoomTitle())
+                .isPinned(entity.getIsPinned())
+                .createdAt(entity.getCreatedAt().format(DATE_FORMAT))
+                .updatedAt(entity.getUpdatedAt().format(DATE_FORMAT))
+                .build();
     }
 }

@@ -60,4 +60,7 @@ public class DiaryEntity implements Serializable {
     @Column(name = "IS_FAVORITE")
     private Integer isFavorite;
 
+    @Column(name = "IS_PINNED")
+    private Integer isPinned;
+
 }
