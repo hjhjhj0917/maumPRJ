@@ -62,6 +62,38 @@ public class DiaryController {
     }
 
     /*
+    일기 임시저장 - AI 분석/음악 추천 없이 제목/내용만 저장 (자동저장용)
+    */
+    @PostMapping(value = "draftSave")
+    public ResponseEntity<CommonResponse<Integer>> diaryDraftSave(@RequestBody DiaryDTO dDTO,
+                                                                   @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.diaryDraftSave Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        DiaryDTO pDTO = DiaryDTO.builder()
+                .diaryNo(dDTO.diaryNo())
+                .userNo(userNo)
+                .title(CmmUtil.nvl(dDTO.title()))
+                .content(CmmUtil.nvl(dDTO.content()))
+                .createdAt(CmmUtil.nvl(dDTO.createdAt()))
+                .build();
+
+        int diaryNo = diaryService.draftSave(pDTO);
+
+        if (diaryNo <= 0) {
+            throw new RuntimeException("임시저장에 실패하였습니다.");
+        }
+
+        log.info("{}.diaryDraftSave End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, "임시저장되었습니다.", diaryNo)
+        );
+    }
+
+    /*
     일기 수정
     */
     @PostMapping(value = "diaryUpdate")

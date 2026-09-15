@@ -16,6 +16,11 @@ public interface IDiaryService {
     int diaryInsert(DiaryDTO pDTO) throws Exception;
 
     /*
+    일기 임시저장 (AI 분석/음악 추천 없이 제목/내용만 저장)
+    */
+    int draftSave(DiaryDTO pDTO) throws Exception;
+
+    /*
     일기 수정
     */
     MsgDTO diaryUpdate(DiaryDTO pDTO) throws Exception;
