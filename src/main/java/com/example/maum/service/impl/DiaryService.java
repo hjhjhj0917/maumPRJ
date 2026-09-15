@@ -226,6 +226,53 @@ public class DiaryService implements IDiaryService {
     }
 
     /*
+    일기 임시저장 - AI 분석/음악 추천 호출 없이 제목/내용만 저장함.
+    diaryNo가 없으면 새로 생성하고, 있으면 그 자리에 덮어씀 (자동저장이 반복 호출되므로)
+    */
+    @Transactional
+    @Override
+    public int draftSave(DiaryDTO pDTO) throws Exception {
+
+        log.info("{}.draftSave Start!", this.getClass().getName());
+
+        int res = 0;
+
+        try {
+            String title = CmmUtil.nvl(pDTO.title());
+            String content = CmmUtil.nvl(pDTO.content());
+
+            if (pDTO.diaryNo() != null) {
+                Optional<DiaryEntity> rEntity = diaryRepository.findById(pDTO.diaryNo());
+
+                if (rEntity.isPresent() && rEntity.get().getUserNo().equals(pDTO.userNo())) {
+                    diaryRepository.updateDiaryDirectly(Long.valueOf(pDTO.diaryNo()), title, content);
+                    res = pDTO.diaryNo();
+                }
+            } else {
+                String createdAt = CmmUtil.nvl(pDTO.createdAt()).trim();
+                LocalDate parsedDate = DateUtil.parseLocalDate(createdAt, "yyyy-MM-dd");
+
+                DiaryEntity pEntity = DiaryEntity.builder()
+                        .userNo(pDTO.userNo())
+                        .title(title)
+                        .content(content)
+                        .createdAt(parsedDate)
+                        .build();
+
+                pEntity = diaryRepository.save(pEntity);
+                res = pEntity.getDiaryNo();
+            }
+        } catch (Exception e) {
+            res = 0;
+            log.error("Diary Draft Save Error : {}", e.getMessage());
+        }
+
+        log.info("{}.draftSave End!", this.getClass().getName());
+
+        return res;
+    }
+
+    /*
     일기 수정
     */
     @Transactional
