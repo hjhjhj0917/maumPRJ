@@ -10,4 +10,6 @@ import java.util.List;
 public interface DiaryMusicRepository extends JpaRepository<DiaryMusicEntity, Integer> {
 
     List<DiaryMusicEntity> findByDiaryNoOrderByTrackOrderAsc(Integer diaryNo);
+
+    void deleteByDiaryNo(Integer diaryNo);
 }

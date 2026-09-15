@@ -92,9 +92,9 @@ public class DiaryService implements IDiaryService {
     }
 
     /*
-    파이썬 AI 서버로 감정 분석 요청 - 분석된 대표 감정(mainEmotion)을 반환함 (실패 시 null, 음악 추천에 사용)
+    파이썬 AI 서버로 감정 분석 요청 - 응답에 포함된 감정 기반 음악 추천 결과(tracks)도 함께 저장함
     */
-    private String requestAnalysisAndUpdate(DiaryEntity entity, String newTitle, String newContent) {
+    private void requestAnalysisAndUpdate(DiaryEntity entity, String newTitle, String newContent) {
 
         try {
             Map<String, Object> requestMap = new HashMap<>();
@@ -139,7 +139,7 @@ public class DiaryService implements IDiaryService {
 
                     log.info("분석 결과 DB 반영 완료 (Color: {})", emotionColor);
 
-                    return mainEmotion;
+                    saveMusicTracks(entity.getDiaryNo(), (List<Map<String, Object>>) responseBody.get("tracks"));
 
                 } catch (Exception parseEx) {
                     log.error("분석 결과 파싱 실패: {}", parseEx.getMessage());
@@ -150,62 +150,37 @@ public class DiaryService implements IDiaryService {
         } catch (Exception e) {
             log.error("파이썬 서버 통신 에러: {}", e.getMessage());
         }
-
-        return null;
     }
 
     /*
-    파이썬 AI 서버로 감정 기반 음악 추천 요청 - 검색된 곡들을 DIARY_MUSIC에 저장함
+    감정분석 응답에 포함된 감정 기반 음악 추천 결과를 DIARY_MUSIC에 저장함.
+    재분석(수정)일 경우 기존 추천곡은 지우고 새로 저장함 (일기 내용이 바뀌면 추천도 바뀌어야 하므로)
     */
-    private void requestMusicAndSave(Integer diaryNo, String mainEmotion) {
+    private void saveMusicTracks(Integer diaryNo, List<Map<String, Object>> tracks) {
 
-        if (mainEmotion == null || mainEmotion.isEmpty()) {
-            log.warn("음악 추천 스킵 - mainEmotion 없음 (diaryNo: {})", diaryNo);
+        diaryMusicRepository.deleteByDiaryNo(diaryNo);
+
+        if (tracks == null || tracks.isEmpty()) {
+            log.warn("음악 추천 결과 없음 (diaryNo: {})", diaryNo);
             return;
         }
 
-        try {
-            Map<String, Object> requestMap = new HashMap<>();
-            requestMap.put("mainEmotion", mainEmotion);
+        int order = 0;
+        for (Map<String, Object> track : tracks) {
+            DiaryMusicEntity musicEntity = DiaryMusicEntity.builder()
+                    .diaryNo(diaryNo)
+                    .trackId((String) track.get("trackId"))
+                    .trackName((String) track.get("trackName"))
+                    .artistName((String) track.get("artistName"))
+                    .albumImageUrl((String) track.get("albumImageUrl"))
+                    .spotifyUrl((String) track.get("spotifyUrl"))
+                    .trackOrder(order++)
+                    .build();
 
-            ResponseEntity<Map> response = restClient.post()
-                    .uri(pythonApiUrl + "/api/music/recommend")
-                    .body(requestMap)
-                    .retrieve()
-                    .toEntity(Map.class);
-
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                log.error("음악 추천 요청 실패. Status: {}", response.getStatusCode());
-                return;
-            }
-
-            List<Map<String, Object>> tracks = (List<Map<String, Object>>) response.getBody().get("tracks");
-
-            if (tracks == null || tracks.isEmpty()) {
-                log.warn("음악 추천 결과 없음 (diaryNo: {})", diaryNo);
-                return;
-            }
-
-            int order = 0;
-            for (Map<String, Object> track : tracks) {
-                DiaryMusicEntity musicEntity = DiaryMusicEntity.builder()
-                        .diaryNo(diaryNo)
-                        .trackId((String) track.get("trackId"))
-                        .trackName((String) track.get("trackName"))
-                        .artistName((String) track.get("artistName"))
-                        .albumImageUrl((String) track.get("albumImageUrl"))
-                        .spotifyUrl((String) track.get("spotifyUrl"))
-                        .trackOrder(order++)
-                        .build();
-
-                diaryMusicRepository.save(musicEntity);
-            }
-
-            log.info("음악 추천 저장 완료 (diaryNo: {}, {}곡)", diaryNo, tracks.size());
-
-        } catch (Exception e) {
-            log.error("음악 추천 통신 에러: {}", e.getMessage());
+            diaryMusicRepository.save(musicEntity);
         }
+
+        log.info("음악 추천 저장 완료 (diaryNo: {}, {}곡)", diaryNo, tracks.size());
     }
 
     @Value("${secure.python.api.url}")
@@ -238,8 +213,7 @@ public class DiaryService implements IDiaryService {
 
             res = pEntity.getDiaryNo();
 
-            String mainEmotion = requestAnalysisAndUpdate(pEntity, pEntity.getTitle(), pEntity.getContent());
-            requestMusicAndSave(pEntity.getDiaryNo(), mainEmotion);
+            requestAnalysisAndUpdate(pEntity, pEntity.getTitle(), pEntity.getContent());
 
         } catch (Exception e) {
             res = 0;
