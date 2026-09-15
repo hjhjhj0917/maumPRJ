@@ -22,6 +22,7 @@ public record DiaryDTO(
         String createdAt,
         Integer isFavorite,
         Integer isPinned,
-        List<DiaryImageDTO> images
+        List<DiaryImageDTO> images,
+        List<DiaryMusicDTO> musics
 ) {
 }

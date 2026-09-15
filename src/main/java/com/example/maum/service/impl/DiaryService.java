@@ -2,14 +2,17 @@ package com.example.maum.service.impl;
 
 import com.example.maum.dto.DiaryDTO;
 import com.example.maum.dto.DiaryImageDTO;
+import com.example.maum.dto.DiaryMusicDTO;
 import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
 import com.example.maum.repository.DiaryImageRepository;
 import com.example.maum.repository.DiaryLogRepository;
+import com.example.maum.repository.DiaryMusicRepository;
 import com.example.maum.repository.DiaryRepository;
 import com.example.maum.repository.entity.DiaryEntity;
 import com.example.maum.repository.entity.DiaryImageEntity;
 import com.example.maum.repository.entity.DiaryLogDocument;
+import com.example.maum.repository.entity.DiaryMusicEntity;
 import com.example.maum.service.IDiaryService;
 import com.example.maum.service.IGcsService;
 import com.example.maum.util.CmmUtil;
@@ -45,6 +48,7 @@ public class DiaryService implements IDiaryService {
     private final DiaryRepository diaryRepository;
     private final DiaryLogRepository diaryLogRepository;
     private final DiaryImageRepository diaryImageRepository;
+    private final DiaryMusicRepository diaryMusicRepository;
     private final IGcsService gcsService;
     private final MongoTemplate mongoTemplate;
 
@@ -88,9 +92,9 @@ public class DiaryService implements IDiaryService {
     }
 
     /*
-    파이썬 AI 서버로 감정 분석 요청
+    파이썬 AI 서버로 감정 분석 요청 - 분석된 대표 감정(mainEmotion)을 반환함 (실패 시 null, 음악 추천에 사용)
     */
-    private void requestAnalysisAndUpdate(DiaryEntity entity, String newTitle, String newContent) {
+    private String requestAnalysisAndUpdate(DiaryEntity entity, String newTitle, String newContent) {
 
         try {
             Map<String, Object> requestMap = new HashMap<>();
@@ -135,6 +139,8 @@ public class DiaryService implements IDiaryService {
 
                     log.info("분석 결과 DB 반영 완료 (Color: {})", emotionColor);
 
+                    return mainEmotion;
+
                 } catch (Exception parseEx) {
                     log.error("분석 결과 파싱 실패: {}", parseEx.getMessage());
                 }
@@ -143,6 +149,62 @@ public class DiaryService implements IDiaryService {
             }
         } catch (Exception e) {
             log.error("파이썬 서버 통신 에러: {}", e.getMessage());
+        }
+
+        return null;
+    }
+
+    /*
+    파이썬 AI 서버로 감정 기반 음악 추천 요청 - 검색된 곡들을 DIARY_MUSIC에 저장함
+    */
+    private void requestMusicAndSave(Integer diaryNo, String mainEmotion) {
+
+        if (mainEmotion == null || mainEmotion.isEmpty()) {
+            log.warn("음악 추천 스킵 - mainEmotion 없음 (diaryNo: {})", diaryNo);
+            return;
+        }
+
+        try {
+            Map<String, Object> requestMap = new HashMap<>();
+            requestMap.put("mainEmotion", mainEmotion);
+
+            ResponseEntity<Map> response = restClient.post()
+                    .uri(pythonApiUrl + "/api/music/recommend")
+                    .body(requestMap)
+                    .retrieve()
+                    .toEntity(Map.class);
+
+            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                log.error("음악 추천 요청 실패. Status: {}", response.getStatusCode());
+                return;
+            }
+
+            List<Map<String, Object>> tracks = (List<Map<String, Object>>) response.getBody().get("tracks");
+
+            if (tracks == null || tracks.isEmpty()) {
+                log.warn("음악 추천 결과 없음 (diaryNo: {})", diaryNo);
+                return;
+            }
+
+            int order = 0;
+            for (Map<String, Object> track : tracks) {
+                DiaryMusicEntity musicEntity = DiaryMusicEntity.builder()
+                        .diaryNo(diaryNo)
+                        .trackId((String) track.get("trackId"))
+                        .trackName((String) track.get("trackName"))
+                        .artistName((String) track.get("artistName"))
+                        .albumImageUrl((String) track.get("albumImageUrl"))
+                        .spotifyUrl((String) track.get("spotifyUrl"))
+                        .trackOrder(order++)
+                        .build();
+
+                diaryMusicRepository.save(musicEntity);
+            }
+
+            log.info("음악 추천 저장 완료 (diaryNo: {}, {}곡)", diaryNo, tracks.size());
+
+        } catch (Exception e) {
+            log.error("음악 추천 통신 에러: {}", e.getMessage());
         }
     }
 
@@ -176,7 +238,8 @@ public class DiaryService implements IDiaryService {
 
             res = pEntity.getDiaryNo();
 
-            requestAnalysisAndUpdate(pEntity, pEntity.getTitle(), pEntity.getContent());
+            String mainEmotion = requestAnalysisAndUpdate(pEntity, pEntity.getTitle(), pEntity.getContent());
+            requestMusicAndSave(pEntity.getDiaryNo(), mainEmotion);
 
         } catch (Exception e) {
             res = 0;
@@ -381,6 +444,20 @@ public class DiaryService implements IDiaryService {
                             .build())
                     .collect(Collectors.toList());
 
+            List<DiaryMusicDTO> musics = diaryMusicRepository.findByDiaryNoOrderByTrackOrderAsc(rEntity.getDiaryNo())
+                    .stream()
+                    .map(m -> DiaryMusicDTO.builder()
+                            .musicNo(m.getMusicNo())
+                            .diaryNo(m.getDiaryNo())
+                            .trackId(m.getTrackId())
+                            .trackName(m.getTrackName())
+                            .artistName(m.getArtistName())
+                            .albumImageUrl(m.getAlbumImageUrl())
+                            .spotifyUrl(m.getSpotifyUrl())
+                            .trackOrder(m.getTrackOrder())
+                            .build())
+                    .collect(Collectors.toList());
+
             rDTO = DiaryDTO.builder()
                     .diaryNo(rEntity.getDiaryNo())
                     .userNo(rEntity.getUserNo())
@@ -395,6 +472,7 @@ public class DiaryService implements IDiaryService {
                     .isFavorite(rEntity.getIsFavorite())
                     .createdAt(DateUtil.formatLocalDate(rEntity.getCreatedAt(), "yyyy-MM-dd"))
                     .images(images)
+                    .musics(musics)
                     .build();
         } else {
             throw new Exception("해당 일기를 찾을 수 없습니다.");
