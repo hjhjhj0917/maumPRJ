@@ -1,9 +1,13 @@
 package com.example.maum.service;
 
+import com.example.maum.dto.DepressionTrendDTO;
 import com.example.maum.dto.DiaryDTO;
 import com.example.maum.dto.DiaryImageDTO;
+import com.example.maum.dto.DiaryStatsDTO;
 import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
+import com.example.maum.dto.ReportCardDTO;
+import com.example.maum.dto.TopMusicDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -64,6 +68,26 @@ public interface IDiaryService {
     마이페이지 감정 통계 조회
     */
     List<EmotionStatDTO> getEmotionStats(String userNoStr) throws Exception;
+
+    /*
+    마이페이지 - 총 작성 수 / 연속 작성일 통계 조회
+    */
+    DiaryStatsDTO getDiaryStats(String userNo) throws Exception;
+
+    /*
+    마이페이지 - 최근 6개월 월별 우울 지수 추이 조회
+    */
+    List<DepressionTrendDTO> getDepressionTrend(String userNo) throws Exception;
+
+    /*
+    마이페이지 - 가장 많이 추천된 음악 Top N 조회
+    */
+    List<TopMusicDTO> getTopRecommendedMusic(String userNo) throws Exception;
+
+    /*
+    마이페이지 - 최근 일주일 일기를 바탕으로 한 주간 리포트 카드(Gemini 코멘트) 조회
+    */
+    ReportCardDTO getWeeklyReport(String userNo) throws Exception;
 
     /*
     즐겨찾기
