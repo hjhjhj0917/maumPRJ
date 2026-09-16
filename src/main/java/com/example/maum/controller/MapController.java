@@ -1,6 +1,7 @@
 package com.example.maum.controller;
 
 import com.example.maum.controller.response.CommonResponse;
+import com.example.maum.dto.MentalInstDTO;
 import com.example.maum.repository.entity.MentalInstDocument;
 import com.example.maum.service.IMentalInstService;
 import lombok.RequiredArgsConstructor;
@@ -24,17 +25,21 @@ public class MapController {
     private final IMentalInstService mentalInstService;
 
     @GetMapping("/institutions")
-    public ResponseEntity<CommonResponse<List<MentalInstDocument>>> getInstitutions() throws Exception {
+    public ResponseEntity<CommonResponse<List<MentalInstDTO>>> getInstitutions() throws Exception {
 
         log.info("{}.getInstitutions Start!", this.getClass().getName());
 
         List<MentalInstDocument> rList = Optional.ofNullable(mentalInstService.getAllInstitutions())
                 .orElseGet(ArrayList::new);
 
+        List<MentalInstDTO> rDTOList = rList.stream()
+                .map(MentalInstDTO::from)
+                .toList();
+
         log.info("{}.getInstitutions End!", this.getClass().getName());
 
         return ResponseEntity.ok(
-                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rList)
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTOList)
         );
     }
 }
