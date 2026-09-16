@@ -17,6 +17,7 @@ import com.example.maum.service.IDiaryService;
 import com.example.maum.service.IGcsService;
 import com.example.maum.util.CmmUtil;
 import com.example.maum.util.DateUtil;
+import com.example.maum.util.EmotionColorMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +27,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
@@ -52,44 +52,7 @@ public class DiaryService implements IDiaryService {
     private final IGcsService gcsService;
     private final MongoTemplate mongoTemplate;
 
-    private final RestClient restClient = createRestClientWithTimeout();
-
-    /*
-    RestClient 타임아웃 설정
-    */
-    private RestClient createRestClientWithTimeout() {
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(10000);
-        factory.setReadTimeout(120000);
-
-        return RestClient.builder()
-                .requestFactory(factory)
-                .build();
-    }
-
-    /*
-    감정에 따른 색상 코드 반환
-    */
-    private String getEmotionColor(String emotion) {
-        List<String> yellow = Arrays.asList("즐거움/신남", "행복", "기쁨", "뿌듯함", "흐뭇함(귀여움/예쁨)", "감동/감탄", "고마움", "환영/호의");
-        List<String> mint = Arrays.asList("안심/신뢰", "존경", "아껴주는", "편안/쾌적");
-        List<String> purple = Arrays.asList("공포/무서움", "불안/걱정", "부담/안_내킴", "의심/불신");
-        List<String> blue = Arrays.asList("놀람", "신기함/관심", "어이없음", "경악", "당황/난처");
-        List<String> darkBlue = Arrays.asList("슬픔", "절망", "서러움", "불쌍함/연민", "안타까움/실망", "패배/자기혐오", "힘듦/지침");
-        List<String> olive = Arrays.asList("역겨움/징그러움", "증오/혐오", "지긋지긋", "한심함");
-        List<String> red = Arrays.asList("화남/분노", "짜증", "불평/불만");
-        List<String> orange = Arrays.asList("기대감", "비장함", "깨달음");
-
-        if (yellow.contains(emotion)) return "#FFF0A8";
-        if (mint.contains(emotion)) return "#A8E6CF";
-        if (purple.contains(emotion)) return "#DDBDF1";
-        if (blue.contains(emotion)) return "#A2D2FF";
-        if (darkBlue.contains(emotion)) return "#8EA4D2";
-        if (olive.contains(emotion)) return "#C5D8A4";
-        if (red.contains(emotion)) return "#FFB3B3";
-        if (orange.contains(emotion)) return "#FFDFBA";
-        return "#D9D9D9";
-    }
+    private final RestClient pythonApiRestClient;
 
     /*
     파이썬 AI 서버로 감정 분석 요청 - 응답에 포함된 감정 기반 음악 추천 결과(tracks)도 함께 저장함
@@ -106,7 +69,7 @@ public class DiaryService implements IDiaryService {
             requestMap.put("content", newContent);
             requestMap.put("disease_type", "depression");
 
-            ResponseEntity<Map> response = restClient.post()
+            ResponseEntity<Map> response = pythonApiRestClient.post()
                     .uri(pythonApiUrl + "/api/analyze")
                     .body(requestMap)
                     .retrieve()
@@ -663,7 +626,7 @@ public class DiaryService implements IDiaryService {
             EmotionStatDTO dto = new EmotionStatDTO(
                     entry.getKey(),
                     entry.getValue(),
-                    getEmotionColor(entry.getKey())
+                    EmotionColorMapper.getColor(entry.getKey())
             );
             rList.add(dto);
         }
