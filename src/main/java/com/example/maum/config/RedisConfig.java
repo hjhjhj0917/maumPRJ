@@ -58,6 +58,8 @@ public class RedisConfig {
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
         cacheConfigurations.put("diaryCache", config.entryTtl(Duration.ofHours(1)));
+        // Gemini 호출 비용이 크므로 주간 리포트는 하루 단위로만 갱신
+        cacheConfigurations.put("weeklyReportCache", config.entryTtl(Duration.ofHours(24)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(config)

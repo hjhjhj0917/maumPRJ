@@ -1,10 +1,14 @@
 package com.example.maum.controller;
 
 import com.example.maum.controller.response.CommonResponse;
+import com.example.maum.dto.DepressionTrendDTO;
 import com.example.maum.dto.DiaryDTO;
 import com.example.maum.dto.DiaryImageDTO;
+import com.example.maum.dto.DiaryStatsDTO;
 import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
+import com.example.maum.dto.ReportCardDTO;
+import com.example.maum.dto.TopMusicDTO;
 import com.example.maum.service.impl.DiaryService;
 import com.example.maum.util.CmmUtil;
 import lombok.RequiredArgsConstructor;
@@ -320,6 +324,86 @@ public class DiaryController {
 
         return ResponseEntity.ok(
                 CommonResponse.of(HttpStatus.OK, "감정 통계 조회 성공", rList)
+        );
+    }
+
+    /*
+    마이페이지 - 총 작성 수 / 연속 작성일 통계 조회
+    */
+    @GetMapping("/stats/summary")
+    public ResponseEntity<CommonResponse<DiaryStatsDTO>> getDiaryStats(@AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.getDiaryStats Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        DiaryStatsDTO rDTO = Optional.ofNullable(diaryService.getDiaryStats(userNo))
+                .orElseThrow(() -> new RuntimeException("통계 조회에 실패하였습니다."));
+
+        log.info("{}.getDiaryStats End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, "통계 조회 성공", rDTO)
+        );
+    }
+
+    /*
+    마이페이지 - 최근 6개월 월별 우울 지수 추이 조회
+    */
+    @GetMapping("/stats/trend")
+    public ResponseEntity<CommonResponse<List<DepressionTrendDTO>>> getDepressionTrend(@AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.getDepressionTrend Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        List<DepressionTrendDTO> rList = Optional.ofNullable(diaryService.getDepressionTrend(userNo))
+                .orElseGet(ArrayList::new);
+
+        log.info("{}.getDepressionTrend End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, "우울 지수 추이 조회 성공", rList)
+        );
+    }
+
+    /*
+    마이페이지 - 가장 많이 추천된 음악 Top N 조회
+    */
+    @GetMapping("/stats/top-music")
+    public ResponseEntity<CommonResponse<List<TopMusicDTO>>> getTopRecommendedMusic(@AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.getTopRecommendedMusic Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        List<TopMusicDTO> rList = Optional.ofNullable(diaryService.getTopRecommendedMusic(userNo))
+                .orElseGet(ArrayList::new);
+
+        log.info("{}.getTopRecommendedMusic End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, "인기 추천곡 조회 성공", rList)
+        );
+    }
+
+    /*
+    마이페이지 - 최근 일주일 일기를 바탕으로 한 주간 리포트 카드 조회
+    */
+    @GetMapping("/stats/report")
+    public ResponseEntity<CommonResponse<ReportCardDTO>> getWeeklyReport(@AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.getWeeklyReport Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        ReportCardDTO rDTO = Optional.ofNullable(diaryService.getWeeklyReport(userNo))
+                .orElseThrow(() -> new RuntimeException("주간 리포트 조회에 실패하였습니다."));
+
+        log.info("{}.getWeeklyReport End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, "주간 리포트 조회 성공", rDTO)
         );
     }
 

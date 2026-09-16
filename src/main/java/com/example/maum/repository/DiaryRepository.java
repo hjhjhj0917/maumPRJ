@@ -1,6 +1,7 @@
 package com.example.maum.repository;
 
 import com.example.maum.repository.entity.DiaryEntity;
+import com.example.maum.repository.projection.DepressionTrendProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -23,6 +24,25 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
     List<DiaryEntity> findTop20ByUserNoOrderByIsPinnedDescCreatedAtDesc(String userNo);
 
     List<DiaryEntity> findByUserNoAndIsFavoriteOrderByCreatedAtDesc(String userNo, Integer isFavorite);
+
+    long countByUserNo(String userNo);
+
+    // 연속 작성일 계산용 - 최신순으로 작성 날짜만 조회
+    @Query("SELECT DISTINCT d.createdAt FROM DiaryEntity d WHERE d.userNo = :userNo ORDER BY d.createdAt DESC")
+    List<LocalDate> findAllCreatedAtByUserNoOrderByCreatedAtDesc(@Param("userNo") String userNo);
+
+    // 마이페이지 - 최근 N개월 월별 평균 우울 지수 추이
+    @Query(value = "SELECT DATE_FORMAT(CREATED_AT, '%Y-%m') AS month, " +
+            "AVG(DEP_SCORE) AS avgDepScore, COUNT(*) AS diaryCount " +
+            "FROM DIARY " +
+            "WHERE USER_NO = :userNo AND DEP_SCORE IS NOT NULL AND CREATED_AT >= :fromDate " +
+            "GROUP BY DATE_FORMAT(CREATED_AT, '%Y-%m') " +
+            "ORDER BY month ASC",
+            nativeQuery = true)
+    List<DepressionTrendProjection> findDepressionTrendByUserNo(
+            @Param("userNo") String userNo,
+            @Param("fromDate") LocalDate fromDate
+    );
 
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE DIARY SET SUMMARY = :summary, MAIN_EMOTION = :mainEmotion, " +

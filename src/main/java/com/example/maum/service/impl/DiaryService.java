@@ -1,10 +1,14 @@
 package com.example.maum.service.impl;
 
+import com.example.maum.dto.DepressionTrendDTO;
 import com.example.maum.dto.DiaryDTO;
 import com.example.maum.dto.DiaryImageDTO;
 import com.example.maum.dto.DiaryMusicDTO;
+import com.example.maum.dto.DiaryStatsDTO;
 import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
+import com.example.maum.dto.ReportCardDTO;
+import com.example.maum.dto.TopMusicDTO;
 import com.example.maum.repository.DiaryImageRepository;
 import com.example.maum.repository.DiaryLogRepository;
 import com.example.maum.repository.DiaryMusicRepository;
@@ -13,6 +17,8 @@ import com.example.maum.repository.entity.DiaryEntity;
 import com.example.maum.repository.entity.DiaryImageEntity;
 import com.example.maum.repository.entity.DiaryLogDocument;
 import com.example.maum.repository.entity.DiaryMusicEntity;
+import com.example.maum.repository.projection.DepressionTrendProjection;
+import com.example.maum.repository.projection.TopMusicProjection;
 import com.example.maum.service.IDiaryService;
 import com.example.maum.service.IGcsService;
 import com.example.maum.util.CmmUtil;
@@ -23,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -33,6 +40,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
@@ -634,6 +642,232 @@ public class DiaryService implements IDiaryService {
         log.info("{}.getEmotionStats End!", this.getClass().getName());
 
         return rList;
+    }
+
+    /*
+    마이페이지 - 총 작성 수 / 연속 작성일 통계 조회
+    */
+    @Transactional(readOnly = true)
+    @Override
+    public DiaryStatsDTO getDiaryStats(String userNo) throws Exception {
+
+        log.info("{}.getDiaryStats Start!", this.getClass().getName());
+
+        String sUserNo = CmmUtil.nvl(userNo);
+
+        long totalCount = diaryRepository.countByUserNo(sUserNo);
+
+        List<LocalDate> dates = Optional.ofNullable(
+                diaryRepository.findAllCreatedAtByUserNoOrderByCreatedAtDesc(sUserNo)
+        ).orElseGet(ArrayList::new);
+
+        int currentStreak = calculateCurrentStreak(dates);
+        int longestStreak = calculateLongestStreak(dates);
+
+        DiaryStatsDTO rDTO = DiaryStatsDTO.builder()
+                .totalCount(totalCount)
+                .currentStreak(currentStreak)
+                .longestStreak(longestStreak)
+                .build();
+
+        log.info("{}.getDiaryStats End!", this.getClass().getName());
+
+        return rDTO;
+    }
+
+    /*
+    최신순으로 정렬된 날짜 목록에서 오늘 또는 어제부터 이어지는 연속 작성일 계산
+    */
+    private int calculateCurrentStreak(List<LocalDate> descDates) {
+
+        if (descDates.isEmpty()) {
+            return 0;
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalDate mostRecent = descDates.get(0);
+
+        if (!mostRecent.equals(today) && !mostRecent.equals(today.minusDays(1))) {
+            return 0;
+        }
+
+        int streak = 1;
+        LocalDate cursor = mostRecent;
+
+        for (int i = 1; i < descDates.size(); i++) {
+            LocalDate expected = cursor.minusDays(1);
+
+            if (descDates.get(i).equals(expected)) {
+                streak++;
+                cursor = expected;
+            } else {
+                break;
+            }
+        }
+
+        return streak;
+    }
+
+    /*
+    최신순으로 정렬된 날짜 목록 전체를 훑어 역대 최장 연속 작성일 계산
+    */
+    private int calculateLongestStreak(List<LocalDate> descDates) {
+
+        if (descDates.isEmpty()) {
+            return 0;
+        }
+
+        int longest = 1;
+        int running = 1;
+
+        for (int i = 1; i < descDates.size(); i++) {
+            if (descDates.get(i).equals(descDates.get(i - 1).minusDays(1))) {
+                running++;
+            } else {
+                running = 1;
+            }
+            longest = Math.max(longest, running);
+        }
+
+        return longest;
+    }
+
+    /*
+    마이페이지 - 최근 6개월 월별 우울 지수 추이 조회
+    */
+    @Transactional(readOnly = true)
+    @Override
+    public List<DepressionTrendDTO> getDepressionTrend(String userNo) throws Exception {
+
+        log.info("{}.getDepressionTrend Start!", this.getClass().getName());
+
+        String sUserNo = CmmUtil.nvl(userNo);
+        LocalDate fromDate = LocalDate.now().minusMonths(5).withDayOfMonth(1);
+
+        List<DepressionTrendProjection> projections = Optional.ofNullable(
+                diaryRepository.findDepressionTrendByUserNo(sUserNo, fromDate)
+        ).orElseGet(ArrayList::new);
+
+        List<DepressionTrendDTO> rList = projections.stream()
+                .map(p -> DepressionTrendDTO.builder()
+                        .month(p.getMonth())
+                        .avgDepScore(p.getAvgDepScore())
+                        .diaryCount(p.getDiaryCount())
+                        .build())
+                .collect(Collectors.toList());
+
+        log.info("{}.getDepressionTrend End!", this.getClass().getName());
+
+        return rList;
+    }
+
+    private static final int TOP_MUSIC_LIMIT = 5;
+
+    /*
+    마이페이지 - 가장 많이 추천된 음악 Top N 조회
+    */
+    @Transactional(readOnly = true)
+    @Override
+    public List<TopMusicDTO> getTopRecommendedMusic(String userNo) throws Exception {
+
+        log.info("{}.getTopRecommendedMusic Start!", this.getClass().getName());
+
+        String sUserNo = CmmUtil.nvl(userNo);
+
+        List<TopMusicProjection> projections = Optional.ofNullable(
+                diaryMusicRepository.findTopRecommendedMusicByUserNo(sUserNo, PageRequest.of(0, TOP_MUSIC_LIMIT))
+        ).orElseGet(ArrayList::new);
+
+        List<TopMusicDTO> rList = projections.stream()
+                .map(p -> TopMusicDTO.builder()
+                        .trackName(p.getTrackName())
+                        .artistName(p.getArtistName())
+                        .albumImageUrl(p.getAlbumImageUrl())
+                        .spotifyUrl(p.getSpotifyUrl())
+                        .recommendCount(p.getRecommendCount())
+                        .build())
+                .collect(Collectors.toList());
+
+        log.info("{}.getTopRecommendedMusic End!", this.getClass().getName());
+
+        return rList;
+    }
+
+    private static final int WEEKLY_REPORT_PERIOD_DAYS = 7;
+
+    /*
+    마이페이지 - 최근 일주일 일기를 바탕으로 한 주간 리포트 카드(Gemini 코멘트) 조회
+    Gemini 호출 비용 때문에 하루 단위(weeklyReportCache TTL 24시간)로 결과를 캐싱함
+    */
+    @Cacheable(value = "weeklyReportCache", key = "#userNo")
+    @Override
+    public ReportCardDTO getWeeklyReport(String userNo) throws Exception {
+
+        log.info("{}.getWeeklyReport Start!", this.getClass().getName());
+
+        String sUserNo = CmmUtil.nvl(userNo);
+
+        LocalDate today = LocalDate.now();
+        LocalDate weekAgo = today.minusDays(WEEKLY_REPORT_PERIOD_DAYS - 1);
+
+        List<DiaryEntity> entities = Optional.ofNullable(
+                diaryRepository.findAllByUserNoAndCreatedAtBetween(sUserNo, weekAgo, today)
+        ).orElseGet(ArrayList::new);
+
+        List<Map<String, Object>> entryMaps = entities.stream()
+                .filter(e -> e.getSummary() != null)
+                .map(e -> {
+                    Map<String, Object> entry = new HashMap<>();
+                    entry.put("title", CmmUtil.nvl(e.getTitle()));
+                    entry.put("summary", CmmUtil.nvl(e.getSummary()));
+                    entry.put("main_emotion", CmmUtil.nvl(e.getMainEmotion()));
+                    return entry;
+                })
+                .collect(Collectors.toList());
+
+        String comment;
+        try {
+            Map<String, Object> requestMap = new HashMap<>();
+            requestMap.put("user_no", Integer.parseInt(sUserNo));
+            requestMap.put("entries", entryMaps);
+
+            ResponseEntity<Map> response = pythonApiRestClient.post()
+                    .uri(pythonApiUrl + "/api/weekly-report")
+                    .body(requestMap)
+                    .retrieve()
+                    .toEntity(Map.class);
+
+            comment = (response.getStatusCode().is2xxSuccessful() && response.getBody() != null)
+                    ? CmmUtil.nvl((String) response.getBody().get("comment"))
+                    : "이번 한 주도 스스로를 잘 돌보고 계시네요. 다음 주도 응원할게요.";
+
+        } catch (Exception e) {
+            log.error("주간 리포트 생성 요청 실패: {}", e.getMessage());
+            comment = "이번 한 주도 스스로를 잘 돌보고 계시네요. 다음 주도 응원할게요.";
+        }
+
+        List<BigDecimal> depScores = entities.stream()
+                .map(DiaryEntity::getDepScore)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        BigDecimal avgDepScore = depScores.isEmpty()
+                ? null
+                : depScores.stream()
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .divide(BigDecimal.valueOf(depScores.size()), 1, RoundingMode.HALF_UP);
+
+        ReportCardDTO rDTO = ReportCardDTO.builder()
+                .comment(comment)
+                .periodStart(DateUtil.formatLocalDate(weekAgo, "yyyy-MM-dd"))
+                .periodEnd(DateUtil.formatLocalDate(today, "yyyy-MM-dd"))
+                .diaryCount(entities.size())
+                .avgDepScore(avgDepScore)
+                .build();
+
+        log.info("{}.getWeeklyReport End!", this.getClass().getName());
+
+        return rDTO;
     }
 
     /*
