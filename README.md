@@ -59,6 +59,10 @@ React의 모든 요청은 이 서버를 거쳐 처리되며, 감정 분석·챗�
 ### 6. 자동화된 데이터 관리 (Scheduler)
 - `DataUpdateScheduler`, `UserCleanupScheduler`를 통해 공공데이터를 최신 상태로 유지하고 불필요한 유저 데이터를 주기적으로 정리합니다.
 
+### 7. 마이페이지 통계 & 주간 리포트
+- 총 작성 수, 연속 작성일(최장 기록 포함), 최근 6개월 월별 우울 지수 추이, 가장 많이 추천된 음악 Top 5, 즐겨찾기 일기를 각각 집계·조회하는 API를 제공합니다.
+- 최근 일주일간 작성된 일기를 모아 AI 서버(Gemini)에 요약 코멘트를 요청하는 **주간 리포트** 기능을 제공하며, 호출 비용을 고려해 Redis에 24시간 캐싱합니다.
+
 ---
 
 ## Project Structure
@@ -73,7 +77,8 @@ src/main/java/com/example/maum/
  ├── dto/             # 데이터 전송 객체 (ChatBot, Diary, DiaryImage, DiaryMusic, UserInfo 등)
  ├── jwt/             # 토큰 리졸버 및 JWT 인증 로직
  ├── repository/      # MariaDB, MongoDB 데이터 접근 인터페이스
- │    └── entity/     # DB 엔티티 및 도큐먼트 객체 (Diary, DiaryImage, DiaryMusic, MentalInst 등)
+ │    ├── entity/     # DB 엔티티 및 도큐먼트 객체 (Diary, DiaryImage, DiaryMusic, MentalInst 등)
+ │    └── projection/ # 통계성 native 쿼리 결과를 매핑하는 프로젝션 인터페이스
  ├── scheduler/       # 데이터 및 유저 정보 정리 스케줄러 로직
  ├── security/        # RedisBlacklist 등 보안 필터 로직
  ├── service/         # 도메인별 핵심 비즈니스 로직
