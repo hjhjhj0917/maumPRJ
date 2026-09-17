@@ -8,6 +8,7 @@ import lombok.Builder;
 public record DiaryImageDTO(
         Integer imageNo,
         Integer diaryNo,
+        String userNo,
         String imageUrl,
         Integer imageOrder
 ) {

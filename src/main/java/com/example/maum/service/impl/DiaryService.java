@@ -606,11 +606,11 @@ public class DiaryService implements IDiaryService {
     마이페이지 감정 통계 조회
     */
     @Override
-    public List<EmotionStatDTO> getEmotionStats(String userNoStr) throws Exception {
+    public List<EmotionStatDTO> getEmotionStats(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.getEmotionStats Start!", this.getClass().getName());
 
-        Integer userNo = Integer.parseInt(userNoStr);
+        Integer userNo = Integer.parseInt(CmmUtil.nvl(pDTO.userNo()));
         List<DiaryLogDocument> logs = diaryLogRepository.findByUserNo(userNo);
         Map<String, Integer> countMap = new HashMap<>();
 
@@ -649,11 +649,11 @@ public class DiaryService implements IDiaryService {
     */
     @Transactional(readOnly = true)
     @Override
-    public DiaryStatsDTO getDiaryStats(String userNo) throws Exception {
+    public DiaryStatsDTO getDiaryStats(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.getDiaryStats Start!", this.getClass().getName());
 
-        String sUserNo = CmmUtil.nvl(userNo);
+        String sUserNo = CmmUtil.nvl(pDTO.userNo());
 
         long totalCount = diaryRepository.countByUserNo(sUserNo);
 
@@ -737,11 +737,11 @@ public class DiaryService implements IDiaryService {
     */
     @Transactional(readOnly = true)
     @Override
-    public List<DepressionTrendDTO> getDepressionTrend(String userNo) throws Exception {
+    public List<DepressionTrendDTO> getDepressionTrend(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.getDepressionTrend Start!", this.getClass().getName());
 
-        String sUserNo = CmmUtil.nvl(userNo);
+        String sUserNo = CmmUtil.nvl(pDTO.userNo());
         LocalDate fromDate = LocalDate.now().minusMonths(5).withDayOfMonth(1);
 
         List<DepressionTrendProjection> projections = Optional.ofNullable(
@@ -768,11 +768,11 @@ public class DiaryService implements IDiaryService {
     */
     @Transactional(readOnly = true)
     @Override
-    public List<TopMusicDTO> getTopRecommendedMusic(String userNo) throws Exception {
+    public List<TopMusicDTO> getTopRecommendedMusic(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.getTopRecommendedMusic Start!", this.getClass().getName());
 
-        String sUserNo = CmmUtil.nvl(userNo);
+        String sUserNo = CmmUtil.nvl(pDTO.userNo());
 
         List<TopMusicProjection> projections = Optional.ofNullable(
                 diaryMusicRepository.findTopRecommendedMusicByUserNo(sUserNo, PageRequest.of(0, TOP_MUSIC_LIMIT))
@@ -799,13 +799,13 @@ public class DiaryService implements IDiaryService {
     마이페이지 - 최근 일주일 일기를 바탕으로 한 주간 리포트 카드(Gemini 코멘트) 조회
     Gemini 호출 비용 때문에 하루 단위(weeklyReportCache TTL 24시간)로 결과를 캐싱함
     */
-    @Cacheable(value = "weeklyReportCache", key = "#userNo")
+    @Cacheable(value = "weeklyReportCache", key = "#pDTO.userNo()")
     @Override
-    public ReportCardDTO getWeeklyReport(String userNo) throws Exception {
+    public ReportCardDTO getWeeklyReport(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.getWeeklyReport Start!", this.getClass().getName());
 
-        String sUserNo = CmmUtil.nvl(userNo);
+        String sUserNo = CmmUtil.nvl(pDTO.userNo());
 
         LocalDate today = LocalDate.now();
         LocalDate weekAgo = today.minusDays(WEEKLY_REPORT_PERIOD_DAYS - 1);
@@ -989,9 +989,12 @@ public class DiaryService implements IDiaryService {
     */
     @Transactional
     @Override
-    public MsgDTO deleteDiaryImage(Integer imageNo, String userNo) throws Exception {
+    public MsgDTO deleteDiaryImage(DiaryImageDTO pDTO) throws Exception {
 
         log.info("{}.deleteDiaryImage Start!", this.getClass().getName());
+
+        Integer imageNo = pDTO.imageNo();
+        String userNo = CmmUtil.nvl(pDTO.userNo());
 
         Optional<DiaryImageEntity> oImage = diaryImageRepository.findById(imageNo);
 

@@ -131,12 +131,12 @@ public class ChatBotService implements IChatBotService {
     }
 
     @Override
-    public ChatRoomDTO createRoom(String userNo) {
+    public ChatRoomDTO createRoom(ChatRoomDTO pDTO) {
         log.info("{}.createRoom Start!", this.getClass().getName());
 
         LocalDateTime now = LocalDateTime.now();
         ChatRoomEntity room = ChatRoomEntity.builder()
-                .userNo(userNo)
+                .userNo(pDTO.userNo())
                 .isPinned(0)
                 .createdAt(now)
                 .updatedAt(now)
@@ -148,19 +148,19 @@ public class ChatBotService implements IChatBotService {
     }
 
     @Override
-    public List<ChatRoomDTO> getRooms(String userNo) {
+    public List<ChatRoomDTO> getRooms(ChatRoomDTO pDTO) {
         log.info("{}.getRooms Start!", this.getClass().getName());
 
-        return chatRoomRepository.findByUserNoOrderByIsPinnedDescUpdatedAtDesc(userNo).stream()
+        return chatRoomRepository.findByUserNoOrderByIsPinnedDescUpdatedAtDesc(pDTO.userNo()).stream()
                 .map(this::toRoomDTO)
                 .toList();
     }
 
     @Override
-    public List<ChatMessageDTO> getRoomMessages(String userNo, Integer chatRoomNo) throws Exception {
+    public List<ChatMessageDTO> getRoomMessages(ChatRoomDTO pDTO) throws Exception {
         log.info("{}.getRoomMessages Start!", this.getClass().getName());
 
-        ChatRoomEntity room = chatRoomRepository.findByChatRoomNoAndUserNo(chatRoomNo, userNo)
+        ChatRoomEntity room = chatRoomRepository.findByChatRoomNoAndUserNo(pDTO.chatRoomNo(), pDTO.userNo())
                 .orElseThrow(() -> new Exception("존재하지 않거나 권한이 없는 채팅방입니다."));
 
         return chatMessageRepository.findByChatRoomNoOrderByCreatedAtAsc(room.getChatRoomNo()).stream()
@@ -170,10 +170,10 @@ public class ChatBotService implements IChatBotService {
 
     @Override
     @Transactional
-    public void renameRoom(String userNo, Integer chatRoomNo, String roomTitle) throws Exception {
+    public void renameRoom(ChatRoomDTO pDTO) throws Exception {
         log.info("{}.renameRoom Start!", this.getClass().getName());
 
-        int res = chatRoomRepository.updateTitleDirectly(chatRoomNo, userNo, roomTitle);
+        int res = chatRoomRepository.updateTitleDirectly(pDTO.chatRoomNo(), pDTO.userNo(), pDTO.roomTitle());
         if (res == 0) {
             throw new Exception("존재하지 않거나 권한이 없는 채팅방입니다.");
         }
@@ -181,10 +181,10 @@ public class ChatBotService implements IChatBotService {
 
     @Override
     @Transactional
-    public void pinRoom(String userNo, Integer chatRoomNo, Integer isPinned) throws Exception {
+    public void pinRoom(ChatRoomDTO pDTO) throws Exception {
         log.info("{}.pinRoom Start!", this.getClass().getName());
 
-        int res = chatRoomRepository.updatePinnedDirectly(chatRoomNo, userNo, isPinned);
+        int res = chatRoomRepository.updatePinnedDirectly(pDTO.chatRoomNo(), pDTO.userNo(), pDTO.isPinned());
         if (res == 0) {
             throw new Exception("존재하지 않거나 권한이 없는 채팅방입니다.");
         }
@@ -192,10 +192,10 @@ public class ChatBotService implements IChatBotService {
 
     @Override
     @Transactional
-    public void deleteRoom(String userNo, Integer chatRoomNo) throws Exception {
+    public void deleteRoom(ChatRoomDTO pDTO) throws Exception {
         log.info("{}.deleteRoom Start!", this.getClass().getName());
 
-        long res = chatRoomRepository.deleteByChatRoomNoAndUserNo(chatRoomNo, userNo);
+        long res = chatRoomRepository.deleteByChatRoomNoAndUserNo(pDTO.chatRoomNo(), pDTO.userNo());
         if (res == 0) {
             throw new Exception("존재하지 않거나 권한이 없는 채팅방입니다.");
         }

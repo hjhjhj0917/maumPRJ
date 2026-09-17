@@ -60,7 +60,9 @@ public class ChatBotController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        ChatRoomDTO rDTO = chatBotService.createRoom(userNo);
+        ChatRoomDTO pDTO = ChatRoomDTO.builder().userNo(userNo).build();
+
+        ChatRoomDTO rDTO = chatBotService.createRoom(pDTO);
 
         log.info("{}.createRoom End!", this.getClass().getName());
 
@@ -76,7 +78,9 @@ public class ChatBotController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        List<ChatRoomDTO> rList = Optional.ofNullable(chatBotService.getRooms(userNo))
+        ChatRoomDTO pDTO = ChatRoomDTO.builder().userNo(userNo).build();
+
+        List<ChatRoomDTO> rList = Optional.ofNullable(chatBotService.getRooms(pDTO))
                 .orElseGet(ArrayList::new);
 
         log.info("{}.getRooms End!", this.getClass().getName());
@@ -94,7 +98,13 @@ public class ChatBotController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        chatBotService.renameRoom(userNo, chatRoomNo, CmmUtil.nvl(dDTO.roomTitle()));
+        ChatRoomDTO pDTO = ChatRoomDTO.builder()
+                .chatRoomNo(chatRoomNo)
+                .userNo(userNo)
+                .roomTitle(CmmUtil.nvl(dDTO.roomTitle()))
+                .build();
+
+        chatBotService.renameRoom(pDTO);
 
         log.info("{}.renameRoom End!", this.getClass().getName());
 
@@ -112,7 +122,13 @@ public class ChatBotController {
         String userNo = CmmUtil.nvl(jwt.getSubject());
         Integer isPinned = dDTO.isPinned();
 
-        chatBotService.pinRoom(userNo, chatRoomNo, isPinned);
+        ChatRoomDTO pDTO = ChatRoomDTO.builder()
+                .chatRoomNo(chatRoomNo)
+                .userNo(userNo)
+                .isPinned(isPinned)
+                .build();
+
+        chatBotService.pinRoom(pDTO);
 
         String msg = (isPinned != null && isPinned == 1) ? "상단에 고정되었습니다." : "고정이 해제되었습니다.";
 
@@ -131,7 +147,12 @@ public class ChatBotController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        chatBotService.deleteRoom(userNo, chatRoomNo);
+        ChatRoomDTO pDTO = ChatRoomDTO.builder()
+                .chatRoomNo(chatRoomNo)
+                .userNo(userNo)
+                .build();
+
+        chatBotService.deleteRoom(pDTO);
 
         log.info("{}.deleteRoom End!", this.getClass().getName());
 
@@ -148,7 +169,12 @@ public class ChatBotController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        List<ChatMessageDTO> rList = Optional.ofNullable(chatBotService.getRoomMessages(userNo, chatRoomNo))
+        ChatRoomDTO pDTO = ChatRoomDTO.builder()
+                .chatRoomNo(chatRoomNo)
+                .userNo(userNo)
+                .build();
+
+        List<ChatMessageDTO> rList = Optional.ofNullable(chatBotService.getRoomMessages(pDTO))
                 .orElseGet(ArrayList::new);
 
         log.info("{}.getRoomMessages End!", this.getClass().getName());
