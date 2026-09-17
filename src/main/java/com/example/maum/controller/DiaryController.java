@@ -187,8 +187,8 @@ public class DiaryController {
     /*
     일기 상세 보기
     */
-    @GetMapping("/detail")
-    public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@RequestParam(value = "diaryNo") Integer diaryNo,
+    @GetMapping("/{diaryNo}")
+    public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@PathVariable Integer diaryNo,
                                                                    @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.getDiaryDetail Start!", this.getClass().getName());
@@ -317,7 +317,9 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        List<EmotionStatDTO> rList = Optional.ofNullable(diaryService.getEmotionStats(userNo))
+        DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).build();
+
+        List<EmotionStatDTO> rList = Optional.ofNullable(diaryService.getEmotionStats(pDTO))
                 .orElseGet(ArrayList::new);
 
         log.info("{}.getEmotionStats End!", this.getClass().getName());
@@ -337,7 +339,9 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        DiaryStatsDTO rDTO = Optional.ofNullable(diaryService.getDiaryStats(userNo))
+        DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).build();
+
+        DiaryStatsDTO rDTO = Optional.ofNullable(diaryService.getDiaryStats(pDTO))
                 .orElseThrow(() -> new RuntimeException("통계 조회에 실패하였습니다."));
 
         log.info("{}.getDiaryStats End!", this.getClass().getName());
@@ -357,7 +361,9 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        List<DepressionTrendDTO> rList = Optional.ofNullable(diaryService.getDepressionTrend(userNo))
+        DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).build();
+
+        List<DepressionTrendDTO> rList = Optional.ofNullable(diaryService.getDepressionTrend(pDTO))
                 .orElseGet(ArrayList::new);
 
         log.info("{}.getDepressionTrend End!", this.getClass().getName());
@@ -377,7 +383,9 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        List<TopMusicDTO> rList = Optional.ofNullable(diaryService.getTopRecommendedMusic(userNo))
+        DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).build();
+
+        List<TopMusicDTO> rList = Optional.ofNullable(diaryService.getTopRecommendedMusic(pDTO))
                 .orElseGet(ArrayList::new);
 
         log.info("{}.getTopRecommendedMusic End!", this.getClass().getName());
@@ -397,7 +405,9 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
-        ReportCardDTO rDTO = Optional.ofNullable(diaryService.getWeeklyReport(userNo))
+        DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).build();
+
+        ReportCardDTO rDTO = Optional.ofNullable(diaryService.getWeeklyReport(pDTO))
                 .orElseThrow(() -> new RuntimeException("주간 리포트 조회에 실패하였습니다."));
 
         log.info("{}.getWeeklyReport End!", this.getClass().getName());
@@ -511,9 +521,9 @@ public class DiaryController {
     /*
     일기 이미지 업로드 (GCS, 일기당 최대 3장)
     */
-    @PostMapping(value = "/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/{diaryNo}/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CommonResponse<List<DiaryImageDTO>>> uploadDiaryImages(
-            @RequestParam("diaryNo") Integer diaryNo,
+            @PathVariable Integer diaryNo,
             @RequestParam("images") List<MultipartFile> images,
             @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -542,7 +552,12 @@ public class DiaryController {
         String userNo = CmmUtil.nvl(jwt.getSubject());
         Integer imageNo = dDTO.imageNo();
 
-        MsgDTO rDTO = diaryService.deleteDiaryImage(imageNo, userNo);
+        DiaryImageDTO pDTO = DiaryImageDTO.builder()
+                .imageNo(imageNo)
+                .userNo(userNo)
+                .build();
+
+        MsgDTO rDTO = diaryService.deleteDiaryImage(pDTO);
 
         if (rDTO.result() != 1) {
             throw new IllegalArgumentException(rDTO.msg());

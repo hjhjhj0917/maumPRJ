@@ -11,15 +11,15 @@ public interface IChatBotService {
 
     Flux<String> streamChat(ChatBotDTO pDTO) throws Exception;
 
-    ChatRoomDTO createRoom(String userNo) throws Exception;
+    ChatRoomDTO createRoom(ChatRoomDTO pDTO) throws Exception;
 
-    List<ChatRoomDTO> getRooms(String userNo) throws Exception;
+    List<ChatRoomDTO> getRooms(ChatRoomDTO pDTO) throws Exception;
 
-    List<ChatMessageDTO> getRoomMessages(String userNo, Integer chatRoomNo) throws Exception;
+    List<ChatMessageDTO> getRoomMessages(ChatRoomDTO pDTO) throws Exception;
 
-    void renameRoom(String userNo, Integer chatRoomNo, String roomTitle) throws Exception;
+    void renameRoom(ChatRoomDTO pDTO) throws Exception;
 
-    void pinRoom(String userNo, Integer chatRoomNo, Integer isPinned) throws Exception;
+    void pinRoom(ChatRoomDTO pDTO) throws Exception;
 
-    void deleteRoom(String userNo, Integer chatRoomNo) throws Exception;
+    void deleteRoom(ChatRoomDTO pDTO) throws Exception;
 }

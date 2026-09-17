@@ -7,6 +7,7 @@ import lombok.Builder;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record ChatRoomDTO(
         Integer chatRoomNo,
+        String userNo,
         String roomTitle,
         Integer isPinned,
         String createdAt,
