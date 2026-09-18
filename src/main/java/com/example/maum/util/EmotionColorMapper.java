@@ -24,9 +24,6 @@ public class EmotionColorMapper {
     private EmotionColorMapper() {
     }
 
-    /*
-    감정에 따른 색상 코드 반환
-    */
     public static String getColor(String emotion) {
         if (YELLOW.contains(emotion)) return "#FFF0A8";
         if (MINT.contains(emotion)) return "#A8E6CF";

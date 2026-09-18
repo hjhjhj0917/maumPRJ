@@ -28,8 +28,8 @@ public class ChatBotController {
 
     private final IChatBotService chatBotService;
 
-    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE) /* 한 번에 처리하는게 아니라 조각조각 처리 */
-    public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception { /* 조가조각 처리가 가능한 객체 */
+    @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE) /* 응답을 한 번에 주지 않고 스트리밍으로 조각조각 전달 */
+    public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.chatStream Start!", this.getClass().getName());
 

@@ -36,17 +36,14 @@ public class LoginController {
         MsgDTO dto;
 
         try {
-            /*
-            * authenticationManager는 미인증 토큰(인증서)를
-            * DaoAuthenticationProvider전달 이게 몰래 loadUserByUsername 호출
-            * 해당 아이디 유저의 아이디와 암호화된 비밀번호와 현재 아이디와 평문 비번을 자동 암호화 해서 비교
-            */
+            // authenticationManager에 미인증 토큰을 넘기면 내부적으로 DaoAuthenticationProvider가
+            // loadUserByUsername을 호출해 DB의 암호화된 비밀번호와 대조함
             Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(pDTO.userId(), pDTO.password()) /* 인증전 단계에서 미인증 토큰 생성 */
+                    new UsernamePasswordAuthenticationToken(pDTO.userId(), pDTO.password())
             );
 
-            AuthInfo principal = (AuthInfo) auth.getPrincipal(); /* 검증이 완료된 정보를 가져와서 (AuthInfo) 전역 커스텀 클래스로 포장 */
-            UserInfoDTO u = principal.userInfoDTO(); /* 포장된 실질적인 유저의 상세 데이터 꺼냄 */
+            AuthInfo principal = (AuthInfo) auth.getPrincipal();
+            UserInfoDTO u = principal.userInfoDTO();
 
             jwtTokenService.issueTokens(u, response);
 
