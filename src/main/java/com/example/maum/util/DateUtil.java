@@ -37,12 +37,10 @@ public class DateUtil {
 
     }
 
-    // String을 파싱해서 LocalDate 객체로 변환
     public static LocalDate parseLocalDate(String dateStr, String fm) {
         return LocalDate.parse(dateStr, DateTimeFormatter.ofPattern(fm));
     }
 
-    // LocalDate 객체를 특정 포맷의 String으로 변환
     public static String formatLocalDate(LocalDate localDate, String fm) {
         return localDate.format(DateTimeFormatter.ofPattern(fm));
     }

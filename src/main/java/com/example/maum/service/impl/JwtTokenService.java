@@ -116,8 +116,9 @@ public class JwtTokenService implements IJwtTokenService {
                     Instant absExp = null;
 
                     if (absExpEpoch != null) {
-                        absExp = Instant.ofEpochSecond(absExpEpoch); /* 시간 객체로 변환 */
-                        if (Instant.now().isAfter(absExp)) { /* 현재 시각이 마료시간보다 뒤 인지 확인 */
+                        absExp = Instant.ofEpochSecond(absExpEpoch);
+                        // 리프레시가 반복돼도 최초 발급 시점 기준 절대 만료는 넘길 수 없음 (무기한 로그인 연장 방지)
+                        if (Instant.now().isAfter(absExp)) {
                             log.warn("절대 만료 시간이 지났습니다. 강제 로그아웃 처리됩니다. (userNo: {})", userNo);
                             redisService.deleteValues(redisKey);
                             return 0;

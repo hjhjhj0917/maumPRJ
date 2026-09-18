@@ -33,9 +33,6 @@ public class DiaryController {
 
     private final DiaryService diaryService;
 
-    /*
-    일기 등록
-    */
     @PostMapping(value = "diaryInsert")
     public ResponseEntity<CommonResponse<Integer>> diaryInsert(@RequestBody DiaryDTO dDTO,
                                                                @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -65,9 +62,7 @@ public class DiaryController {
         );
     }
 
-    /*
-    일기 임시저장 - AI 분석/음악 추천 없이 제목/내용만 저장 (자동저장용)
-    */
+    // AI 분석/음악 추천 없이 제목/내용만 저장 (자동저장용)
     @PostMapping(value = "draftSave")
     public ResponseEntity<CommonResponse<Integer>> diaryDraftSave(@RequestBody DiaryDTO dDTO,
                                                                    @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -97,9 +92,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    일기 수정
-    */
     @PostMapping(value = "diaryUpdate")
     public ResponseEntity<CommonResponse<Integer>> diaryUpdate(@RequestBody DiaryDTO dDTO,
                                                                @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -130,9 +122,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    일기 삭제
-    */
     @PostMapping(value = "diaryDelete")
     public ResponseEntity<CommonResponse<Integer>> diaryDelete(@RequestBody DiaryDTO dDTO,
                                                                @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -158,9 +147,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    월별 일기 목록 조회
-    */
     @GetMapping("/monthly")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getMonthlyDiaryList(DiaryDTO pDTO,
                                                                               @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -184,9 +170,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    일기 상세 보기
-    */
     @GetMapping("/{diaryNo}")
     public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@PathVariable Integer diaryNo,
                                                                    @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -210,9 +193,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    일기 제목 검색
-    */
     @GetMapping("/search")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> searchDiaryList(@RequestParam(value = "keyword") String keyword,
                                                                           @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -236,9 +216,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    감정 필터 검색
-    */
     @GetMapping("/filter")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> filterDiaryList(@RequestParam(value = "colors") List<String> colors,
                                                                           @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -257,9 +234,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    최근 일기 목록 조회
-    */
     @GetMapping("/recent")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getRecentDiaryList(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -283,9 +257,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    즐겨찾기 일기 목록 조회
-    */
     @GetMapping("/favorites")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getFavoriteDiaryList(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -307,9 +278,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    마이페이지 감정 통계 조회
-    */
     @GetMapping("/emotions/stats")
     public ResponseEntity<CommonResponse<List<EmotionStatDTO>>> getEmotionStats(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -329,9 +297,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    마이페이지 - 총 작성 수 / 연속 작성일 통계 조회
-    */
     @GetMapping("/stats/summary")
     public ResponseEntity<CommonResponse<DiaryStatsDTO>> getDiaryStats(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -351,9 +316,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    마이페이지 - 최근 6개월 월별 우울 지수 추이 조회
-    */
     @GetMapping("/stats/trend")
     public ResponseEntity<CommonResponse<List<DepressionTrendDTO>>> getDepressionTrend(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -373,9 +335,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    마이페이지 - 가장 많이 추천된 음악 Top N 조회
-    */
     @GetMapping("/stats/top-music")
     public ResponseEntity<CommonResponse<List<TopMusicDTO>>> getTopRecommendedMusic(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -395,9 +354,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    마이페이지 - 최근 일주일 일기를 바탕으로 한 주간 리포트 카드 조회
-    */
     @GetMapping("/stats/report")
     public ResponseEntity<CommonResponse<ReportCardDTO>> getWeeklyReport(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -417,9 +373,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    즐겨찾기
-    */
     @PostMapping("/favorite")
     public ResponseEntity<CommonResponse<Integer>> diaryFavorite(@RequestBody DiaryDTO dDTO,
                                                                  @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -453,9 +406,7 @@ public class DiaryController {
         );
     }
 
-    /*
-    제목만 수정 (사이드바 인라인 이름변경)
-    */
+    // 제목만 수정 (사이드바 인라인 이름변경용)
     @PostMapping("/title")
     public ResponseEntity<CommonResponse<Integer>> diaryUpdateTitle(@RequestBody DiaryDTO dDTO,
                                                                      @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -484,9 +435,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    사이드바 상단 고정
-    */
     @PostMapping("/pin")
     public ResponseEntity<CommonResponse<Integer>> diaryPin(@RequestBody DiaryDTO dDTO,
                                                              @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -518,9 +466,7 @@ public class DiaryController {
         );
     }
 
-    /*
-    일기 이미지 업로드 (GCS, 일기당 최대 3장)
-    */
+    // GCS에 업로드, 일기당 최대 3장까지 허용
     @PostMapping(value = "/{diaryNo}/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CommonResponse<List<DiaryImageDTO>>> uploadDiaryImages(
             @PathVariable Integer diaryNo,
@@ -540,9 +486,6 @@ public class DiaryController {
         );
     }
 
-    /*
-    일기 이미지 삭제
-    */
     @PostMapping(value = "/images/delete")
     public ResponseEntity<CommonResponse<Integer>> deleteDiaryImage(@RequestBody DiaryImageDTO dDTO,
                                                                      @AuthenticationPrincipal Jwt jwt) throws Exception {

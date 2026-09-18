@@ -62,9 +62,7 @@ public class DiaryService implements IDiaryService {
 
     private final RestClient pythonApiRestClient;
 
-    /*
-    파이썬 AI 서버로 감정 분석 요청 - 응답에 포함된 감정 기반 음악 추천 결과(tracks)도 함께 저장함
-    */
+    // 분석 응답에 포함된 감정 기반 음악 추천 결과(tracks)도 함께 저장함
     private void requestAnalysisAndUpdate(DiaryEntity entity, String newTitle, String newContent) {
 
         try {
@@ -123,10 +121,7 @@ public class DiaryService implements IDiaryService {
         }
     }
 
-    /*
-    감정분석 응답에 포함된 감정 기반 음악 추천 결과를 DIARY_MUSIC에 저장함.
-    재분석(수정)일 경우 기존 추천곡은 지우고 새로 저장함 (일기 내용이 바뀌면 추천도 바뀌어야 하므로)
-    */
+    // 재분석(수정)일 경우 기존 추천곡은 지우고 새로 저장함 (일기 내용이 바뀌면 추천도 바뀌어야 하므로)
     private void saveMusicTracks(Integer diaryNo, List<Map<String, Object>> tracks) {
 
         diaryMusicRepository.deleteByDiaryNo(diaryNo);
@@ -157,9 +152,6 @@ public class DiaryService implements IDiaryService {
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
 
-    /*
-    일기 등록
-    */
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -196,10 +188,7 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
-    /*
-    일기 임시저장 - AI 분석/음악 추천 호출 없이 제목/내용만 저장함.
-    diaryNo가 없으면 새로 생성하고, 있으면 그 자리에 덮어씀 (자동저장이 반복 호출되므로)
-    */
+    // diaryNo가 없으면 새로 생성하고, 있으면 그 자리에 덮어씀 (자동저장이 반복 호출되므로)
     @Transactional
     @Override
     public int draftSave(DiaryDTO pDTO) throws Exception {
@@ -243,9 +232,6 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
-    /*
-    일기 수정
-    */
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -290,9 +276,6 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
-    /*
-    일기 삭제
-    */
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -352,9 +335,6 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
-    /*
-    월별 일기 목록 조회
-    */
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception {
@@ -407,9 +387,6 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
-    /*
-    일기 상세 보기
-    */
     @Transactional(readOnly = true)
     @Override
     public DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception {
@@ -475,9 +452,6 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
-    /*
-    일기 제목 검색
-    */
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> searchDiaryList(DiaryDTO pDTO) throws Exception {
@@ -505,9 +479,6 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
-    /*
-    감정 필터 검색
-    */
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getDiaryListByColors(String userNo, List<String> colors) throws Exception {
@@ -534,9 +505,6 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
-    /*
-    최근 일기 목록 조회
-    */
     @Cacheable(value = "diaryCache", key = "#pDTO.userNo()", condition = "#pDTO.userNo() != null")
     @Override
     public List<DiaryDTO> getRecentDiaryList(DiaryDTO pDTO) throws Exception {
@@ -567,9 +535,6 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
-    /*
-    즐겨찾기 일기 목록 조회
-    */
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getFavoriteDiaryList(DiaryDTO pDTO) throws Exception {
@@ -602,9 +567,6 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
-    /*
-    마이페이지 감정 통계 조회
-    */
     @Override
     public List<EmotionStatDTO> getEmotionStats(DiaryDTO pDTO) throws Exception {
 
@@ -644,9 +606,6 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
-    /*
-    마이페이지 - 총 작성 수 / 연속 작성일 통계 조회
-    */
     @Transactional(readOnly = true)
     @Override
     public DiaryStatsDTO getDiaryStats(DiaryDTO pDTO) throws Exception {
@@ -708,9 +667,6 @@ public class DiaryService implements IDiaryService {
         return streak;
     }
 
-    /*
-    최신순으로 정렬된 날짜 목록 전체를 훑어 역대 최장 연속 작성일 계산
-    */
     private int calculateLongestStreak(List<LocalDate> descDates) {
 
         if (descDates.isEmpty()) {
@@ -732,9 +688,6 @@ public class DiaryService implements IDiaryService {
         return longest;
     }
 
-    /*
-    마이페이지 - 최근 6개월 월별 우울 지수 추이 조회
-    */
     @Transactional(readOnly = true)
     @Override
     public List<DepressionTrendDTO> getDepressionTrend(DiaryDTO pDTO) throws Exception {
@@ -763,9 +716,6 @@ public class DiaryService implements IDiaryService {
 
     private static final int TOP_MUSIC_LIMIT = 5;
 
-    /*
-    마이페이지 - 가장 많이 추천된 음악 Top N 조회
-    */
     @Transactional(readOnly = true)
     @Override
     public List<TopMusicDTO> getTopRecommendedMusic(DiaryDTO pDTO) throws Exception {
@@ -795,10 +745,7 @@ public class DiaryService implements IDiaryService {
 
     private static final int WEEKLY_REPORT_PERIOD_DAYS = 7;
 
-    /*
-    마이페이지 - 최근 일주일 일기를 바탕으로 한 주간 리포트 카드(Gemini 코멘트) 조회
-    Gemini 호출 비용 때문에 하루 단위(weeklyReportCache TTL 24시간)로 결과를 캐싱함
-    */
+    // Gemini 호출 비용 때문에 하루 단위(weeklyReportCache TTL 24시간)로 결과를 캐싱함
     @Cacheable(value = "weeklyReportCache", key = "#pDTO.userNo()")
     @Override
     public ReportCardDTO getWeeklyReport(DiaryDTO pDTO) throws Exception {
@@ -870,11 +817,8 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
-    /*
-    즐겨찾기
-    */
     @Transactional
-//    @CacheEvict(value = "diaryCache", allEntries = true) 마이페이지 리스트에도 캐시를 적용할 건가 확인이 필요
+    // @CacheEvict(value = "diaryCache", allEntries = true) 마이페이지 리스트에도 캐시를 적용할 건가 확인이 필요 (TODO)
     @Override
     public int updateFavorite(DiaryDTO pDTO) throws Exception {
 
@@ -893,9 +837,7 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
-    /*
-    제목만 수정 (사이드바 인라인 이름변경용)
-    */
+    // 사이드바 인라인 이름변경용
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -914,9 +856,6 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
-    /*
-    사이드바 상단 고정
-    */
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -935,9 +874,6 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
-    /*
-    일기 이미지 업로드 (GCS) - 일기당 최대 MAX_DIARY_IMAGE_COUNT장까지 허용
-    */
     @Transactional
     @Override
     public List<DiaryImageDTO> uploadDiaryImages(Integer diaryNo, String userNo, List<MultipartFile> images) throws Exception {
@@ -984,9 +920,6 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
-    /*
-    일기 이미지 삭제
-    */
     @Transactional
     @Override
     public MsgDTO deleteDiaryImage(DiaryImageDTO pDTO) throws Exception {

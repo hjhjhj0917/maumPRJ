@@ -49,7 +49,6 @@ public record UserInfoDTO(
 
         String existsYn) {
 
-        /* 회원 정보와 암호화된 비밀번호 그리고 역할을 부여받아서 DTO를 다시 반환함 +*/
         public static UserInfoDTO createUser(UserInfoDTO pDTO, String password, String roles) throws Exception {
 
                 return UserInfoDTO.builder()
@@ -65,7 +64,6 @@ public record UserInfoDTO(
                         .build();
         }
 
-        /* DTO를 Entity로 변환 */
         public static UserInfoEntity of(UserInfoDTO dto) {
 
                 return UserInfoEntity.builder()
@@ -81,7 +79,6 @@ public record UserInfoDTO(
                         .build();
         }
 
-        /* Entity를 DTO로 변환 */
         public static UserInfoDTO from(UserInfoEntity entity) throws Exception {
 
                 return UserInfoDTO.builder()

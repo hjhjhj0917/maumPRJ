@@ -8,10 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice /* 컨트롤러 계층으로 들어온 요청이 예외를 던지는 순간, 그 예외가 사용자에게 전달되지 않도록 중간에서 낚아챔 */
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(OptimisticLockException.class) /* 데이터베이스의 동시성 문제 해결을 위해 발생함 */
+    @ExceptionHandler(OptimisticLockException.class)
     public ResponseEntity<CommonResponse<MsgDTO>> handleOptimisticLockException(OptimisticLockException e) {
 
         MsgDTO dto = MsgDTO.builder()
@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
                 CommonResponse.of(HttpStatus.CONFLICT, HttpStatus.CONFLICT.series().name(), dto));
     }
 
-    @ExceptionHandler(IllegalArgumentException.class) /* 입력값에 문제가 있는 경우 발생함 */
+    @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<CommonResponse<String>> handleIllegalArgumentException(IllegalArgumentException e) {
 
         return ResponseEntity.ok(

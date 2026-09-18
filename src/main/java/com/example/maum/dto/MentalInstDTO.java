@@ -29,7 +29,6 @@ public record MentalInstDTO(
         }
     }
 
-    /* Entity를 DTO로 변환 */
     public static MentalInstDTO from(MentalInstDocument entity) {
 
         return MentalInstDTO.builder()

@@ -38,7 +38,7 @@ public class ChatBotService implements IChatBotService {
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
 
-    @PostConstruct /* 통신 설정 안에 같이 다 들어와야 실행한다 */
+    @PostConstruct // pythonApiUrl이 @Value로 주입된 뒤에 WebClient를 생성해야 하므로 생성자 대신 여기서 초기화
     public void init() {
         this.webClient = WebClient.builder()
                 .baseUrl(pythonApiUrl)
@@ -80,7 +80,6 @@ public class ChatBotService implements IChatBotService {
                 .history(recentHistory)
                 .build();
 
-        // 사용자 메시지 저장
         saveMessage(chatRoomNo, "user", pDTO.message());
 
         // 방 제목이 비어있으면(첫 메시지) 사용자 메시지 앞부분으로 자동 설정, 아니면 최근 활동 시각만 갱신
@@ -96,18 +95,18 @@ public class ChatBotService implements IChatBotService {
 
         return webClient.post()
                 .uri("/api/rag-chat")
-                .header("Accept", "text/plain") /* 파이썬에서 순수 텍스트를 받기로 함 */
+                .header("Accept", "text/plain") // 파이썬 쪽과 순수 텍스트로 주고받기로 합의됨
                 .bodyValue(requestDTO)
-                .retrieve() /* 응답 상태 준비 */
-                .bodyToFlux(String.class) /* 응답을 여러 조각으로 받음 */
-                .doOnNext(data -> { /* 실시간 데이터 처리 */
+                .retrieve()
+                .bodyToFlux(String.class)
+                .doOnNext(data -> {
                     log.info("Python Raw Data: {}", data);
                     // TTS 음성 데이터, 카드 JSON, 텍스트 완료 마커는 대화 기록에 노이즈만 되므로 저장하지 않음
                     if (!data.startsWith("[[AUDIO]]") && !data.startsWith("[[CARD]]") && !data.startsWith("[[TEXT_DONE]]")) {
                         botResponse.append(data);
                     }
                 })
-                .onErrorResume(e -> { /* 예외처리 회로 차단 */
+                .onErrorResume(e -> {
                     log.error("Python Communication Error: ", e);
                     return Flux.just("연결 중에 문제가 발생했어요. 잠시 후 다시 시도해주세요.");
                 })
@@ -121,7 +120,6 @@ public class ChatBotService implements IChatBotService {
                         return;
                     }
 
-                    /* <br>과 <sp> 태그를 변환하여 저장 */
                     String cleanBotResponse = botResponse.toString()
                             .replace("<br>", "  \n")
                             .replace("<sp>", " ");
