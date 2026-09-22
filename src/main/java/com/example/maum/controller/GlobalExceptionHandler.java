@@ -19,14 +19,14 @@ public class GlobalExceptionHandler {
                 .msg("다른 사용자가 먼저 변경했습니다. 다시 시도해주세요. error : " + e.getMessage())
                 .build();
 
-        return ResponseEntity.ok(
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 CommonResponse.of(HttpStatus.CONFLICT, HttpStatus.CONFLICT.series().name(), dto));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<CommonResponse<String>> handleIllegalArgumentException(IllegalArgumentException e) {
 
-        return ResponseEntity.ok(
+        return ResponseEntity.badRequest().body(
                 CommonResponse.of(HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.series().name(), e.getMessage()));
     }
 }
