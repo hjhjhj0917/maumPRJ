@@ -22,4 +22,6 @@ public interface IChatBotService {
     void pinRoom(ChatRoomDTO pDTO) throws Exception;
 
     void deleteRoom(ChatRoomDTO pDTO) throws Exception;
+
+    List<String> synthesizeMessageAudio(Long chatMsgNo, String userNo) throws Exception;
 }

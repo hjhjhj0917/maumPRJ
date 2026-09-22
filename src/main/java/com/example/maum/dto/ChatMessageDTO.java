@@ -6,7 +6,9 @@ import lombok.Builder;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record ChatMessageDTO(
+        Long chatMsgNo,
         String role,
-        String content
+        String content,
+        Boolean hasAudio
 ) {
 }

@@ -183,4 +183,22 @@ public class ChatBotController {
                 CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rList)
         );
     }
+
+    @PostMapping("/messages/{chatMsgNo}/tts")
+    public ResponseEntity<CommonResponse<List<String>>> synthesizeMessageAudio(
+            @PathVariable Long chatMsgNo, @AuthenticationPrincipal Jwt jwt) throws Exception {
+
+        log.info("{}.synthesizeMessageAudio Start!", this.getClass().getName());
+
+        String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        List<String> audioChunks = Optional.ofNullable(chatBotService.synthesizeMessageAudio(chatMsgNo, userNo))
+                .orElseGet(ArrayList::new);
+
+        log.info("{}.synthesizeMessageAudio End!", this.getClass().getName());
+
+        return ResponseEntity.ok(
+                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), audioChunks)
+        );
+    }
 }
