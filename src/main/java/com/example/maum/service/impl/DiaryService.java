@@ -26,6 +26,7 @@ import com.example.maum.util.DateUtil;
 import com.example.maum.util.EmotionColorMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -62,6 +63,14 @@ public class DiaryService implements IDiaryService {
 
     private final RestClient pythonApiRestClient;
 
+    // Python 분석 API 호출(느린 외부 호출)을 @Transactional 메서드 밖으로 뺀 뒤에도,
+    // DB 쓰기 부분(saveMusicTracks의 삭제+재삽입)만은 원자적으로 묶어야 해서 자기 자신을
+    // 프록시로 주입받아 씀 — 같은 클래스 안에서 this.saveMusicTracks(...)로 직접 호출하면
+    // Spring AOP 프록시를 거치지 않아 @Transactional이 무시되기 때문.
+    // ObjectProvider로 감싸면 생성자 주입 시점에 즉시 자기 자신을 조회하지 않고
+    // 실제 호출 시점(getObject())에 지연 조회하므로 순환 참조 문제도 없음
+    private final ObjectProvider<DiaryService> selfProvider;
+
     // 분석 응답에 포함된 감정 기반 음악 추천 결과(tracks)도 함께 저장함
     private void requestAnalysisAndUpdate(DiaryEntity entity, String newTitle, String newContent) {
 
@@ -96,19 +105,22 @@ public class DiaryService implements IDiaryService {
                     Object isSymptomObj = depRes.get("is_symptom");
                     Integer symptomYn = (isSymptomObj instanceof Boolean && (Boolean) isSymptomObj) ? 1 : 0;
 
-                    diaryRepository.updateAnalysisResultDirectly(
-                            Long.valueOf(entity.getDiaryNo()),
+                    // updateAnalysisResultDirectly는 @Modifying 커스텀 쿼리라 활성 트랜잭션이 반드시
+                    // 필요함(표준 CRUD 메서드와 달리 자체 트랜잭션이 없음) — saveMusicTracks(삭제+재삽입)와
+                    // 함께 하나의 트랜잭션으로 묶어야 원자적이므로, this.로 직접 부르지 않고
+                    // selfProvider로 얻은 프록시를 통해 한 번에 호출함
+                    selfProvider.getObject().applyAnalysisResult(
+                            entity.getDiaryNo(),
                             summary,
                             mainEmotion,
                             emotionColor,
                             depLvl,
                             depScore,
-                            symptomYn
+                            symptomYn,
+                            (List<Map<String, Object>>) responseBody.get("tracks")
                     );
 
                     log.info("분석 결과 DB 반영 완료 (Color: {})", emotionColor);
-
-                    saveMusicTracks(entity.getDiaryNo(), (List<Map<String, Object>>) responseBody.get("tracks"));
 
                 } catch (Exception parseEx) {
                     log.error("분석 결과 파싱 실패: {}", parseEx.getMessage());
@@ -119,6 +131,32 @@ public class DiaryService implements IDiaryService {
         } catch (Exception e) {
             log.error("파이썬 서버 통신 에러: {}", e.getMessage());
         }
+    }
+
+    // updateDiaryDirectly는 @Modifying 커스텀 쿼리라 활성 트랜잭션이 반드시 필요함 — diaryUpdate
+    // 전체를 @Transactional로 감싸면 뒤에 이어지는 requestAnalysisAndUpdate의 외부 API 호출까지
+    // 트랜잭션에 걸리게 되므로, 이 짧은 DB 쓰기 부분만 selfProvider 프록시로 따로 감쌈
+    @Transactional
+    public void updateDiaryContent(Integer diaryNo, String title, String content) {
+        diaryRepository.updateDiaryDirectly(Long.valueOf(diaryNo), title, content);
+    }
+
+    // 분석 결과(감정/우울도) DB 반영과 음악 추천 저장을 하나의 트랜잭션으로 묶음 — 감정 분석
+    // 결과만 반영되고 음악 추천 저장은 실패하는(또는 그 반대) 반쪽짜리 상태를 막기 위함.
+    // updateAnalysisResultDirectly는 @Modifying 커스텀 쿼리라 활성 트랜잭션이 반드시 필요하고,
+    // selfProvider를 통해 프록시로 호출되어야 하므로 public이어야 함 (Spring AOP는 프록시를 거치는
+    // 외부 호출에만 적용되고, private 메서드는 애초에 프록시가 오버라이드할 수 없어 적용이 불가능함)
+    @Transactional
+    public void applyAnalysisResult(Integer diaryNo, String summary, String mainEmotion, String emotionColor,
+                                     Integer depLvl, BigDecimal depScore, Integer symptomYn,
+                                     List<Map<String, Object>> tracks) {
+
+        diaryRepository.updateAnalysisResultDirectly(
+                Long.valueOf(diaryNo), summary, mainEmotion, emotionColor, depLvl, depScore, symptomYn
+        );
+
+        // 같은 트랜잭션(프록시를 통해 이미 진입한 상태) 안이므로 this.로 직접 호출해도 됨
+        saveMusicTracks(diaryNo, tracks);
     }
 
     // 재분석(수정)일 경우 기존 추천곡은 지우고 새로 저장함 (일기 내용이 바뀌면 추천도 바뀌어야 하므로)
@@ -152,7 +190,9 @@ public class DiaryService implements IDiaryService {
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
 
-    @Transactional
+    // requestAnalysisAndUpdate가 Python 분석 API를 동기 호출하는데, 여기에 @Transactional을
+    // 붙이면 그 호출이 끝날 때까지 DB 커넥션을 붙잡고 있게 되어 일부러 빼둠 — diaryRepository.save()
+    // 자체는 Spring Data JPA가 메서드 단위로 자동으로 트랜잭션 처리해주므로 원자성엔 문제없음
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
     public int diaryInsert(DiaryDTO pDTO) throws Exception {
@@ -232,7 +272,9 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
-    @Transactional
+    // requestAnalysisAndUpdate의 외부 API 호출을 트랜잭션 밖에서 실행하기 위해 메서드 전체를
+    // @Transactional로 감싸지는 않되, updateDiaryDirectly(@Modifying 커스텀 쿼리라 활성 트랜잭션이
+    // 반드시 필요함)는 selfProvider 프록시를 통해 짧은 트랜잭션으로 따로 감싸서 호출함
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
     public MsgDTO diaryUpdate(DiaryDTO pDTO) throws Exception {
@@ -253,7 +295,7 @@ public class DiaryService implements IDiaryService {
             DiaryEntity entity = rEntity.get();
 
             if (entity.getUserNo().equals(userNo)) {
-                diaryRepository.updateDiaryDirectly(Long.valueOf(diaryNo), title, content);
+                selfProvider.getObject().updateDiaryContent(diaryNo, title, content);
 
                 requestAnalysisAndUpdate(entity, title, content);
 
@@ -276,7 +318,9 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
-    @Transactional
+    // GCS 이미지 삭제(외부 네트워크 호출)가 DB 삭제보다 먼저 일어나는데, @Transactional을 붙이면
+    // 그 GCS 호출이 끝날 때까지 DB 커넥션을 붙잡게 되어 빼둠 — diaryRepository.delete(entity)는
+    // Spring Data JPA가 메서드 단위로 자동 트랜잭션 처리해주므로 그 자체의 원자성엔 문제없음
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
     public MsgDTO diaryDelete(DiaryDTO pDTO) throws Exception {
@@ -392,60 +436,56 @@ public class DiaryService implements IDiaryService {
     public DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception {
         log.info("{}.getDiaryDetail Start!", this.getClass().getName());
 
-        Optional<DiaryEntity> oEntity = diaryRepository.findById(pDTO.diaryNo());
+        // uploadDiaryImages와 동일한 패턴으로 통일 — GlobalExceptionHandler가 잡을 수 있는
+        // IllegalArgumentException을 던져야 400으로 응답됨(예전엔 checked Exception이라
+        // GlobalExceptionHandler를 거치지 못하고 500으로 응답됐음)
+        DiaryEntity rEntity = diaryRepository.findById(pDTO.diaryNo())
+                .orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
 
-        DiaryDTO rDTO;
-
-        if (oEntity.isPresent()) {
-            DiaryEntity rEntity = oEntity.get();
-
-            if (!rEntity.getUserNo().equals(pDTO.userNo())) {
-                throw new Exception("해당 일기에 대한 접근 권한이 없습니다.");
-            }
-
-            List<DiaryImageDTO> images = diaryImageRepository.findByDiaryNoOrderByImageOrderAsc(rEntity.getDiaryNo())
-                    .stream()
-                    .map(img -> DiaryImageDTO.builder()
-                            .imageNo(img.getImageNo())
-                            .diaryNo(img.getDiaryNo())
-                            .imageUrl(img.getImageUrl())
-                            .imageOrder(img.getImageOrder())
-                            .build())
-                    .collect(Collectors.toList());
-
-            List<DiaryMusicDTO> musics = diaryMusicRepository.findByDiaryNoOrderByTrackOrderAsc(rEntity.getDiaryNo())
-                    .stream()
-                    .map(m -> DiaryMusicDTO.builder()
-                            .musicNo(m.getMusicNo())
-                            .diaryNo(m.getDiaryNo())
-                            .trackId(m.getTrackId())
-                            .trackName(m.getTrackName())
-                            .artistName(m.getArtistName())
-                            .albumImageUrl(m.getAlbumImageUrl())
-                            .spotifyUrl(m.getSpotifyUrl())
-                            .trackOrder(m.getTrackOrder())
-                            .build())
-                    .collect(Collectors.toList());
-
-            rDTO = DiaryDTO.builder()
-                    .diaryNo(rEntity.getDiaryNo())
-                    .userNo(rEntity.getUserNo())
-                    .title(rEntity.getTitle())
-                    .content(rEntity.getContent())
-                    .emotionColor(rEntity.getEmotionColor())
-                    .mainEmotion(rEntity.getMainEmotion())
-                    .summary(rEntity.getSummary())
-                    .depLvl(rEntity.getDepLvl())
-                    .depScore(rEntity.getDepScore())
-                    .symptomYn(rEntity.getSymptomYn())
-                    .isFavorite(rEntity.getIsFavorite())
-                    .createdAt(DateUtil.formatLocalDate(rEntity.getCreatedAt(), "yyyy-MM-dd"))
-                    .images(images)
-                    .musics(musics)
-                    .build();
-        } else {
-            throw new Exception("해당 일기를 찾을 수 없습니다.");
+        if (!rEntity.getUserNo().equals(pDTO.userNo())) {
+            throw new IllegalArgumentException("해당 일기에 대한 접근 권한이 없습니다.");
         }
+
+        List<DiaryImageDTO> images = diaryImageRepository.findByDiaryNoOrderByImageOrderAsc(rEntity.getDiaryNo())
+                .stream()
+                .map(img -> DiaryImageDTO.builder()
+                        .imageNo(img.getImageNo())
+                        .diaryNo(img.getDiaryNo())
+                        .imageUrl(img.getImageUrl())
+                        .imageOrder(img.getImageOrder())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<DiaryMusicDTO> musics = diaryMusicRepository.findByDiaryNoOrderByTrackOrderAsc(rEntity.getDiaryNo())
+                .stream()
+                .map(m -> DiaryMusicDTO.builder()
+                        .musicNo(m.getMusicNo())
+                        .diaryNo(m.getDiaryNo())
+                        .trackId(m.getTrackId())
+                        .trackName(m.getTrackName())
+                        .artistName(m.getArtistName())
+                        .albumImageUrl(m.getAlbumImageUrl())
+                        .spotifyUrl(m.getSpotifyUrl())
+                        .trackOrder(m.getTrackOrder())
+                        .build())
+                .collect(Collectors.toList());
+
+        DiaryDTO rDTO = DiaryDTO.builder()
+                .diaryNo(rEntity.getDiaryNo())
+                .userNo(rEntity.getUserNo())
+                .title(rEntity.getTitle())
+                .content(rEntity.getContent())
+                .emotionColor(rEntity.getEmotionColor())
+                .mainEmotion(rEntity.getMainEmotion())
+                .summary(rEntity.getSummary())
+                .depLvl(rEntity.getDepLvl())
+                .depScore(rEntity.getDepScore())
+                .symptomYn(rEntity.getSymptomYn())
+                .isFavorite(rEntity.getIsFavorite())
+                .createdAt(DateUtil.formatLocalDate(rEntity.getCreatedAt(), "yyyy-MM-dd"))
+                .images(images)
+                .musics(musics)
+                .build();
 
         log.info("{}.getDiaryDetail End!", this.getClass().getName());
 
@@ -874,7 +914,9 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
-    @Transactional
+    // 루프 안에서 gcsService.uploadImage(외부 네트워크 호출)를 반복 호출하는데, @Transactional을
+    // 붙이면 이미지 개수만큼 호출이 끝날 때까지 DB 커넥션을 계속 붙잡게 되어 빼둠 —
+    // diaryImageRepository.save()는 이미지 한 장마다 자체적으로 원자적으로 커밋됨
     @Override
     public List<DiaryImageDTO> uploadDiaryImages(Integer diaryNo, String userNo, List<MultipartFile> images) throws Exception {
 
