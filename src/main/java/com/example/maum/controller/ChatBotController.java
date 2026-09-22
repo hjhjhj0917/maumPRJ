@@ -28,6 +28,7 @@ public class ChatBotController {
 
     private final IChatBotService chatBotService;
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE) /* 응답을 한 번에 주지 않고 스트리밍으로 조각조각 전달 */
     public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -53,6 +54,7 @@ public class ChatBotController {
         return res;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping("/rooms")
     public ResponseEntity<CommonResponse<ChatRoomDTO>> createRoom(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -71,6 +73,7 @@ public class ChatBotController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/rooms")
     public ResponseEntity<CommonResponse<List<ChatRoomDTO>>> getRooms(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -90,6 +93,7 @@ public class ChatBotController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping("/rooms/{chatRoomNo}/title")
     public ResponseEntity<CommonResponse<Integer>> renameRoom(
             @PathVariable Integer chatRoomNo, @RequestBody ChatRoomDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -113,6 +117,7 @@ public class ChatBotController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping("/rooms/{chatRoomNo}/pin")
     public ResponseEntity<CommonResponse<Integer>> pinRoom(
             @PathVariable Integer chatRoomNo, @RequestBody ChatRoomDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -139,6 +144,7 @@ public class ChatBotController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @DeleteMapping("/rooms/{chatRoomNo}")
     public ResponseEntity<CommonResponse<Integer>> deleteRoom(
             @PathVariable Integer chatRoomNo, @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -161,6 +167,7 @@ public class ChatBotController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/rooms/{chatRoomNo}/messages")
     public ResponseEntity<CommonResponse<List<ChatMessageDTO>>> getRoomMessages(
             @PathVariable Integer chatRoomNo, @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -184,6 +191,7 @@ public class ChatBotController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping("/messages/{chatMsgNo}/tts")
     public ResponseEntity<CommonResponse<List<String>>> synthesizeMessageAudio(
             @PathVariable Long chatMsgNo, @AuthenticationPrincipal Jwt jwt) throws Exception {

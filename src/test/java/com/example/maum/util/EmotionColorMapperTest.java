@@ -6,6 +6,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+// ★ 즐겨찾기 이후 추가/수정
 class EmotionColorMapperTest {
 
     @ParameterizedTest

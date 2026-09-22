@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 @DynamicUpdate
 @Builder
 @Entity
+// ★ 즐겨찾기 이후 추가/수정
 public class ChatRoomEntity implements Serializable {
 
     @Id

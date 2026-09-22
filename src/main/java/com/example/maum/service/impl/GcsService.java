@@ -18,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @Slf4j
+// ★ 즐겨찾기 이후 추가/수정
 public class GcsService implements IGcsService {
 
     @Value("${secure.gcs.bucket-name}")

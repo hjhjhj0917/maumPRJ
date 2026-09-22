@@ -24,6 +24,7 @@ public class MapController {
 
     private final IMentalInstService mentalInstService;
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/institutions")
     public ResponseEntity<CommonResponse<List<MentalInstDTO>>> getInstitutions() throws Exception {
 

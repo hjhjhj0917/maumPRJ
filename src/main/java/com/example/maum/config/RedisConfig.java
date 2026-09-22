@@ -50,6 +50,7 @@ public class RedisConfig {
         return redisTemplate;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()

@@ -19,6 +19,7 @@ public record MentalInstDTO(
             String type,
             java.util.List<Double> coordinates
     ) {
+        // ★ 즐겨찾기 이후 추가/수정
         public static Location from(MentalInstDocument.Location location) {
             if (location == null) return null;
 
@@ -29,6 +30,7 @@ public record MentalInstDTO(
         }
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     public static MentalInstDTO from(MentalInstDocument entity) {
 
         return MentalInstDTO.builder()

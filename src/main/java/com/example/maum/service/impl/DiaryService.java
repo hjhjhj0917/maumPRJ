@@ -71,6 +71,7 @@ public class DiaryService implements IDiaryService {
     // 실제 호출 시점(getObject())에 지연 조회하므로 순환 참조 문제도 없음
     private final ObjectProvider<DiaryService> selfProvider;
 
+    // ★ 즐겨찾기 이후 추가/수정
     // 분석 응답에 포함된 감정 기반 음악 추천 결과(tracks)도 함께 저장함
     private void requestAnalysisAndUpdate(DiaryEntity entity, String newTitle, String newContent) {
 
@@ -136,6 +137,7 @@ public class DiaryService implements IDiaryService {
     // updateDiaryDirectly는 @Modifying 커스텀 쿼리라 활성 트랜잭션이 반드시 필요함 — diaryUpdate
     // 전체를 @Transactional로 감싸면 뒤에 이어지는 requestAnalysisAndUpdate의 외부 API 호출까지
     // 트랜잭션에 걸리게 되므로, 이 짧은 DB 쓰기 부분만 selfProvider 프록시로 따로 감쌈
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional
     public void updateDiaryContent(Integer diaryNo, String title, String content) {
         diaryRepository.updateDiaryDirectly(Long.valueOf(diaryNo), title, content);
@@ -146,6 +148,7 @@ public class DiaryService implements IDiaryService {
     // updateAnalysisResultDirectly는 @Modifying 커스텀 쿼리라 활성 트랜잭션이 반드시 필요하고,
     // selfProvider를 통해 프록시로 호출되어야 하므로 public이어야 함 (Spring AOP는 프록시를 거치는
     // 외부 호출에만 적용되고, private 메서드는 애초에 프록시가 오버라이드할 수 없어 적용이 불가능함)
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional
     public void applyAnalysisResult(Integer diaryNo, String summary, String mainEmotion, String emotionColor,
                                      Integer depLvl, BigDecimal depScore, Integer symptomYn,
@@ -159,6 +162,7 @@ public class DiaryService implements IDiaryService {
         saveMusicTracks(diaryNo, tracks);
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     // 재분석(수정)일 경우 기존 추천곡은 지우고 새로 저장함 (일기 내용이 바뀌면 추천도 바뀌어야 하므로)
     private void saveMusicTracks(Integer diaryNo, List<Map<String, Object>> tracks) {
 
@@ -228,6 +232,7 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     // diaryNo가 없으면 새로 생성하고, 있으면 그 자리에 덮어씀 (자동저장이 반복 호출되므로)
     @Transactional
     @Override
@@ -272,6 +277,7 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     // requestAnalysisAndUpdate의 외부 API 호출을 트랜잭션 밖에서 실행하기 위해 메서드 전체를
     // @Transactional로 감싸지는 않되, updateDiaryDirectly(@Modifying 커스텀 쿼리라 활성 트랜잭션이
     // 반드시 필요함)는 selfProvider 프록시를 통해 짧은 트랜잭션으로 따로 감싸서 호출함
@@ -318,6 +324,7 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     // GCS 이미지 삭제(외부 네트워크 호출)가 DB 삭제보다 먼저 일어나는데, @Transactional을 붙이면
     // 그 GCS 호출이 끝날 때까지 DB 커넥션을 붙잡게 되어 빼둠 — diaryRepository.delete(entity)는
     // Spring Data JPA가 메서드 단위로 자동 트랜잭션 처리해주므로 그 자체의 원자성엔 문제없음
@@ -379,6 +386,7 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception {
@@ -431,6 +439,7 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception {
@@ -492,6 +501,7 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> searchDiaryList(DiaryDTO pDTO) throws Exception {
@@ -519,6 +529,7 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getDiaryListByColors(String userNo, List<String> colors) throws Exception {
@@ -545,6 +556,7 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Cacheable(value = "diaryCache", key = "#pDTO.userNo()", condition = "#pDTO.userNo() != null")
     @Override
     public List<DiaryDTO> getRecentDiaryList(DiaryDTO pDTO) throws Exception {
@@ -575,6 +587,7 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getFavoriteDiaryList(DiaryDTO pDTO) throws Exception {
@@ -607,6 +620,7 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Override
     public List<EmotionStatDTO> getEmotionStats(DiaryDTO pDTO) throws Exception {
 
@@ -646,6 +660,7 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public DiaryStatsDTO getDiaryStats(DiaryDTO pDTO) throws Exception {
@@ -674,6 +689,7 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     /*
     최신순으로 정렬된 날짜 목록에서 오늘 또는 어제부터 이어지는 연속 작성일 계산
     */
@@ -707,6 +723,7 @@ public class DiaryService implements IDiaryService {
         return streak;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     private int calculateLongestStreak(List<LocalDate> descDates) {
 
         if (descDates.isEmpty()) {
@@ -728,6 +745,7 @@ public class DiaryService implements IDiaryService {
         return longest;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public List<DepressionTrendDTO> getDepressionTrend(DiaryDTO pDTO) throws Exception {
@@ -756,6 +774,7 @@ public class DiaryService implements IDiaryService {
 
     private static final int TOP_MUSIC_LIMIT = 5;
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public List<TopMusicDTO> getTopRecommendedMusic(DiaryDTO pDTO) throws Exception {
@@ -785,6 +804,7 @@ public class DiaryService implements IDiaryService {
 
     private static final int WEEKLY_REPORT_PERIOD_DAYS = 7;
 
+    // ★ 즐겨찾기 이후 추가/수정
     // Gemini 호출 비용 때문에 하루 단위(weeklyReportCache TTL 24시간)로 결과를 캐싱함
     @Cacheable(value = "weeklyReportCache", key = "#pDTO.userNo()")
     @Override
@@ -857,6 +877,7 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional
     // @CacheEvict(value = "diaryCache", allEntries = true) 마이페이지 리스트에도 캐시를 적용할 건가 확인이 필요 (TODO)
     @Override
@@ -877,6 +898,7 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     // 사이드바 인라인 이름변경용
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
@@ -896,6 +918,7 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional
     @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
@@ -914,6 +937,7 @@ public class DiaryService implements IDiaryService {
         return res;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     // 루프 안에서 gcsService.uploadImage(외부 네트워크 호출)를 반복 호출하는데, @Transactional을
     // 붙이면 이미지 개수만큼 호출이 끝날 때까지 DB 커넥션을 계속 붙잡게 되어 빼둠 —
     // diaryImageRepository.save()는 이미지 한 장마다 자체적으로 원자적으로 커밋됨
@@ -962,6 +986,7 @@ public class DiaryService implements IDiaryService {
         return rList;
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Transactional
     @Override
     public MsgDTO deleteDiaryImage(DiaryImageDTO pDTO) throws Exception {

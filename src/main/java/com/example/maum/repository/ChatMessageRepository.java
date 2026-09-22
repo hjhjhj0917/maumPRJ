@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
+// ★ 즐겨찾기 이후 추가/수정
 public interface ChatMessageRepository extends JpaRepository<ChatMessageEntity, Long> {
 
     List<ChatMessageEntity> findByChatRoomNoOrderByCreatedAtAsc(Integer chatRoomNo);
