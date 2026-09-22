@@ -33,6 +33,9 @@ public class ChatMessageEntity implements Serializable {
     @Column(name = "CONTENT", nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "HAS_AUDIO", nullable = false)
+    private Boolean hasAudio;
+
     @Column(name = "CREATED_AT", nullable = false)
     private LocalDateTime createdAt;
 

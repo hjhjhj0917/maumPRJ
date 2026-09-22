@@ -3,6 +3,8 @@ package com.example.maum.service.impl;
 import com.example.maum.dto.ChatBotDTO;
 import com.example.maum.dto.ChatMessageDTO;
 import com.example.maum.dto.ChatRoomDTO;
+import com.example.maum.dto.TtsRequestDTO;
+import com.example.maum.dto.TtsResponseDTO;
 import com.example.maum.repository.ChatMessageRepository;
 import com.example.maum.repository.ChatRoomRepository;
 import com.example.maum.repository.entity.ChatMessageEntity;
@@ -14,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
@@ -21,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Service
 @Slf4j
@@ -42,6 +46,11 @@ public class ChatBotService implements IChatBotService {
     public void init() {
         this.webClient = WebClient.builder()
                 .baseUrl(pythonApiUrl)
+                // /api/tts 응답(base64 오디오)이 WebClient 기본 버퍼 한도(256KB)를 넘어서
+                // DataBufferLimitException이 나는 것을 확인해서, 메시지 하나 분량(최대 10MB)까지 허용하도록 늘림
+                .exchangeStrategies(ExchangeStrategies.builder()
+                        .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
+                        .build())
                 .build();
     }
 
@@ -80,7 +89,7 @@ public class ChatBotService implements IChatBotService {
                 .history(recentHistory)
                 .build();
 
-        saveMessage(chatRoomNo, "user", pDTO.message());
+        saveMessage(chatRoomNo, "user", pDTO.message(), false);
 
         // 방 제목이 비어있으면(첫 메시지) 사용자 메시지 앞부분으로 자동 설정, 아니면 최근 활동 시각만 갱신
         LocalDateTime now = LocalDateTime.now();
@@ -92,6 +101,7 @@ public class ChatBotService implements IChatBotService {
         }
 
         StringBuilder botResponse = new StringBuilder();
+        AtomicBoolean hasAudio = new AtomicBoolean(false);
 
         return webClient.post()
                 .uri("/api/rag-chat")
@@ -101,8 +111,11 @@ public class ChatBotService implements IChatBotService {
                 .bodyToFlux(String.class)
                 .doOnNext(data -> {
                     log.info("Python Raw Data: {}", data);
-                    // TTS 음성 데이터, 카드 JSON, 텍스트 완료 마커는 대화 기록에 노이즈만 되므로 저장하지 않음
-                    if (!data.startsWith("[[AUDIO]]") && !data.startsWith("[[CARD]]") && !data.startsWith("[[TEXT_DONE]]")) {
+                    // TTS 음성 데이터 자체는 대화 기록에 노이즈만 되므로 저장하지 않고,
+                    // 나중에 다시 들을 때는 저장된 텍스트로 TTS를 재생성함(synthesizeMessageAudio) — 그때 쓸 표시만 남김
+                    if (data.startsWith("[[AUDIO]]")) {
+                        hasAudio.set(true);
+                    } else if (!data.startsWith("[[CARD]]") && !data.startsWith("[[TEXT_DONE]]")) {
                         botResponse.append(data);
                     }
                 })
@@ -124,7 +137,7 @@ public class ChatBotService implements IChatBotService {
                             .replace("<br>", "  \n")
                             .replace("<sp>", " ");
 
-                    saveMessage(chatRoomNo, "bot", cleanBotResponse);
+                    saveMessage(chatRoomNo, "bot", cleanBotResponse, hasAudio.get());
                 });
     }
 
@@ -162,8 +175,40 @@ public class ChatBotService implements IChatBotService {
                 .orElseThrow(() -> new Exception("존재하지 않거나 권한이 없는 채팅방입니다."));
 
         return chatMessageRepository.findByChatRoomNoOrderByCreatedAtAsc(room.getChatRoomNo()).stream()
-                .map(m -> ChatMessageDTO.builder().role(m.getRole()).content(m.getContent()).build())
+                .map(m -> ChatMessageDTO.builder()
+                        .chatMsgNo(m.getChatMsgNo())
+                        .role(m.getRole())
+                        .content(m.getContent())
+                        .hasAudio(m.getHasAudio())
+                        .build())
                 .toList();
+    }
+
+    @Override
+    public List<String> synthesizeMessageAudio(Long chatMsgNo, String userNo) throws Exception {
+        log.info("{}.synthesizeMessageAudio Start!", this.getClass().getName());
+
+        ChatMessageEntity message = chatMessageRepository.findById(chatMsgNo)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메시지입니다."));
+
+        // 채팅방 소유자 검증 — 다른 사용자의 메시지를 chatMsgNo만으로 재생하지 못하게 함
+        chatRoomRepository.findByChatRoomNoAndUserNo(message.getChatRoomNo(), userNo)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않거나 권한이 없는 채팅방입니다."));
+
+        TtsRequestDTO requestDTO = TtsRequestDTO.builder()
+                .text(message.getContent())
+                .build();
+
+        TtsResponseDTO response = webClient.post()
+                .uri("/api/tts")
+                .bodyValue(requestDTO)
+                .retrieve()
+                .bodyToMono(TtsResponseDTO.class)
+                .block();
+
+        log.info("{}.synthesizeMessageAudio End!", this.getClass().getName());
+
+        return response != null ? response.audioChunks() : Collections.emptyList();
     }
 
     @Override
@@ -199,11 +244,12 @@ public class ChatBotService implements IChatBotService {
         }
     }
 
-    private void saveMessage(Integer chatRoomNo, String role, String content) {
+    private void saveMessage(Integer chatRoomNo, String role, String content, boolean hasAudio) {
         ChatMessageEntity message = ChatMessageEntity.builder()
                 .chatRoomNo(chatRoomNo)
                 .role(role)
                 .content(content)
+                .hasAudio(hasAudio)
                 .createdAt(LocalDateTime.now())
                 .build();
         chatMessageRepository.save(message);
