@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/v1/stt")
 @RequiredArgsConstructor
 @Slf4j
+// ★ 즐겨찾기 이후 추가/수정
 public class SttController {
 
     private final ISttService sttService;

@@ -42,6 +42,7 @@ public class ChatBotService implements IChatBotService {
     @Value("${secure.python.api.url}")
     private String pythonApiUrl;
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostConstruct // pythonApiUrl이 @Value로 주입된 뒤에 WebClient를 생성해야 하므로 생성자 대신 여기서 초기화
     public void init() {
         this.webClient = WebClient.builder()
@@ -54,6 +55,7 @@ public class ChatBotService implements IChatBotService {
                 .build();
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Override
     @Transactional // updateTitleAndTouch/touchUpdatedAt이 @Modifying 커스텀 쿼리라 트랜잭션이 명시적으로 필요함
     // (여기서 여는 트랜잭션은 메서드 안의 동기적인 DB 조회/수정 구간까지만 걸리고,
@@ -141,6 +143,7 @@ public class ChatBotService implements IChatBotService {
                 });
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Override
     public ChatRoomDTO createRoom(ChatRoomDTO pDTO) {
         log.info("{}.createRoom Start!", this.getClass().getName());
@@ -158,6 +161,7 @@ public class ChatBotService implements IChatBotService {
         return toRoomDTO(saved);
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Override
     public List<ChatRoomDTO> getRooms(ChatRoomDTO pDTO) {
         log.info("{}.getRooms Start!", this.getClass().getName());
@@ -167,6 +171,7 @@ public class ChatBotService implements IChatBotService {
                 .toList();
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Override
     public List<ChatMessageDTO> getRoomMessages(ChatRoomDTO pDTO) throws Exception {
         log.info("{}.getRoomMessages Start!", this.getClass().getName());
@@ -184,6 +189,7 @@ public class ChatBotService implements IChatBotService {
                 .toList();
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Override
     public List<String> synthesizeMessageAudio(Long chatMsgNo, String userNo) throws Exception {
         log.info("{}.synthesizeMessageAudio Start!", this.getClass().getName());
@@ -211,6 +217,7 @@ public class ChatBotService implements IChatBotService {
         return response != null ? response.audioChunks() : Collections.emptyList();
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Override
     @Transactional
     public void renameRoom(ChatRoomDTO pDTO) throws Exception {
@@ -222,6 +229,7 @@ public class ChatBotService implements IChatBotService {
         }
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Override
     @Transactional
     public void pinRoom(ChatRoomDTO pDTO) throws Exception {
@@ -233,6 +241,7 @@ public class ChatBotService implements IChatBotService {
         }
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Override
     @Transactional
     public void deleteRoom(ChatRoomDTO pDTO) throws Exception {
@@ -244,6 +253,7 @@ public class ChatBotService implements IChatBotService {
         }
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     private void saveMessage(Integer chatRoomNo, String role, String content, boolean hasAudio) {
         ChatMessageEntity message = ChatMessageEntity.builder()
                 .chatRoomNo(chatRoomNo)
@@ -255,6 +265,7 @@ public class ChatBotService implements IChatBotService {
         chatMessageRepository.save(message);
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     private ChatRoomDTO toRoomDTO(ChatRoomEntity entity) {
         return ChatRoomDTO.builder()
                 .chatRoomNo(entity.getChatRoomNo())

@@ -16,6 +16,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
 @Slf4j
+// ★ 즐겨찾기 이후 추가/수정
 public class SttService implements ISttService {
 
     private WebClient webClient;

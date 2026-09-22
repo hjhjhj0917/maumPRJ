@@ -21,16 +21,21 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
 
     List<DiaryEntity> findByUserNoAndEmotionColorInOrderByCreatedAtDesc(String userNo, List<String> colors);
 
+    // ★ 즐겨찾기 이후 추가/수정
     List<DiaryEntity> findTop20ByUserNoOrderByIsPinnedDescCreatedAtDesc(String userNo);
 
+    // ★ 즐겨찾기 이후 추가/수정
     List<DiaryEntity> findByUserNoAndIsFavoriteOrderByCreatedAtDesc(String userNo, Integer isFavorite);
 
+    // ★ 즐겨찾기 이후 추가/수정
     long countByUserNo(String userNo);
 
+    // ★ 즐겨찾기 이후 추가/수정
     // 연속 작성일 계산용 - 최신순으로 작성 날짜만 조회
     @Query("SELECT DISTINCT d.createdAt FROM DiaryEntity d WHERE d.userNo = :userNo ORDER BY d.createdAt DESC")
     List<LocalDate> findAllCreatedAtByUserNoOrderByCreatedAtDesc(@Param("userNo") String userNo);
 
+    // ★ 즐겨찾기 이후 추가/수정
     // 마이페이지 - 최근 N개월 월별 평균 우울 지수 추이
     @Query(value = "SELECT DATE_FORMAT(CREATED_AT, '%Y-%m') AS month, " +
             "AVG(DEP_SCORE) AS avgDepScore, COUNT(*) AS diaryCount " +
@@ -68,6 +73,7 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
             @Param("content") String content
     );
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Modifying(clearAutomatically = true)
     @Query("UPDATE DiaryEntity d SET d.isFavorite = :isFavorite WHERE d.diaryNo = :diaryNo AND d.userNo = :userNo")
     int updateFavorite(
@@ -76,6 +82,7 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
             @Param("isFavorite") Integer isFavorite
     );
 
+    // ★ 즐겨찾기 이후 추가/수정
     // 제목만 바꾸는 경우 diaryUpdate(전체 수정)처럼 CONTENT까지 다시 보낼 필요 없게, 제목만 직접 수정
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE DIARY SET TITLE = :title WHERE DIARY_NO = :diaryNo AND USER_NO = :userNo",
@@ -86,6 +93,7 @@ public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
             @Param("title") String title
     );
 
+    // ★ 즐겨찾기 이후 추가/수정
     @Modifying(clearAutomatically = true)
     @Query(value = "UPDATE DIARY SET IS_PINNED = :isPinned WHERE DIARY_NO = :diaryNo AND USER_NO = :userNo",
             nativeQuery = true)

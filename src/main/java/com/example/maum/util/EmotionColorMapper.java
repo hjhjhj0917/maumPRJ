@@ -8,6 +8,7 @@ import java.util.List;
 DiaryService의 감정 통계 조회, music.py의 감정 그룹 기반 음악 추천 등
 여러 곳에서 같은 분류 기준이 필요해서 별도 유틸로 분리함
 */
+// ★ 즐겨찾기 이후 추가/수정
 public class EmotionColorMapper {
 
     private static final List<String> YELLOW = Arrays.asList("즐거움/신남", "행복", "기쁨", "뿌듯함", "흐뭇함(귀여움/예쁨)", "감동/감탄", "고마움", "환영/호의");

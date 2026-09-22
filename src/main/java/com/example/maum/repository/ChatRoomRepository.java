@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
+// ★ 즐겨찾기 이후 추가/수정
 public interface ChatRoomRepository extends JpaRepository<ChatRoomEntity, Integer> {
 
     List<ChatRoomEntity> findByUserNoOrderByIsPinnedDescUpdatedAtDesc(String userNo);

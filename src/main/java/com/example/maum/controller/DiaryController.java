@@ -33,6 +33,7 @@ public class DiaryController {
 
     private final DiaryService diaryService;
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping(value = "diaryInsert")
     public ResponseEntity<CommonResponse<Integer>> diaryInsert(@RequestBody DiaryDTO dDTO,
                                                                @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -62,6 +63,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     // AI 분석/음악 추천 없이 제목/내용만 저장 (자동저장용)
     @PostMapping(value = "draftSave")
     public ResponseEntity<CommonResponse<Integer>> diaryDraftSave(@RequestBody DiaryDTO dDTO,
@@ -92,6 +94,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping(value = "diaryUpdate")
     public ResponseEntity<CommonResponse<Integer>> diaryUpdate(@RequestBody DiaryDTO dDTO,
                                                                @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -122,6 +125,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping(value = "diaryDelete")
     public ResponseEntity<CommonResponse<Integer>> diaryDelete(@RequestBody DiaryDTO dDTO,
                                                                @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -147,6 +151,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/monthly")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getMonthlyDiaryList(DiaryDTO pDTO,
                                                                               @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -170,6 +175,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/{diaryNo}")
     public ResponseEntity<CommonResponse<DiaryDTO>> getDiaryDetail(@PathVariable Integer diaryNo,
                                                                    @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -193,6 +199,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/search")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> searchDiaryList(@RequestParam(value = "keyword") String keyword,
                                                                           @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -216,6 +223,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/filter")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> filterDiaryList(@RequestParam(value = "colors") List<String> colors,
                                                                           @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -257,6 +265,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/favorites")
     public ResponseEntity<CommonResponse<List<DiaryDTO>>> getFavoriteDiaryList(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -278,6 +287,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/emotions/stats")
     public ResponseEntity<CommonResponse<List<EmotionStatDTO>>> getEmotionStats(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -297,6 +307,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/stats/summary")
     public ResponseEntity<CommonResponse<DiaryStatsDTO>> getDiaryStats(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -316,6 +327,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/stats/trend")
     public ResponseEntity<CommonResponse<List<DepressionTrendDTO>>> getDepressionTrend(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -335,6 +347,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/stats/top-music")
     public ResponseEntity<CommonResponse<List<TopMusicDTO>>> getTopRecommendedMusic(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -354,6 +367,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping("/stats/report")
     public ResponseEntity<CommonResponse<ReportCardDTO>> getWeeklyReport(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -373,6 +387,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping("/favorite")
     public ResponseEntity<CommonResponse<Integer>> diaryFavorite(@RequestBody DiaryDTO dDTO,
                                                                  @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -406,6 +421,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     // 제목만 수정 (사이드바 인라인 이름변경용)
     @PostMapping("/title")
     public ResponseEntity<CommonResponse<Integer>> diaryUpdateTitle(@RequestBody DiaryDTO dDTO,
@@ -435,6 +451,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping("/pin")
     public ResponseEntity<CommonResponse<Integer>> diaryPin(@RequestBody DiaryDTO dDTO,
                                                              @AuthenticationPrincipal Jwt jwt) throws Exception {
@@ -466,6 +483,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     // GCS에 업로드, 일기당 최대 3장까지 허용
     @PostMapping(value = "/{diaryNo}/images/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CommonResponse<List<DiaryImageDTO>>> uploadDiaryImages(
@@ -486,6 +504,7 @@ public class DiaryController {
         );
     }
 
+    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping(value = "/images/delete")
     public ResponseEntity<CommonResponse<Integer>> deleteDiaryImage(@RequestBody DiaryImageDTO dDTO,
                                                                      @AuthenticationPrincipal Jwt jwt) throws Exception {
