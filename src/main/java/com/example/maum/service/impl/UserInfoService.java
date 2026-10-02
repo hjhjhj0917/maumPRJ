@@ -133,9 +133,11 @@ public class UserInfoService implements IUserInfoService {
         String email = CmmUtil.nvl(pDTO.email());
         String code = CmmUtil.nvl(pDTO.code());
 
-        String encEmail = EncryptUtil.encAES128BCBC(email);
-        String redisKey = "AUTH:" + encEmail;
-        String pwResetKey = "PW_RESET:" + encEmail;
+        // Redis 키는 AES 암호문이 아니라 평문 이메일을 그대로 씀 — AES는 IV가 매번 랜덤이라
+        // 같은 이메일을 암호화해도 호출마다 다른 값이 나와서, 발송 시점에 만든 키를 확인 시점에
+        // 다시 찾을 수가 없었음(인증번호는 맞는데 "일치하지 않음"으로 나오던 버그의 원인)
+        String redisKey = "AUTH:" + email;
+        String pwResetKey = "PW_RESET:" + email;
 
         String storedAuthCode = redisService.getValues(redisKey);
 
@@ -216,7 +218,8 @@ public class UserInfoService implements IUserInfoService {
         String userName = CmmUtil.nvl(pDTO.userName());
         String code = CmmUtil.nvl(pDTO.code());
 
-        String redisKey = "AUTH:" + EncryptUtil.encAES128BCBC(email);
+        // findUserId가 저장할 때도 평문 이메일로 키를 만들므로 여기도 동일하게 평문으로 조회함
+        String redisKey = "AUTH:" + email;
         String storedAuthCode = redisService.getValues(redisKey);
 
         log.info("email: {}, code: {}, storedAuthCode: {}", email, code, storedAuthCode);
@@ -265,16 +268,20 @@ public class UserInfoService implements IUserInfoService {
         if (exists) {
             authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
 
+            // email은 DB 조회용으로 이미 암호화된 값이라, Redis 키는 복호화한 평문으로 따로 만듦
+            // (확인 단계인 getUserId도 평문 이메일로 키를 만들므로 맞춰야 함)
+            String plainEmail = EncryptUtil.decAES128BCBC(email);
+
             MailDTO mailDTO = MailDTO.builder()
                     .title("아이디 찾기 인증번호 발송 메일")
                     .content("인증번호는 " + authNumber + " 입니다.")
-                    .receiver(EncryptUtil.decAES128BCBC(email))
+                    .receiver(plainEmail)
                     .build();
 
             mailService.doSendMail(mailDTO);
 
-            redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
-            log.info("아이디 찾기 Redis 저장 완료: AUTH:{}", email);
+            redisService.setValues("AUTH:" + plainEmail, String.valueOf(authNumber), 180000L);
+            log.info("아이디 찾기 Redis 저장 완료: AUTH:{}", plainEmail);
         }
 
         ExistsDTO rDTO = ExistsDTO.builder()
@@ -306,17 +313,21 @@ public class UserInfoService implements IUserInfoService {
         if (exists) {
             authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
 
+            // email은 DB 조회용으로 이미 암호화된 값이라, Redis 키는 복호화한 평문으로 따로 만듦
+            // (확인 단계인 updatePassword도 평문 이메일로 키를 만들므로 맞춰야 함)
+            String plainEmail = EncryptUtil.decAES128BCBC(email);
+
             MailDTO mailDTO = MailDTO.builder()
                     .title("비밀번호 찾기 인증번호 발송 메일")
                     .content("인증번호는 " + authNumber + " 입니다.")
-                    .receiver(EncryptUtil.decAES128BCBC(email))
+                    .receiver(plainEmail)
                     .build();
 
             mailService.doSendMail(mailDTO);
 
-            redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
-            redisService.setValues("PW_RESET:" + email, encUserId, 180000L);
-            log.info("비밀번호 찾기 Redis 저장 완료: AUTH:{}, PW_RESET:{}", email, email);
+            redisService.setValues("AUTH:" + plainEmail, String.valueOf(authNumber), 180000L);
+            redisService.setValues("PW_RESET:" + plainEmail, encUserId, 180000L);
+            log.info("비밀번호 찾기 Redis 저장 완료: AUTH:{}, PW_RESET:{}", plainEmail, plainEmail);
         }
 
         ExistsDTO rDTO = ExistsDTO.builder()
@@ -344,17 +355,21 @@ public class UserInfoService implements IUserInfoService {
         if (!exists) {
             authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
 
+            // email은 DB 조회용으로 이미 암호화된 값이라, Redis 키는 복호화한 평문으로 따로 만듦
+            // (확인 단계인 verifyEmailCode도 평문 이메일로 키를 만들므로 맞춰야 함)
+            String plainEmail = EncryptUtil.decAES128BCBC(email);
+
             MailDTO mailDTO = MailDTO.builder()
                     .title("이메일 중복 확인 인증번호 발송 메일")
                     .content("인증번호는 " + authNumber + " 입니다.")
-                    .receiver(EncryptUtil.decAES128BCBC(email))
+                    .receiver(plainEmail)
                     .build();
 
             mailService.doSendMail(mailDTO);
 
-            redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
+            redisService.setValues("AUTH:" + plainEmail, String.valueOf(authNumber), 180000L);
 
-            log.info("Redis에 인증번호 저장 완료 (3분): AUTH:{}", email);
+            log.info("Redis에 인증번호 저장 완료 (3분): AUTH:{}", plainEmail);
         }
 
         ExistsDTO rDTO = ExistsDTO.builder()
@@ -408,10 +423,9 @@ public class UserInfoService implements IUserInfoService {
         String password = CmmUtil.nvl(pDTO.password());
         String code = CmmUtil.nvl(pDTO.code());
 
-        String encEmail = EncryptUtil.encAES128BCBC(email);
-
-        String storedCode = redisService.getValues("AUTH:" + encEmail);
-        String targetUserId = redisService.getValues("PW_RESET:" + encEmail);
+        // findUserPw가 저장할 때도 평문 이메일로 키를 만들므로 여기도 동일하게 평문으로 조회함
+        String storedCode = redisService.getValues("AUTH:" + email);
+        String targetUserId = redisService.getValues("PW_RESET:" + email);
 
         int res = 0;
 
@@ -427,8 +441,8 @@ public class UserInfoService implements IUserInfoService {
                 );
                 res = 1;
 
-                redisService.deleteValues("AUTH:" + encEmail);
-                redisService.deleteValues("PW_RESET:" + encEmail);
+                redisService.deleteValues("AUTH:" + email);
+                redisService.deleteValues("PW_RESET:" + email);
                 log.info("비밀번호 변경 성공 및 Redis 데이터 초기화 완료: {}", userId);
             }
         } else {
@@ -530,15 +544,19 @@ public class UserInfoService implements IUserInfoService {
         String email = CmmUtil.nvl(pDTO.email());
         int authNumber = ThreadLocalRandom.current().nextInt(100000, 1000000);
 
+        // email은 호출부에서 이미 암호화된 값이라, Redis 키는 복호화한 평문으로 따로 만듦
+        // (확인 단계인 verifyEmailCode도 평문 이메일로 키를 만들므로 맞춰야 함)
+        String plainEmail = EncryptUtil.decAES128BCBC(email);
+
         MailDTO mailDTO = MailDTO.builder()
                 .title("회원 탈퇴 인증번호 발송 메일")
                 .content("인증번호는 " + authNumber + " 입니다.")
-                .receiver(EncryptUtil.decAES128BCBC(email))
+                .receiver(plainEmail)
                 .build();
 
         mailService.doSendMail(mailDTO);
 
-        redisService.setValues("AUTH:" + email, String.valueOf(authNumber), 180000L);
+        redisService.setValues("AUTH:" + plainEmail, String.valueOf(authNumber), 180000L);
 
         return MsgDTO.builder().result(1).msg("인증 코드가 발송되었습니다.").build();
     }
