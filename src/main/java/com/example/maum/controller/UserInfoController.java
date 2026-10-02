@@ -281,7 +281,7 @@ public class UserInfoController {
         String userNo = CmmUtil.nvl(jwt.getSubject());
         String password = CmmUtil.nvl(uDTO.password());
 
-        log.info("userNo: {}, password: {}", userNo, EncryptUtil.encHashSHA256(password));
+        log.info("userNo: {}", userNo);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .userNo(userNo)
@@ -308,7 +308,7 @@ public class UserInfoController {
         String addr = CmmUtil.nvl(uDTO.addr());
         String detailAddr = CmmUtil.nvl(uDTO.detailAddr());
 
-        log.info("userNo: {}, password: {}, email: {}, addr: {}, detailAddr: {}", userNo, EncryptUtil.encHashSHA256(password), email, addr, detailAddr);
+        log.info("userNo: {}, email: {}, addr: {}, detailAddr: {}", userNo, email, addr, detailAddr);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .userNo(userNo)
