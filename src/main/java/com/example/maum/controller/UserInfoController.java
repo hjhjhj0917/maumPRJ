@@ -64,7 +64,7 @@ public class UserInfoController {
         log.info("email: {}", email);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .email(EncryptUtil.encAES128BCBC(email))
+                .email(EncryptUtil.encAES128BCBCDeterministic(email))
                 .build();
 
         ExistsDTO rDTO = Optional.ofNullable(userInfoService.getEmailExists(pDTO))
@@ -146,7 +146,7 @@ public class UserInfoController {
         log.info("email: {}, userName: {}", email, userName);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .email(EncryptUtil.encAES128BCBC(email))
+                .email(EncryptUtil.encAES128BCBCDeterministic(email))
                 .userName(userName)
                 .build();
 
@@ -197,7 +197,7 @@ public class UserInfoController {
         String userId = CmmUtil.nvl(uDTO.userId());
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .email(EncryptUtil.encAES128BCBC(email))
+                .email(EncryptUtil.encAES128BCBCDeterministic(email))
                 .userId(userId)
                 .build();
 
@@ -313,7 +313,7 @@ public class UserInfoController {
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .userNo(userNo)
                 .password(password)
-                .email(email.isEmpty() ? "" : EncryptUtil.encAES128BCBC(email))
+                .email(email.isEmpty() ? "" : EncryptUtil.encAES128BCBCDeterministic(email))
                 .addr(addr)
                 .detailAddr(detailAddr)
                 .build();
@@ -340,7 +340,7 @@ public class UserInfoController {
         String email = CmmUtil.nvl(uDTO.email());
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .email(EncryptUtil.encAES128BCBC(email))
+                .email(EncryptUtil.encAES128BCBCDeterministic(email))
                 .build();
 
         MsgDTO rDTO = userInfoService.sendWithdrawEmailCode(pDTO);

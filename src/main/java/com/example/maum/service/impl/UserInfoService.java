@@ -228,7 +228,7 @@ public class UserInfoService implements IUserInfoService {
 
         if (storedAuthCode != null && storedAuthCode.equals(code)) {
             UserInfoDTO searchDTO = UserInfoDTO.builder()
-                    .email(EncryptUtil.encAES128BCBC(email))
+                    .email(EncryptUtil.encAES128BCBCDeterministic(email))
                     .userName(userName)
                     .build();
 

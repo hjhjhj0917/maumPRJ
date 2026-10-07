@@ -10,6 +10,7 @@ import java.util.Base64;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -38,13 +39,34 @@ public class EncryptUtil {
     public static String encAES128BCBC(String str) throws NoSuchAlgorithmException, NoSuchPaddingException,
             InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 
-        byte[] textBytes = str.getBytes(StandardCharsets.UTF_8);
-
         // CBC는 매 암호화마다 새 IV를 써야 같은 평문이 매번 다른 암호문으로 나옴(고정 IV 재사용 시
-        // 같은 이메일이 항상 같은 암호문이 되어 DB에서 평문을 몰라도 중복 여부가 드러나는 문제가 있었음) —
+        // 같은 평문이 항상 같은 암호문이 되어 DB에서 평문을 몰라도 중복 여부가 드러나는 문제가 있었음) —
         // 복호화 때 다시 꺼내 써야 하므로 암호문 앞에 IV를 그대로 붙여서 저장함
         byte[] ivBytes = new byte[IV_LENGTH];
         SECURE_RANDOM.nextBytes(ivBytes);
+
+        return encryptWithIv(str, ivBytes);
+    }
+
+    // ★ 즐겨찾기 이후 추가/수정
+    // 이메일처럼 DB에서 "=" 로 찾아야 하는(아이디/비밀번호 찾기, 가입 중복 확인, UNIQUE 제약) 값은
+    // 랜덤 IV를 쓰면 같은 이메일도 매번 다른 암호문이 되어 조회가 항상 실패함 —
+    // 그래서 IV를 평문+키로 만든 HMAC에서 뽑아, 같은 평문이면 항상 같은 암호문이 나오게 함.
+    // 복호화 형식(IV + 암호문)은 동일하므로 decAES128BCBC를 그대로 쓰면 됨
+    public static String encAES128BCBCDeterministic(String str) throws NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+
+        Mac mac = Mac.getInstance("HmacSHA256");
+        mac.init(new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+        byte[] ivBytes = Arrays.copyOf(mac.doFinal(str.getBytes(StandardCharsets.UTF_8)), IV_LENGTH);
+
+        return encryptWithIv(str, ivBytes);
+    }
+
+    private static String encryptWithIv(String str, byte[] ivBytes) throws NoSuchAlgorithmException, NoSuchPaddingException,
+            InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
+
+        byte[] textBytes = str.getBytes(StandardCharsets.UTF_8);
 
         AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
         SecretKeySpec newKey = new SecretKeySpec((key.getBytes(StandardCharsets.UTF_8)), "AES");
