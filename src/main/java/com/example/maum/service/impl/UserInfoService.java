@@ -53,7 +53,7 @@ public class UserInfoService implements IUserInfoService {
 
         int res;
 
-        log.info("userId: {}", pDTO.userId());
+        log.info("userId: {}", CmmUtil.maskUserId(pDTO.userId()));
 
         try {
             boolean exists = userInfoRepository.findByUserId(pDTO.userId()).isPresent();
@@ -443,7 +443,7 @@ public class UserInfoService implements IUserInfoService {
 
                 redisService.deleteValues("AUTH:" + email);
                 redisService.deleteValues("PW_RESET:" + email);
-                log.info("비밀번호 변경 성공 및 Redis 데이터 초기화 완료: {}", userId);
+                log.info("비밀번호 변경 성공 및 Redis 데이터 초기화 완료: {}", CmmUtil.maskUserId(userId));
             }
         } else {
             log.warn("비밀번호 변경 실패: 인증번호 불일치 혹은 만료 (email: {})", CmmUtil.maskEmail(email));
@@ -461,10 +461,10 @@ public class UserInfoService implements IUserInfoService {
 
         log.info("{}.loadUserByUsername Start!", this.getClass().getName());
 
-        log.info("userId: {}", userId);
+        log.info("userId: {}", CmmUtil.maskUserId(userId));
 
         UserInfoEntity rEntity = userInfoRepository.findByUserId(userId)
-                .orElseThrow(() -> new UsernameNotFoundException(userId + " Not Found User"));
+                .orElseThrow(() -> new UsernameNotFoundException(CmmUtil.maskUserId(userId) + " Not Found User"));
 
         if (rEntity.getUserStatus().equals("N")) {
             throw new UsernameNotFoundException("탈퇴 대기 중인 계정입니다.");

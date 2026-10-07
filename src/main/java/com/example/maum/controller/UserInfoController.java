@@ -202,7 +202,7 @@ public class UserInfoController {
         String email = CmmUtil.nvl(uDTO.email());
         String userId = CmmUtil.nvl(uDTO.userId());
 
-        log.info("email: {}, userId: {}", CmmUtil.maskEmail(email), userId);
+        log.info("email: {}, userId: {}", CmmUtil.maskEmail(email), CmmUtil.maskUserId(userId));
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .email(EncryptUtil.encAES128BCBCDeterministic(email))
