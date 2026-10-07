@@ -30,10 +30,13 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -197,7 +200,10 @@ public class DiaryService implements IDiaryService {
     // requestAnalysisAndUpdate가 Python 분석 API를 동기 호출하는데, 여기에 @Transactional을
     // 붙이면 그 호출이 끝날 때까지 DB 커넥션을 붙잡고 있게 되어 일부러 빼둠 — diaryRepository.save()
     // 자체는 Spring Data JPA가 메서드 단위로 자동으로 트랜잭션 처리해주므로 원자성엔 문제없음
-    @CacheEvict(value = "diaryCache", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "diaryCache", allEntries = true),
+            @CacheEvict(value = "weeklyReportCache", key = "#pDTO.userNo()")
+    })
     @Override
     public int diaryInsert(DiaryDTO pDTO) throws Exception {
 
@@ -281,7 +287,10 @@ public class DiaryService implements IDiaryService {
     // requestAnalysisAndUpdate의 외부 API 호출을 트랜잭션 밖에서 실행하기 위해 메서드 전체를
     // @Transactional로 감싸지는 않되, updateDiaryDirectly(@Modifying 커스텀 쿼리라 활성 트랜잭션이
     // 반드시 필요함)는 selfProvider 프록시를 통해 짧은 트랜잭션으로 따로 감싸서 호출함
-    @CacheEvict(value = "diaryCache", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "diaryCache", allEntries = true),
+            @CacheEvict(value = "weeklyReportCache", key = "#pDTO.userNo()")
+    })
     @Override
     public MsgDTO diaryUpdate(DiaryDTO pDTO) throws Exception {
 
@@ -328,7 +337,10 @@ public class DiaryService implements IDiaryService {
     // GCS 이미지 삭제(외부 네트워크 호출)가 DB 삭제보다 먼저 일어나는데, @Transactional을 붙이면
     // 그 GCS 호출이 끝날 때까지 DB 커넥션을 붙잡게 되어 빼둠 — diaryRepository.delete(entity)는
     // Spring Data JPA가 메서드 단위로 자동 트랜잭션 처리해주므로 그 자체의 원자성엔 문제없음
-    @CacheEvict(value = "diaryCache", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "diaryCache", allEntries = true),
+            @CacheEvict(value = "weeklyReportCache", key = "#pDTO.userNo()")
+    })
     @Override
     public MsgDTO diaryDelete(DiaryDTO pDTO) throws Exception {
 
@@ -912,6 +924,21 @@ public class DiaryService implements IDiaryService {
         String title = CmmUtil.nvl(pDTO.title());
 
         int res = diaryRepository.updateTitleDirectly(diaryNo, userNo, title);
+
+        // MariaDB에서 본인 일기의 제목이 실제로 바뀐 경우에만 MongoDB(DIARY_LOGS)에도 같은 제목을 반영함 —
+        // 안 그러면 사이드바에서 이름을 바꿔도 분석 로그의 제목은 이전 값으로 남음.
+        // MongoDB 반영이 실패해도 MariaDB 쪽 변경은 이미 끝났으므로 로그만 남기고 넘어감
+        if (res > 0) {
+            try {
+                mongoTemplate.updateFirst(
+                        new Query(Criteria.where("DIARY_NO").is(diaryNo)),
+                        new Update().set("TITLE", title),
+                        "DIARY_LOGS"
+                );
+            } catch (Exception e) {
+                log.error("MongoDB 일기 제목 반영 실패 (diaryNo: {}): {}", diaryNo, e.getMessage());
+            }
+        }
 
         log.info("{}.updateTitle End!", this.getClass().getName());
 

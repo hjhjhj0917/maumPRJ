@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.TimeZone;
+
 @EnableJpaRepositories
 @EnableCaching
 @EnableScheduling
@@ -16,6 +18,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class MaumApplication {
 
     public static void main(String[] args) {
+        // 배포 컨테이너의 JVM 기본 시간대는 UTC라 LocalDate.now()가 한국 날짜보다 하루 늦을 수 있음 —
+        // (예: 오전 9시 이전에 쓴 일기가 "이번 주 리포트"에서 빠짐) 한국 시간으로 고정함
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
         SpringApplication.run(MaumApplication.class, args);
     }
 
