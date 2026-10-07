@@ -1,5 +1,6 @@
 package com.example.maum.controller;
 
+import com.example.maum.util.CmmUtil;
 import com.example.maum.controller.response.CommonResponse;
 import com.example.maum.service.ISttService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,8 @@ public class SttController {
                                                                 @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.speechToText Start!", this.getClass().getName());
+
+        log.info("userNo: {}, audioSize: {}, contentType: {}", CmmUtil.nvl(jwt.getSubject()), audio.getSize(), audio.getContentType());
 
         String text = sttService.transcribe(audio);
 

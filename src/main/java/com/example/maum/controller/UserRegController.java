@@ -1,5 +1,6 @@
 package com.example.maum.controller;
 
+import com.example.maum.util.CmmUtil;
 import com.example.maum.auth.UserRole;
 import com.example.maum.controller.response.CommonResponse;
 import com.example.maum.dto.MsgDTO;
@@ -31,6 +32,8 @@ public class UserRegController {
 
         log.info("{}.getUserIdExists Start!", this.getClass().getName());
 
+        log.info("userId: {}", pDTO.userId());
+
         UserInfoDTO rDTO = userInfoService.getUserIdExists(pDTO);
 
         log.info("{}.getUserIdExists End!", this.getClass().getName());
@@ -46,7 +49,7 @@ public class UserRegController {
         log.info("{}.insertUserInfo Start!", this.getClass().getName());
 
         if (bindingResult.hasErrors()) {
-            log.info("error: {}", bindingResult);
+            log.info("검증 실패 필드: {}", bindingResult.getFieldErrors().stream().map(e -> e.getField()).toList());
             log.info("{}.insertUserInfo End!", this.getClass().getName());
             return CommonResponse.getErrors(bindingResult);
         }
@@ -55,7 +58,7 @@ public class UserRegController {
         String msg = "";
         MsgDTO dto;
 
-        log.info("pDTO: {}", pDTO);
+        log.info("userId: {}, email: {}", pDTO.userId(), CmmUtil.maskEmail(pDTO.email()));
 
         try {
 

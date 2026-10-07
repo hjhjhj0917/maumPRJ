@@ -41,6 +41,8 @@ public class UserInfoController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}", userNo);
+
         UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
 
         UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserInfo(pDTO))
@@ -61,7 +63,7 @@ public class UserInfoController {
 
         String email = CmmUtil.nvl(uDTO.email());
 
-        log.info("email: {}", email);
+        log.info("email: {}", CmmUtil.maskEmail(email));
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .email(EncryptUtil.encAES128BCBCDeterministic(email))
@@ -88,6 +90,8 @@ public class UserInfoController {
 
         log.info("{}.verifyEmailCode Start!", this.getClass().getName());
 
+        log.info("email: {}, codeLength: {}", CmmUtil.maskEmail(uDTO.email()), CmmUtil.nvl(uDTO.code()).length());
+
         MsgDTO rDTO = Optional.ofNullable(userInfoService.verifyEmailCode(uDTO))
                 .orElseGet(() -> MsgDTO.builder().result(0).msg("인증 처리 중 오류가 발생했습니다.").build());
 
@@ -108,6 +112,8 @@ public class UserInfoController {
 
         String accessToken = bearerTokenResolver.resolve(request);
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}", userNo);
 
         long remainingMilliSeconds = 0;
         if (jwt.getExpiresAt() != null) {
@@ -143,7 +149,7 @@ public class UserInfoController {
         String email = CmmUtil.nvl(uDTO.email());
         String userName = CmmUtil.nvl(uDTO.userName());
 
-        log.info("email: {}, userName: {}", email, userName);
+        log.info("email: {}", CmmUtil.maskEmail(email));
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .email(EncryptUtil.encAES128BCBCDeterministic(email))
@@ -175,7 +181,7 @@ public class UserInfoController {
         String userName = CmmUtil.nvl(uDTO.userName());
         String code = CmmUtil.nvl(uDTO.code());
 
-        log.info("email: {}, userName: {}, code: {}", email, userName, code);
+        log.info("email: {}, codeLength: {}", CmmUtil.maskEmail(email), code.length());
 
         UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserId(uDTO))
                 .orElseGet(() -> UserInfoDTO.builder().build());
@@ -195,6 +201,8 @@ public class UserInfoController {
 
         String email = CmmUtil.nvl(uDTO.email());
         String userId = CmmUtil.nvl(uDTO.userId());
+
+        log.info("email: {}, userId: {}", CmmUtil.maskEmail(email), userId);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .email(EncryptUtil.encAES128BCBCDeterministic(email))
@@ -221,6 +229,8 @@ public class UserInfoController {
     public ResponseEntity<CommonResponse<MsgDTO>> updateUserPw(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.updateUserPw Start!", this.getClass().getName());
+
+        log.info("email: {}, codeLength: {}", CmmUtil.maskEmail(uDTO.email()), CmmUtil.nvl(uDTO.code()).length());
 
         int res = Optional.of(userInfoService.updatePassword(uDTO))
                 .orElse(0);
@@ -308,7 +318,8 @@ public class UserInfoController {
         String addr = CmmUtil.nvl(uDTO.addr());
         String detailAddr = CmmUtil.nvl(uDTO.detailAddr());
 
-        log.info("userNo: {}, email: {}, addr: {}, detailAddr: {}", userNo, email, addr, detailAddr);
+        log.info("userNo: {}, 비밀번호 변경: {}, 이메일 변경: {}, 주소 변경: {}",
+                userNo, !password.isEmpty(), !email.isEmpty(), !addr.isEmpty() || !detailAddr.isEmpty());
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .userNo(userNo)
@@ -339,6 +350,8 @@ public class UserInfoController {
 
         String email = CmmUtil.nvl(uDTO.email());
 
+        log.info("email: {}", CmmUtil.maskEmail(email));
+
         UserInfoDTO pDTO = UserInfoDTO.builder()
                 .email(EncryptUtil.encAES128BCBCDeterministic(email))
                 .build();
@@ -359,6 +372,8 @@ public class UserInfoController {
         log.info("{}.deleteUser Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}", userNo);
         UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
 
         int res = Optional.of(userInfoService.deleteUser(pDTO)).orElse(0);

@@ -17,4 +17,19 @@ public class CmmUtil {
 	public static String nvl(String str){
 		return nvl(str,"");
 	}
+
+	// 로그에 이메일을 그대로 남기지 않도록 앞 두 글자와 도메인만 보이게 가림 (예: te***@example.com)
+	public static String maskEmail(String email){
+		if (email == null || email.isEmpty()) {
+			return "";
+		}
+		int at = email.indexOf('@');
+		if (at < 0) {
+			return "***";
+		}
+		if (at <= 2) {
+			return "***" + email.substring(at);
+		}
+		return email.substring(0, 2) + "***" + email.substring(at);
+	}
 }

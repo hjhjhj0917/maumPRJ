@@ -53,7 +53,7 @@ public class UserInfoService implements IUserInfoService {
 
         int res;
 
-        log.info("pDTO: {}", pDTO);
+        log.info("userId: {}", pDTO.userId());
 
         try {
             boolean exists = userInfoRepository.findByUserId(pDTO.userId()).isPresent();
@@ -176,7 +176,7 @@ public class UserInfoService implements IUserInfoService {
 
         if (accessToken != null && remainingMilliSeconds > 0) {
             redisService.setValues("AT:" + accessToken, "logout", remainingMilliSeconds);
-            log.info("Access Token 블랙리스트 등록: {} (유지시간: {}ms)", accessToken, remainingMilliSeconds);
+            log.info("Access Token 블랙리스트 등록 (유지시간: {}ms)", remainingMilliSeconds);
         }
 
         if (userNo != null) {
@@ -222,7 +222,7 @@ public class UserInfoService implements IUserInfoService {
         String redisKey = "AUTH:" + email;
         String storedAuthCode = redisService.getValues(redisKey);
 
-        log.info("email: {}, code: {}, storedAuthCode: {}", email, code, storedAuthCode);
+        log.info("email: {}, codeLength: {}", CmmUtil.maskEmail(email), code.length());
 
         UserInfoDTO rDTO = UserInfoDTO.builder().build();
 
@@ -241,7 +241,7 @@ public class UserInfoService implements IUserInfoService {
                         .build();
 
                 redisService.deleteValues(redisKey);
-                log.info("인증 성공 및 Redis 인증번호 삭제 완료: {}", redisKey);
+                log.info("인증 성공 및 Redis 인증번호 삭제 완료: AUTH:{}", CmmUtil.maskEmail(email));
             }
         }
 
@@ -281,7 +281,7 @@ public class UserInfoService implements IUserInfoService {
             mailService.doSendMail(mailDTO);
 
             redisService.setValues("AUTH:" + plainEmail, String.valueOf(authNumber), 180000L);
-            log.info("아이디 찾기 Redis 저장 완료: AUTH:{}", plainEmail);
+            log.info("아이디 찾기 Redis 저장 완료: AUTH:{}", CmmUtil.maskEmail(plainEmail));
         }
 
         ExistsDTO rDTO = ExistsDTO.builder()
@@ -327,7 +327,7 @@ public class UserInfoService implements IUserInfoService {
 
             redisService.setValues("AUTH:" + plainEmail, String.valueOf(authNumber), 180000L);
             redisService.setValues("PW_RESET:" + plainEmail, encUserId, 180000L);
-            log.info("비밀번호 찾기 Redis 저장 완료: AUTH:{}, PW_RESET:{}", plainEmail, plainEmail);
+            log.info("비밀번호 찾기 Redis 저장 완료: AUTH:{}, PW_RESET:{}", CmmUtil.maskEmail(plainEmail), CmmUtil.maskEmail(plainEmail));
         }
 
         ExistsDTO rDTO = ExistsDTO.builder()
@@ -369,7 +369,7 @@ public class UserInfoService implements IUserInfoService {
 
             redisService.setValues("AUTH:" + plainEmail, String.valueOf(authNumber), 180000L);
 
-            log.info("Redis에 인증번호 저장 완료 (3분): AUTH:{}", plainEmail);
+            log.info("Redis에 인증번호 저장 완료 (3분): AUTH:{}", CmmUtil.maskEmail(plainEmail));
         }
 
         ExistsDTO rDTO = ExistsDTO.builder()
@@ -446,7 +446,7 @@ public class UserInfoService implements IUserInfoService {
                 log.info("비밀번호 변경 성공 및 Redis 데이터 초기화 완료: {}", userId);
             }
         } else {
-            log.warn("비밀번호 변경 실패: 인증번호 불일치 혹은 만료 (email: {})", email);
+            log.warn("비밀번호 변경 실패: 인증번호 불일치 혹은 만료 (email: {})", CmmUtil.maskEmail(email));
         }
 
         log.info("{}.updatePassword End!", this.getClass().getName());
