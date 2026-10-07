@@ -36,9 +36,10 @@ public class MailService implements IMailService {
         String title = CmmUtil.nvl(pDTO.title());
         String contents = CmmUtil.nvl(pDTO.content());
 
-        log.info("toMail : " + toMail);
-        log.info("title : " + title);
-        log.info("contents : " + contents);
+        // 수신자 이메일은 마스킹하고, 본문에는 인증번호가 들어 있어 내용 대신 길이만 남김
+        log.info("toMail : {}", CmmUtil.maskEmail(toMail));
+        log.info("title : {}", title);
+        log.info("contentsLength : {}", contents.length());
 
         MimeMessage message = mailSender.createMimeMessage();
 

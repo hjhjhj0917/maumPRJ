@@ -32,7 +32,7 @@ public class UserRegController {
 
         log.info("{}.getUserIdExists Start!", this.getClass().getName());
 
-        log.info("userId: {}", pDTO.userId());
+        log.info("userId: {}", CmmUtil.maskUserId(pDTO.userId()));
 
         UserInfoDTO rDTO = userInfoService.getUserIdExists(pDTO);
 
@@ -58,7 +58,7 @@ public class UserRegController {
         String msg = "";
         MsgDTO dto;
 
-        log.info("userId: {}, email: {}", pDTO.userId(), CmmUtil.maskEmail(pDTO.email()));
+        log.info("userId: {}, email: {}", CmmUtil.maskUserId(pDTO.userId()), CmmUtil.maskEmail(pDTO.email()));
 
         try {
 

@@ -4,6 +4,7 @@ import com.example.maum.auth.AuthInfo;
 import com.example.maum.controller.response.CommonResponse;
 import com.example.maum.dto.MsgDTO;
 import com.example.maum.dto.UserInfoDTO;
+import com.example.maum.util.CmmUtil;
 import com.example.maum.service.IJwtTokenService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -52,10 +53,10 @@ public class LoginController {
                     .msg("로그인 성공")
                     .build();
 
-            log.info("로그인 성공: {}", pDTO.userId());
+            log.info("로그인 성공: {}", CmmUtil.maskUserId(pDTO.userId()));
 
         } catch (Exception e) {
-            log.warn("로그인 실패 (userId: {}): {}", pDTO.userId(), e.getMessage());
+            log.warn("로그인 실패 (userId: {}): {}", CmmUtil.maskUserId(pDTO.userId()), e.getMessage());
 
             dto = MsgDTO.builder()
                     .result(0)
