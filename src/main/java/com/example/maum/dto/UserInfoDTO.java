@@ -55,7 +55,7 @@ public record UserInfoDTO(
                         .userId(pDTO.userId())
                         .password(password)
                         .userName(pDTO.userName())
-                        .email(EncryptUtil.encAES128BCBC(pDTO.email()))
+                        .email(EncryptUtil.encAES128BCBCDeterministic(pDTO.email()))
                         .birthDate(pDTO.birthDate())
                         .addr(pDTO.addr())
                         .detailAddr(CmmUtil.nvl(pDTO.detailAddr()))
