@@ -20,6 +20,7 @@ import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -115,9 +116,11 @@ public class ChatBotService implements IChatBotService {
                     log.info("Python Raw Data: {}", data);
                     // TTS 음성 데이터 자체는 대화 기록에 노이즈만 되므로 저장하지 않고,
                     // 나중에 다시 들을 때는 저장된 텍스트로 TTS를 재생성함(synthesizeMessageAudio) — 그때 쓸 표시만 남김
-                    if (data.startsWith("[[AUDIO]]")) {
+                    // [[TEXT_DONE]]는 텍스트 전송이 끝나고 음성 합성이 시작됐다는 표시라서, 라이브 합성이 실패하거나
+                    // 오디오가 도착하기 전에 연결이 끊겨도 재진입 시 다시 합성해 들을 수 있도록 이 시점에도 표시를 남김
+                    if (data.startsWith("[[AUDIO]]") || data.startsWith("[[TEXT_DONE]]")) {
                         hasAudio.set(true);
-                    } else if (!data.startsWith("[[CARD]]") && !data.startsWith("[[TEXT_DONE]]")) {
+                    } else if (!data.startsWith("[[CARD]]")) {
                         botResponse.append(data);
                     }
                 })
@@ -210,7 +213,8 @@ public class ChatBotService implements IChatBotService {
                 .bodyValue(requestDTO)
                 .retrieve()
                 .bodyToMono(TtsResponseDTO.class)
-                .block();
+                // 재합성이 끝없이 대기하지 않도록 상한을 둠(Python은 청크마다 최대 30초 x 2회까지 시도)
+                .block(Duration.ofSeconds(120));
 
         log.info("{}.synthesizeMessageAudio End!", this.getClass().getName());
 
