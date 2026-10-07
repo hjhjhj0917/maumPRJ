@@ -939,8 +939,10 @@ public class DiaryService implements IDiaryService {
 
     // ★ 즐겨찾기 이후 추가/수정
     // 루프 안에서 gcsService.uploadImage(외부 네트워크 호출)를 반복 호출하는데, @Transactional을
-    // 붙이면 이미지 개수만큼 호출이 끝날 때까지 DB 커넥션을 계속 붙잡게 되어 빼둠 —
-    // diaryImageRepository.save()는 이미지 한 장마다 자체적으로 원자적으로 커밋됨
+    // 붙이면 이미지 개수만큼 호출이 끝날 때까지 DB 커넥션을 계속 붙잡게 되어 빼둠.
+    // 대신 "GCS 업로드 전부 → DB 저장 한 번" 순서로 처리해서, 중간에 하나라도 실패하면
+    // 이미 올라간 GCS 파일을 지우고(보상 처리) DB에는 아무것도 남기지 않음 —
+    // saveAll()은 Spring Data JPA가 자체 트랜잭션으로 묶어주므로 DB 저장은 전부 성공 또는 전부 실패함
     @Override
     public List<DiaryImageDTO> uploadDiaryImages(Integer diaryNo, String userNo, List<MultipartFile> images) throws Exception {
 
@@ -959,31 +961,51 @@ public class DiaryService implements IDiaryService {
             throw new IllegalArgumentException("이미지는 최대 " + MAX_DIARY_IMAGE_COUNT + "장까지 등록할 수 있습니다.");
         }
 
-        List<DiaryImageDTO> rList = new ArrayList<>();
-        int order = existingCount;
+        // 1단계: GCS에 먼저 모두 업로드 (DB는 건드리지 않음)
+        List<String> uploadedUrls = new ArrayList<>();
 
-        for (MultipartFile image : images) {
-            String imageUrl = gcsService.uploadImage(image, diaryNo);
+        try {
+            for (MultipartFile image : images) {
+                uploadedUrls.add(gcsService.uploadImage(image, diaryNo));
+            }
 
-            DiaryImageEntity savedEntity = diaryImageRepository.save(
-                    DiaryImageEntity.builder()
+            // 2단계: 전부 성공했을 때만 DB에 한 번에 저장
+            int order = existingCount;
+            List<DiaryImageEntity> toSave = new ArrayList<>();
+
+            for (String imageUrl : uploadedUrls) {
+                toSave.add(DiaryImageEntity.builder()
+                        .diaryNo(diaryNo)
+                        .imageUrl(imageUrl)
+                        .imageOrder(order++)
+                        .build());
+            }
+
+            List<DiaryImageEntity> savedList = diaryImageRepository.saveAll(toSave);
+
+            List<DiaryImageDTO> rList = savedList.stream()
+                    .map(saved -> DiaryImageDTO.builder()
+                            .imageNo(saved.getImageNo())
                             .diaryNo(diaryNo)
-                            .imageUrl(imageUrl)
-                            .imageOrder(order++)
-                            .build()
-            );
+                            .imageUrl(saved.getImageUrl())
+                            .imageOrder(saved.getImageOrder())
+                            .build())
+                    .collect(Collectors.toList());
 
-            rList.add(DiaryImageDTO.builder()
-                    .imageNo(savedEntity.getImageNo())
-                    .diaryNo(diaryNo)
-                    .imageUrl(savedEntity.getImageUrl())
-                    .imageOrder(savedEntity.getImageOrder())
-                    .build());
+            log.info("{}.uploadDiaryImages End!", this.getClass().getName());
+
+            return rList;
+
+        } catch (Exception e) {
+            // 보상 처리: 중간에 실패했으면 이미 GCS에 올라간 파일을 지워 고아 파일이 남지 않게 함
+            log.error("이미지 업로드 실패, 이미 업로드된 {}개 파일을 삭제합니다: {}", uploadedUrls.size(), e.getMessage());
+
+            for (String uploadedUrl : uploadedUrls) {
+                gcsService.deleteImage(uploadedUrl);
+            }
+
+            throw e;
         }
-
-        log.info("{}.uploadDiaryImages End!", this.getClass().getName());
-
-        return rList;
     }
 
     // ★ 즐겨찾기 이후 추가/수정
