@@ -65,6 +65,10 @@ public class RedisConfig {
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(config)
                 .withInitialCacheConfigurations(cacheConfigurations)
+                // @Transactional + @CacheEvict가 같이 걸린 메서드(제목·고정 변경 등)에서 DB 커밋보다 먼저
+                // 캐시가 비워지면, 그 사이에 들어온 조회가 옛 값을 다시 캐시에 채워 넣을 수 있음 —
+                // 트랜잭션이 있을 때는 커밋이 끝난 뒤에 캐시를 갱신·삭제하도록 함
+                .transactionAware()
                 .build();
     }
 }
