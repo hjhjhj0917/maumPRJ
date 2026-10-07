@@ -25,7 +25,7 @@ public class MapController {
     private final IMentalInstService mentalInstService;
 
     // ★ 즐겨찾기 이후 추가/수정
-    @GetMapping("/institutions")
+    @GetMapping(value = "/institutions")
     public ResponseEntity<CommonResponse<List<MentalInstDTO>>> getInstitutions() throws Exception {
 
         log.info("{}.getInstitutions Start!", this.getClass().getName());

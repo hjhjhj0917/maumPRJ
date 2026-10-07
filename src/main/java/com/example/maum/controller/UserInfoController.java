@@ -34,7 +34,7 @@ public class UserInfoController {
     private final IUserInfoService userInfoService;
     private final BearerTokenResolver bearerTokenResolver;
 
-    @PostMapping(value = "userInfo")
+    @PostMapping(value = "/userInfo")
     public ResponseEntity<CommonResponse<UserInfoDTO>> userInfo(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.userInfo Start!", this.getClass().getName());
@@ -54,7 +54,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "getEmailExists")
+    @PostMapping(value = "/getEmailExists")
     public ResponseEntity<CommonResponse<ExistsDTO>> getEmailExists(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.getEmailExists Start!", this.getClass().getName());
@@ -83,7 +83,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "verifyEmailCode")
+    @PostMapping(value = "/verifyEmailCode")
     public ResponseEntity<CommonResponse<MsgDTO>> verifyEmailCode(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.verifyEmailCode Start!", this.getClass().getName());
@@ -99,7 +99,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "logout")
+    @PostMapping(value = "/logout")
     public ResponseEntity<CommonResponse<MsgDTO>> logout(@AuthenticationPrincipal Jwt jwt,
                                                          HttpServletRequest request,
                                                          HttpServletResponse response) throws Exception {
@@ -135,7 +135,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "findUserId")
+    @PostMapping(value = "/findUserId")
     public ResponseEntity<CommonResponse<ExistsDTO>> findUserId(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.findUserId Start!", this.getClass().getName());
@@ -166,7 +166,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "getUserId")
+    @PostMapping(value = "/getUserId")
     public ResponseEntity<CommonResponse<UserInfoDTO>> getUserId(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.getUserId Start!", this.getClass().getName());
@@ -188,7 +188,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "findUserPw")
+    @PostMapping(value = "/findUserPw")
     public ResponseEntity<CommonResponse<ExistsDTO>> findUserPw(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.findUserPw Start!", this.getClass().getName());
@@ -217,7 +217,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "updateUserPw")
+    @PostMapping(value = "/updateUserPw")
     public ResponseEntity<CommonResponse<MsgDTO>> updateUserPw(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.updateUserPw Start!", this.getClass().getName());
@@ -240,7 +240,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "updateProfileImg")
+    @PostMapping(value = "/updateProfileImg")
     public ResponseEntity<CommonResponse<MsgDTO>> updateProfileImg(@RequestBody UserInfoDTO uDTO,
                                                                    @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -272,7 +272,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "verifyCurrentPassword")
+    @PostMapping(value = "/verifyCurrentPassword")
     public ResponseEntity<CommonResponse<MsgDTO>> verifyCurrentPassword(@RequestBody UserInfoDTO uDTO,
                                                                         @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -296,7 +296,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "updateAccount")
+    @PostMapping(value = "/updateAccount")
     public ResponseEntity<CommonResponse<MsgDTO>> updateAccount(@RequestBody UserInfoDTO uDTO,
                                                                 @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -331,7 +331,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "sendWithdrawEmailCode")
+    @PostMapping(value = "/sendWithdrawEmailCode")
     public ResponseEntity<CommonResponse<MsgDTO>> sendWithdrawEmailCode(@RequestBody UserInfoDTO uDTO,
                                                                         @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -351,7 +351,7 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "deleteUser")
+    @PostMapping(value = "/deleteUser")
     public ResponseEntity<CommonResponse<MsgDTO>> deleteUser(@AuthenticationPrincipal Jwt jwt,
                                                              HttpServletRequest request,
                                                              HttpServletResponse response) throws Exception {

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/chat")
+@RequestMapping(value = "/api/v1/chat")
 @RequiredArgsConstructor
 @Slf4j
 public class ChatBotController {
@@ -55,7 +55,7 @@ public class ChatBotController {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
-    @PostMapping("/rooms")
+    @PostMapping(value = "/rooms")
     public ResponseEntity<CommonResponse<ChatRoomDTO>> createRoom(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.createRoom Start!", this.getClass().getName());
@@ -74,7 +74,7 @@ public class ChatBotController {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
-    @GetMapping("/rooms")
+    @GetMapping(value = "/rooms")
     public ResponseEntity<CommonResponse<List<ChatRoomDTO>>> getRooms(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.getRooms Start!", this.getClass().getName());
@@ -94,7 +94,7 @@ public class ChatBotController {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
-    @PostMapping("/rooms/{chatRoomNo}/title")
+    @PostMapping(value = "/rooms/{chatRoomNo}/title")
     public ResponseEntity<CommonResponse<Integer>> renameRoom(
             @PathVariable Integer chatRoomNo, @RequestBody ChatRoomDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -118,7 +118,7 @@ public class ChatBotController {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
-    @PostMapping("/rooms/{chatRoomNo}/pin")
+    @PostMapping(value = "/rooms/{chatRoomNo}/pin")
     public ResponseEntity<CommonResponse<Integer>> pinRoom(
             @PathVariable Integer chatRoomNo, @RequestBody ChatRoomDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -145,7 +145,7 @@ public class ChatBotController {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
-    @DeleteMapping("/rooms/{chatRoomNo}")
+    @DeleteMapping(value = "/rooms/{chatRoomNo}")
     public ResponseEntity<CommonResponse<Integer>> deleteRoom(
             @PathVariable Integer chatRoomNo, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -168,7 +168,7 @@ public class ChatBotController {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
-    @GetMapping("/rooms/{chatRoomNo}/messages")
+    @GetMapping(value = "/rooms/{chatRoomNo}/messages")
     public ResponseEntity<CommonResponse<List<ChatMessageDTO>>> getRoomMessages(
             @PathVariable Integer chatRoomNo, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
@@ -192,7 +192,7 @@ public class ChatBotController {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
-    @PostMapping("/messages/{chatMsgNo}/tts")
+    @PostMapping(value = "/messages/{chatMsgNo}/tts")
     public ResponseEntity<CommonResponse<List<String>>> synthesizeMessageAudio(
             @PathVariable Long chatMsgNo, @AuthenticationPrincipal Jwt jwt) throws Exception {
 

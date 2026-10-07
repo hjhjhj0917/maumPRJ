@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Slf4j
-@RequestMapping(value =  "api/v1/login")
+@RequestMapping(value = "/api/v1/login")
 @RequiredArgsConstructor
 @RestController
 public class LoginController {
@@ -28,7 +28,7 @@ public class LoginController {
     private final AuthenticationManager authenticationManager;
     private final IJwtTokenService jwtTokenService;
 
-    @PostMapping(value = "loginProc")
+    @PostMapping(value = "/loginProc")
     public ResponseEntity<CommonResponse<MsgDTO>> loginProc(@RequestBody UserInfoDTO pDTO, HttpServletResponse response) {
 
         log.info("{}.loginProc Start!", this.getClass().getName());
@@ -70,7 +70,7 @@ public class LoginController {
         );
     }
 
-    @PostMapping(value = "loginInfo")
+    @PostMapping(value = "/loginInfo")
     public ResponseEntity<CommonResponse<UserInfoDTO>> loginInfo(@AuthenticationPrincipal Jwt jwt) {
 
         log.info("{}.loginInfo Start!", this.getClass().getName());
