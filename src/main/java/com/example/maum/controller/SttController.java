@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/v1/stt")
+@RequestMapping(value = "/api/v1")
 @RequiredArgsConstructor
 @Slf4j
 // ★ 즐겨찾기 이후 추가/수정
@@ -23,7 +23,7 @@ public class SttController {
 
     private final ISttService sttService;
 
-    @PostMapping
+    @PostMapping(value = "/stt")
     public ResponseEntity<CommonResponse<String>> speechToText(@RequestParam("audio") MultipartFile audio,
                                                                 @AuthenticationPrincipal Jwt jwt) throws Exception {
 
