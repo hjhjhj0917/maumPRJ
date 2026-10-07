@@ -38,7 +38,7 @@ public class ChatBotController {
         String message = CmmUtil.nvl(cDTO.message());
         Integer chatRoomNo = cDTO.chatRoomNo();
 
-        log.info("userNo: {}, chatRoomNo: {}, message: {}", userNo, chatRoomNo, message);
+        log.info("userNo: {}, chatRoomNo: {}, messageLength: {}", userNo, chatRoomNo, message.length());
 
         ChatBotDTO pDTO = ChatBotDTO.builder()
                 .userNo(userNo)
@@ -62,6 +62,8 @@ public class ChatBotController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}", userNo);
+
         ChatRoomDTO pDTO = ChatRoomDTO.builder().userNo(userNo).build();
 
         ChatRoomDTO rDTO = chatBotService.createRoom(pDTO);
@@ -80,6 +82,8 @@ public class ChatBotController {
         log.info("{}.getRooms Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}", userNo);
 
         ChatRoomDTO pDTO = ChatRoomDTO.builder().userNo(userNo).build();
 
@@ -101,6 +105,8 @@ public class ChatBotController {
         log.info("{}.renameRoom Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, chatRoomNo: {}, titleLength: {}", userNo, chatRoomNo, CmmUtil.nvl(dDTO.roomTitle()).length());
 
         ChatRoomDTO pDTO = ChatRoomDTO.builder()
                 .chatRoomNo(chatRoomNo)
@@ -125,6 +131,8 @@ public class ChatBotController {
         log.info("{}.pinRoom Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, chatRoomNo: {}, isPinned: {}", userNo, chatRoomNo, dDTO.isPinned());
         Integer isPinned = dDTO.isPinned();
 
         ChatRoomDTO pDTO = ChatRoomDTO.builder()
@@ -153,6 +161,8 @@ public class ChatBotController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}, chatRoomNo: {}", userNo, chatRoomNo);
+
         ChatRoomDTO pDTO = ChatRoomDTO.builder()
                 .chatRoomNo(chatRoomNo)
                 .userNo(userNo)
@@ -175,6 +185,8 @@ public class ChatBotController {
         log.info("{}.getRoomMessages Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, chatRoomNo: {}", userNo, chatRoomNo);
 
         ChatRoomDTO pDTO = ChatRoomDTO.builder()
                 .chatRoomNo(chatRoomNo)
@@ -199,6 +211,8 @@ public class ChatBotController {
         log.info("{}.synthesizeMessageAudio Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, chatMsgNo: {}", userNo, chatMsgNo);
 
         List<String> audioChunks = Optional.ofNullable(chatBotService.synthesizeMessageAudio(chatMsgNo, userNo))
                 .orElseGet(ArrayList::new);

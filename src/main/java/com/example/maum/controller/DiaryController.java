@@ -42,6 +42,9 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}, createdAt: {}, titleLength: {}, contentLength: {}",
+                userNo, CmmUtil.nvl(dDTO.createdAt()), CmmUtil.nvl(dDTO.title()).length(), CmmUtil.nvl(dDTO.content()).length());
+
         DiaryDTO pDTO = DiaryDTO.builder()
                 .userNo(userNo)
                 .title(CmmUtil.nvl(dDTO.title()))
@@ -73,6 +76,9 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}, diaryNo: {}, createdAt: {}, titleLength: {}, contentLength: {}",
+                userNo, dDTO.diaryNo(), CmmUtil.nvl(dDTO.createdAt()), CmmUtil.nvl(dDTO.title()).length(), CmmUtil.nvl(dDTO.content()).length());
+
         DiaryDTO pDTO = DiaryDTO.builder()
                 .diaryNo(dDTO.diaryNo())
                 .userNo(userNo)
@@ -102,6 +108,9 @@ public class DiaryController {
         log.info("{}.diaryUpdate Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, diaryNo: {}, titleLength: {}, contentLength: {}",
+                userNo, dDTO.diaryNo(), CmmUtil.nvl(dDTO.title()).length(), CmmUtil.nvl(dDTO.content()).length());
         Integer diaryNo = dDTO.diaryNo();
 
         DiaryDTO pDTO = DiaryDTO.builder()
@@ -133,6 +142,8 @@ public class DiaryController {
         log.info("{}.diaryDelete Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, diaryNo: {}", userNo, dDTO.diaryNo());
         Integer diaryNo = dDTO.diaryNo();
 
         DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).diaryNo(diaryNo).build();
@@ -160,6 +171,8 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}, createdAt: {}", userNo, CmmUtil.nvl(pDTO.createdAt()));
+
         DiaryDTO sDTO = DiaryDTO.builder()
                 .userNo(userNo)
                 .createdAt(CmmUtil.nvl(pDTO.createdAt()))
@@ -183,6 +196,8 @@ public class DiaryController {
         log.info("{}.getDiaryDetail Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, diaryNo: {}", userNo, diaryNo);
 
         DiaryDTO pDTO = DiaryDTO.builder()
                 .diaryNo(diaryNo)
@@ -208,6 +223,8 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}, keywordLength: {}", userNo, CmmUtil.nvl(keyword).length());
+
         DiaryDTO pDTO = DiaryDTO.builder()
                 .userNo(userNo)
                 .title(CmmUtil.nvl(keyword))
@@ -231,6 +248,8 @@ public class DiaryController {
         log.info("{}.filterDiaryList Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, colors: {}", userNo, colors);
 
         List<DiaryDTO> rList = Optional.ofNullable(diaryService.getDiaryListByColors(userNo, colors))
                 .orElseGet(ArrayList::new);
@@ -273,6 +292,8 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}", userNo);
+
         DiaryDTO pDTO = DiaryDTO.builder()
                 .userNo(userNo)
                 .build();
@@ -295,6 +316,8 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}", userNo);
+
         DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).build();
 
         List<EmotionStatDTO> rList = Optional.ofNullable(diaryService.getEmotionStats(pDTO))
@@ -314,6 +337,8 @@ public class DiaryController {
         log.info("{}.getDiaryStats Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}", userNo);
 
         DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).build();
 
@@ -335,6 +360,8 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}", userNo);
+
         DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).build();
 
         List<DepressionTrendDTO> rList = Optional.ofNullable(diaryService.getDepressionTrend(pDTO))
@@ -355,6 +382,8 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}", userNo);
+
         DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).build();
 
         List<TopMusicDTO> rList = Optional.ofNullable(diaryService.getTopRecommendedMusic(pDTO))
@@ -374,6 +403,8 @@ public class DiaryController {
         log.info("{}.getWeeklyReport Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}", userNo);
 
         DiaryDTO pDTO = DiaryDTO.builder().userNo(userNo).build();
 
@@ -430,6 +461,8 @@ public class DiaryController {
         log.info("{}.diaryUpdateTitle Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, diaryNo: {}, titleLength: {}", userNo, dDTO.diaryNo(), CmmUtil.nvl(dDTO.title()).length());
         Integer diaryNo = dDTO.diaryNo();
 
         DiaryDTO pDTO = DiaryDTO.builder()
@@ -459,6 +492,8 @@ public class DiaryController {
         log.info("{}.diaryPin Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, diaryNo: {}, isPinned: {}", userNo, dDTO.diaryNo(), dDTO.isPinned());
         Integer diaryNo = dDTO.diaryNo();
         Integer isPinned = dDTO.isPinned();
 
@@ -495,6 +530,8 @@ public class DiaryController {
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
 
+        log.info("userNo: {}, diaryNo: {}, imageCount: {}", userNo, diaryNo, images.size());
+
         List<DiaryImageDTO> rList = diaryService.uploadDiaryImages(diaryNo, userNo, images);
 
         log.info("{}.uploadDiaryImages End!", this.getClass().getName());
@@ -512,6 +549,8 @@ public class DiaryController {
         log.info("{}.deleteDiaryImage Start!", this.getClass().getName());
 
         String userNo = CmmUtil.nvl(jwt.getSubject());
+
+        log.info("userNo: {}, imageNo: {}", userNo, dDTO.imageNo());
         Integer imageNo = dDTO.imageNo();
 
         DiaryImageDTO pDTO = DiaryImageDTO.builder()

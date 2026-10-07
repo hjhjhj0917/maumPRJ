@@ -27,7 +27,7 @@ public class RedisBlacklistFilter extends OncePerRequestFilter {
         String accessToken = bearerTokenResolver.resolve(request);
 
         if (accessToken != null && redisService.hasKey("AT:" + accessToken)) {
-            log.warn("블랙리스트에 등록된 로그아웃 토큰 접근: {}", accessToken);
+            log.warn("블랙리스트에 등록된 로그아웃 토큰 접근 (요청 경로: {})", request.getRequestURI());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그아웃 처리된 사용자입니다.");
             return;
         }
