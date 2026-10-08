@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.Optional;
 
 @Slf4j
 @RequestMapping(value = "/api/v1/reg")
@@ -34,7 +35,8 @@ public class UserRegController {
 
         log.info("userId: {}", CmmUtil.maskUserId(pDTO.userId()));
 
-        UserInfoDTO rDTO = userInfoService.getUserIdExists(pDTO);
+        UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
+                .orElseThrow(() -> new RuntimeException("아이디 중복 확인에 실패하였습니다."));
 
         log.info("{}.getUserIdExists End!", this.getClass().getName());
 

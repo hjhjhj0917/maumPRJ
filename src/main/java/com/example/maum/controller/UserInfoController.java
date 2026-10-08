@@ -121,10 +121,12 @@ public class UserInfoController {
         }
 
         if (remainingMilliSeconds > 0) {
-            List<ResponseCookie> cookies = userInfoService.logout(accessToken, userNo, remainingMilliSeconds);
+            List<ResponseCookie> cookies = Optional.ofNullable(userInfoService.logout(accessToken, userNo, remainingMilliSeconds))
+                    .orElseGet(List::of);
             cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
         } else {
-            List<ResponseCookie> cookies = userInfoService.logout(null, userNo, 0);
+            List<ResponseCookie> cookies = Optional.ofNullable(userInfoService.logout(null, userNo, 0))
+                    .orElseGet(List::of);
             cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
         }
 
@@ -232,8 +234,7 @@ public class UserInfoController {
 
         log.info("email: {}, codeLength: {}", CmmUtil.maskEmail(uDTO.email()), CmmUtil.nvl(uDTO.code()).length());
 
-        int res = Optional.of(userInfoService.updatePassword(uDTO))
-                .orElse(0);
+        int res = userInfoService.updatePassword(uDTO);
 
         String msg = (res == 1) ? "비밀번호 수정이 완료되었습니다." : "인증번호가 일치하지 않거나 정보가 만료되었습니다.";
 
@@ -266,8 +267,7 @@ public class UserInfoController {
                 .profileImgUrl(profileImage)
                 .build();
 
-        int res = Optional.of(userInfoService.updateProfileImg(pDTO))
-                .orElse(0);
+        int res = userInfoService.updateProfileImg(pDTO);
 
         String msg = (res == 1) ? "프로필 설정이 완료되었습니다." : "프로필 변경에 실패했습니다.";
 
@@ -298,7 +298,8 @@ public class UserInfoController {
                 .password(password)
                 .build();
 
-        MsgDTO rDTO = userInfoService.verifyCurrentPassword(pDTO);
+        MsgDTO rDTO = Optional.ofNullable(userInfoService.verifyCurrentPassword(pDTO))
+                .orElseGet(() -> MsgDTO.builder().result(0).msg("비밀번호 확인 중 오류가 발생했습니다.").build());
 
         log.info("{}.verifyCurrentPassword End!", this.getClass().getName());
 
@@ -329,7 +330,7 @@ public class UserInfoController {
                 .detailAddr(detailAddr)
                 .build();
 
-        int res = Optional.of(userInfoService.updateAccount(pDTO)).orElse(0);
+        int res = userInfoService.updateAccount(pDTO);
 
         MsgDTO rDTO = MsgDTO.builder()
                 .result(res)
@@ -356,7 +357,8 @@ public class UserInfoController {
                 .email(EncryptUtil.encAES128BCBCDeterministic(email))
                 .build();
 
-        MsgDTO rDTO = userInfoService.sendWithdrawEmailCode(pDTO);
+        MsgDTO rDTO = Optional.ofNullable(userInfoService.sendWithdrawEmailCode(pDTO))
+                .orElseGet(() -> MsgDTO.builder().result(0).msg("인증번호 발송 중 오류가 발생했습니다.").build());
 
         log.info("{}.sendWithdrawEmailCode End!", this.getClass().getName());
 
@@ -376,7 +378,7 @@ public class UserInfoController {
         log.info("userNo: {}", userNo);
         UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
 
-        int res = Optional.of(userInfoService.deleteUser(pDTO)).orElse(0);
+        int res = userInfoService.deleteUser(pDTO);
 
         if (res == 1) {
             String accessToken = bearerTokenResolver.resolve(request);
@@ -386,7 +388,9 @@ public class UserInfoController {
                 remainingMilliSeconds = jwt.getExpiresAt().toEpochMilli() - System.currentTimeMillis();
             }
 
-            List<ResponseCookie> cookies = userInfoService.logout(accessToken, userNo, remainingMilliSeconds);
+            List<ResponseCookie> cookies = Optional.ofNullable(userInfoService.logout(accessToken, userNo, remainingMilliSeconds))
+
+                    .orElseGet(List::of);
             cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
         }
 

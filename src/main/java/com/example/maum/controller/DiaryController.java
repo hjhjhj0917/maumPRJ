@@ -532,7 +532,8 @@ public class DiaryController {
 
         log.info("userNo: {}, diaryNo: {}, imageCount: {}", userNo, diaryNo, images.size());
 
-        List<DiaryImageDTO> rList = diaryService.uploadDiaryImages(diaryNo, userNo, images);
+        List<DiaryImageDTO> rList = Optional.ofNullable(diaryService.uploadDiaryImages(diaryNo, userNo, images))
+                .orElseThrow(() -> new RuntimeException("이미지 업로드에 실패하였습니다."));
 
         log.info("{}.uploadDiaryImages End!", this.getClass().getName());
 
@@ -558,7 +559,8 @@ public class DiaryController {
                 .userNo(userNo)
                 .build();
 
-        MsgDTO rDTO = diaryService.deleteDiaryImage(pDTO);
+        MsgDTO rDTO = Optional.ofNullable(diaryService.deleteDiaryImage(pDTO))
+                .orElseThrow(() -> new RuntimeException("이미지 삭제에 실패하였습니다."));
 
         if (rDTO.result() != 1) {
             throw new IllegalArgumentException(rDTO.msg());
