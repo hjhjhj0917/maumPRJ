@@ -113,7 +113,11 @@ public class ChatBotService implements IChatBotService {
                 .retrieve()
                 .bodyToFlux(String.class)
                 .doOnNext(data -> {
-                    log.info("Python Raw Data: {}", data);
+                    // 응답 본문/음성 데이터는 로그에 남기지 않고 종류와 길이만 기록
+                    String chunkType = data.startsWith("[[AUDIO]]") ? "AUDIO"
+                            : data.startsWith("[[TEXT_DONE]]") ? "TEXT_DONE"
+                            : data.startsWith("[[CARD]]") ? "CARD" : "TEXT";
+                    log.info("Python Data Received - type: {}, length: {}", chunkType, data.length());
                     // TTS 음성 데이터 자체는 대화 기록에 노이즈만 되므로 저장하지 않고,
                     // 나중에 다시 들을 때는 저장된 텍스트로 TTS를 재생성함(synthesizeMessageAudio) — 그때 쓸 표시만 남김
                     // [[TEXT_DONE]]는 텍스트 전송이 끝나고 음성 합성이 시작됐다는 표시라서, 라이브 합성이 실패하거나
