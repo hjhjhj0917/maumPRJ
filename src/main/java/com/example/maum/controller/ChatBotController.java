@@ -66,7 +66,8 @@ public class ChatBotController {
 
         ChatRoomDTO pDTO = ChatRoomDTO.builder().userNo(userNo).build();
 
-        ChatRoomDTO rDTO = chatBotService.createRoom(pDTO);
+        ChatRoomDTO rDTO = Optional.ofNullable(chatBotService.createRoom(pDTO))
+                .orElseThrow(() -> new RuntimeException("채팅방 생성에 실패하였습니다."));
 
         log.info("{}.createRoom End!", this.getClass().getName());
 
