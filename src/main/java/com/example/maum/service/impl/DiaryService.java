@@ -31,7 +31,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -432,19 +431,16 @@ public class DiaryService implements IDiaryService {
 
         log.info("Found {} diary entities.", entities.size());
 
-        List<DiaryDTO> rList = new ArrayList<>();
-
-        for (DiaryEntity e : entities) {
-            DiaryDTO dto = DiaryDTO.builder()
-                    .diaryNo(e.getDiaryNo())
-                    .userNo(e.getUserNo())
-                    .title(e.getTitle())
-                    .emotionColor(e.getEmotionColor())
-                    .isFavorite(e.getIsFavorite())
-                    .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                    .build();
-            rList.add(dto);
-        }
+        List<DiaryDTO> rList = entities.stream()
+                .map(e -> DiaryDTO.builder()
+                        .diaryNo(e.getDiaryNo())
+                        .userNo(e.getUserNo())
+                        .title(e.getTitle())
+                        .emotionColor(e.getEmotionColor())
+                        .isFavorite(e.getIsFavorite())
+                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                        .build())
+                .toList();
 
         log.info("{}.getMonthlyDiaryList End!", this.getClass().getName());
 
@@ -513,6 +509,17 @@ public class DiaryService implements IDiaryService {
         return rDTO;
     }
 
+    // 일기 목록(검색/색상/즐겨찾기)에서 공통으로 쓰는 엔티티 → DTO 변환
+    private DiaryDTO toListDTO(DiaryEntity e) {
+        return DiaryDTO.builder()
+                .diaryNo(e.getDiaryNo())
+                .title(e.getTitle())
+                .emotionColor(e.getEmotionColor())
+                .isFavorite(e.getIsFavorite())
+                .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                .build();
+    }
+
     // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
@@ -523,18 +530,9 @@ public class DiaryService implements IDiaryService {
         List<DiaryEntity> entities = diaryRepository.findByUserNoAndTitleContainingOrderByCreatedAtDesc(
                 pDTO.userNo(), pDTO.title());
 
-        List<DiaryDTO> rList = new ArrayList<>();
-
-        for (DiaryEntity e : entities) {
-            DiaryDTO dto = DiaryDTO.builder()
-                    .diaryNo(e.getDiaryNo())
-                    .title(e.getTitle())
-                    .emotionColor(e.getEmotionColor())
-                    .isFavorite(e.getIsFavorite())
-                    .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                    .build();
-            rList.add(dto);
-        }
+        List<DiaryDTO> rList = entities.stream()
+                .map(this::toListDTO)
+                .toList();
 
         log.info("{}.searchDiaryList End!", this.getClass().getName());
 
@@ -550,18 +548,9 @@ public class DiaryService implements IDiaryService {
 
         List<DiaryEntity> entities = diaryRepository.findByUserNoAndEmotionColorInOrderByCreatedAtDesc(userNo, colors);
 
-        List<DiaryDTO> rList = new ArrayList<>();
-
-        for (DiaryEntity e : entities) {
-            DiaryDTO dto = DiaryDTO.builder()
-                    .diaryNo(e.getDiaryNo())
-                    .title(e.getTitle())
-                    .emotionColor(e.getEmotionColor())
-                    .isFavorite(e.getIsFavorite())
-                    .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                    .build();
-            rList.add(dto);
-        }
+        List<DiaryDTO> rList = entities.stream()
+                .map(this::toListDTO)
+                .toList();
 
         log.info("{}.getDiaryListByColors End!", this.getClass().getName());
 
@@ -581,18 +570,16 @@ public class DiaryService implements IDiaryService {
 
         List<DiaryEntity> entities = diaryRepository.findTop20ByUserNoOrderByIsPinnedDescCreatedAtDesc(userNo);
 
-        List<DiaryDTO> rList = new ArrayList<>();
-
-        for (DiaryEntity e : entities) {
-            DiaryDTO dto = DiaryDTO.builder()
-                    .diaryNo(e.getDiaryNo())
-                    .title(e.getTitle())
-                    .emotionColor(e.getEmotionColor())
-                    .isPinned(e.getIsPinned())
-                    .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                    .build();
-            rList.add(dto);
-        }
+        // 캐시(Redis JSON)에 저장되는 목록이라 불변 리스트가 아닌 ArrayList로 수집
+        List<DiaryDTO> rList = entities.stream()
+                .map(e -> DiaryDTO.builder()
+                        .diaryNo(e.getDiaryNo())
+                        .title(e.getTitle())
+                        .emotionColor(e.getEmotionColor())
+                        .isPinned(e.getIsPinned())
+                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
+                        .build())
+                .collect(Collectors.toList());
 
         log.info("{}.getRecentDiaryList End!", this.getClass().getName());
 
@@ -614,18 +601,9 @@ public class DiaryService implements IDiaryService {
 
         log.info("Found {} favorite diary entities.", entities.size());
 
-        List<DiaryDTO> rList = new ArrayList<>();
-
-        for (DiaryEntity e : entities) {
-            DiaryDTO dto = DiaryDTO.builder()
-                    .diaryNo(e.getDiaryNo())
-                    .title(e.getTitle())
-                    .emotionColor(e.getEmotionColor())
-                    .isFavorite(e.getIsFavorite())
-                    .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                    .build();
-            rList.add(dto);
-        }
+        List<DiaryDTO> rList = entities.stream()
+                .map(this::toListDTO)
+                .toList();
 
         log.info("{}.getFavoriteDiaryList End!", this.getClass().getName());
 
@@ -656,16 +634,12 @@ public class DiaryService implements IDiaryService {
 
         entryList.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
 
-        List<EmotionStatDTO> rList = new ArrayList<>();
-
-        for (Map.Entry<String, Integer> entry : entryList) {
-            EmotionStatDTO dto = new EmotionStatDTO(
-                    entry.getKey(),
-                    entry.getValue(),
-                    EmotionColorMapper.getColor(entry.getKey())
-            );
-            rList.add(dto);
-        }
+        List<EmotionStatDTO> rList = entryList.stream()
+                .map(entry -> new EmotionStatDTO(
+                        entry.getKey(),
+                        entry.getValue(),
+                        EmotionColorMapper.getColor(entry.getKey())))
+                .toList();
 
         log.info("{}.getEmotionStats End!", this.getClass().getName());
 
