@@ -114,10 +114,7 @@ public class ChatBotService implements IChatBotService {
                 .bodyToFlux(String.class)
                 .doOnNext(data -> {
                     // 응답 본문/음성 데이터는 로그에 남기지 않고 종류와 길이만 기록
-                    String chunkType = data.startsWith("[[AUDIO]]") ? "AUDIO"
-                            : data.startsWith("[[TEXT_DONE]]") ? "TEXT_DONE"
-                            : data.startsWith("[[CARD]]") ? "CARD" : "TEXT";
-                    log.info("Python Data Received - type: {}, length: {}", chunkType, data.length());
+                    log.info("Python Data Received - type: {}, length: {}", resolveChunkType(data), data.length());
                     // TTS 음성 데이터 자체는 대화 기록에 노이즈만 되므로 저장하지 않고,
                     // 나중에 다시 들을 때는 저장된 텍스트로 TTS를 재생성함(synthesizeMessageAudio) — 그때 쓸 표시만 남김
                     // [[TEXT_DONE]]는 텍스트 전송이 끝나고 음성 합성이 시작됐다는 표시라서, 라이브 합성이 실패하거나
@@ -261,6 +258,14 @@ public class ChatBotService implements IChatBotService {
         if (res == 0) {
             throw new Exception("존재하지 않거나 권한이 없는 채팅방입니다.");
         }
+    }
+
+    // 스트림으로 받은 조각이 어떤 종류인지 접두어로 구분 (로그 표기용)
+    private String resolveChunkType(String data) {
+        if (data.startsWith("[[AUDIO]]")) return "AUDIO";
+        if (data.startsWith("[[TEXT_DONE]]")) return "TEXT_DONE";
+        if (data.startsWith("[[CARD]]")) return "CARD";
+        return "TEXT";
     }
 
     // ★ 즐겨찾기 이후 추가/수정
