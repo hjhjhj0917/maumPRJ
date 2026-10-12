@@ -78,6 +78,7 @@ public class UserInfoService implements IUserInfoService {
     }
 
 
+    @Transactional(readOnly = true)
     @Override
     public UserInfoDTO getUserInfo(UserInfoDTO pDTO) throws Exception {
 
@@ -455,6 +456,7 @@ public class UserInfoService implements IUserInfoService {
     }
 
 
+    @Transactional(readOnly = true)
     @SneakyThrows /* try-catch나 throw 없이도 예외를 밖으로 던질 수 있음 */
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
