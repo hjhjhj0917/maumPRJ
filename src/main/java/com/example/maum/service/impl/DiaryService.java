@@ -16,17 +16,16 @@ import com.example.maum.repository.DiaryRepository;
 import com.example.maum.repository.entity.DiaryEntity;
 import com.example.maum.repository.entity.DiaryImageEntity;
 import com.example.maum.repository.entity.DiaryLogDocument;
-import com.example.maum.repository.entity.DiaryMusicEntity;
 import com.example.maum.repository.projection.DepressionTrendProjection;
 import com.example.maum.repository.projection.TopMusicProjection;
 import com.example.maum.service.IDiaryService;
+import com.example.maum.service.IDiaryWriteService;
 import com.example.maum.service.IGcsService;
 import com.example.maum.util.CmmUtil;
 import com.example.maum.util.DateUtil;
 import com.example.maum.util.EmotionColorMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -65,13 +64,10 @@ public class DiaryService implements IDiaryService {
 
     private final RestClient pythonApiRestClient;
 
-    // Python 분석 API 호출(느린 외부 호출)을 @Transactional 메서드 밖으로 뺀 뒤에도,
-    // DB 쓰기 부분(saveMusicTracks의 삭제+재삽입)만은 원자적으로 묶어야 해서 자기 자신을
-    // 프록시로 주입받아 씀 — 같은 클래스 안에서 this.saveMusicTracks(...)로 직접 호출하면
-    // Spring AOP 프록시를 거치지 않아 @Transactional이 무시되기 때문.
-    // ObjectProvider로 감싸면 생성자 주입 시점에 즉시 자기 자신을 조회하지 않고
-    // 실제 호출 시점(getObject())에 지연 조회하므로 순환 참조 문제도 없음
-    private final ObjectProvider<DiaryService> selfProvider;
+    // Python 분석 API 호출(느린 외부 호출)은 트랜잭션 밖에서 하고, 그 결과를 DB에 쓰는 짧은 부분만
+    // 별도 서비스(DiaryWriteService)로 분리해 주입받아 호출함 — 같은 클래스 안에서 호출하면 프록시를
+    // 거치지 않아 @Transactional이 무시되지만, 다른 빈을 거치면 프록시가 트랜잭션을 적용해 줌
+    private final IDiaryWriteService diaryWriteService;
 
     // ★ 즐겨찾기 이후 추가/수정
     // 분석 응답에 포함된 감정 기반 음악 추천 결과(tracks)도 함께 저장함
@@ -109,10 +105,9 @@ public class DiaryService implements IDiaryService {
                     Integer symptomYn = (isSymptomObj instanceof Boolean && (Boolean) isSymptomObj) ? 1 : 0;
 
                     // updateAnalysisResultDirectly는 @Modifying 커스텀 쿼리라 활성 트랜잭션이 반드시
-                    // 필요함(표준 CRUD 메서드와 달리 자체 트랜잭션이 없음) — saveMusicTracks(삭제+재삽입)와
-                    // 함께 하나의 트랜잭션으로 묶어야 원자적이므로, this.로 직접 부르지 않고
-                    // selfProvider로 얻은 프록시를 통해 한 번에 호출함
-                    selfProvider.getObject().applyAnalysisResult(
+                    // 필요함(표준 CRUD 메서드와 달리 자체 트랜잭션이 없음) — 음악 추천 저장(삭제+재삽입)과
+                    // 함께 하나의 트랜잭션으로 묶어야 원자적이므로, DiaryWriteService에서 한 번에 처리함
+                    diaryWriteService.applyAnalysisResult(
                             entity.getDiaryNo(),
                             summary,
                             mainEmotion,
@@ -134,63 +129,6 @@ public class DiaryService implements IDiaryService {
         } catch (Exception e) {
             log.error("파이썬 서버 통신 에러: {}", e.getMessage());
         }
-    }
-
-    // updateDiaryDirectly는 @Modifying 커스텀 쿼리라 활성 트랜잭션이 반드시 필요함 — diaryUpdate
-    // 전체를 @Transactional로 감싸면 뒤에 이어지는 requestAnalysisAndUpdate의 외부 API 호출까지
-    // 트랜잭션에 걸리게 되므로, 이 짧은 DB 쓰기 부분만 selfProvider 프록시로 따로 감쌈
-    // ★ 즐겨찾기 이후 추가/수정
-    @Transactional
-    public void updateDiaryContent(Integer diaryNo, String title, String content) {
-        diaryRepository.updateDiaryDirectly(Long.valueOf(diaryNo), title, content);
-    }
-
-    // 분석 결과(감정/우울도) DB 반영과 음악 추천 저장을 하나의 트랜잭션으로 묶음 — 감정 분석
-    // 결과만 반영되고 음악 추천 저장은 실패하는(또는 그 반대) 반쪽짜리 상태를 막기 위함.
-    // updateAnalysisResultDirectly는 @Modifying 커스텀 쿼리라 활성 트랜잭션이 반드시 필요하고,
-    // selfProvider를 통해 프록시로 호출되어야 하므로 public이어야 함 (Spring AOP는 프록시를 거치는
-    // 외부 호출에만 적용되고, private 메서드는 애초에 프록시가 오버라이드할 수 없어 적용이 불가능함)
-    // ★ 즐겨찾기 이후 추가/수정
-    @Transactional
-    public void applyAnalysisResult(Integer diaryNo, String summary, String mainEmotion, String emotionColor,
-                                     Integer depLvl, BigDecimal depScore, Integer symptomYn,
-                                     List<Map<String, Object>> tracks) {
-
-        diaryRepository.updateAnalysisResultDirectly(
-                Long.valueOf(diaryNo), summary, mainEmotion, emotionColor, depLvl, depScore, symptomYn
-        );
-
-        // 같은 트랜잭션(프록시를 통해 이미 진입한 상태) 안이므로 this.로 직접 호출해도 됨
-        saveMusicTracks(diaryNo, tracks);
-    }
-
-    // ★ 즐겨찾기 이후 추가/수정
-    // 재분석(수정)일 경우 기존 추천곡은 지우고 새로 저장함 (일기 내용이 바뀌면 추천도 바뀌어야 하므로)
-    private void saveMusicTracks(Integer diaryNo, List<Map<String, Object>> tracks) {
-
-        diaryMusicRepository.deleteByDiaryNo(diaryNo);
-
-        if (tracks == null || tracks.isEmpty()) {
-            log.warn("음악 추천 결과 없음 (diaryNo: {})", diaryNo);
-            return;
-        }
-
-        int order = 0;
-        for (Map<String, Object> track : tracks) {
-            DiaryMusicEntity musicEntity = DiaryMusicEntity.builder()
-                    .diaryNo(diaryNo)
-                    .trackId((String) track.get("trackId"))
-                    .trackName((String) track.get("trackName"))
-                    .artistName((String) track.get("artistName"))
-                    .albumImageUrl((String) track.get("albumImageUrl"))
-                    .spotifyUrl((String) track.get("spotifyUrl"))
-                    .trackOrder(order++)
-                    .build();
-
-            diaryMusicRepository.save(musicEntity);
-        }
-
-        log.info("음악 추천 저장 완료 (diaryNo: {}, {}곡)", diaryNo, tracks.size());
     }
 
     @Value("${secure.python.api.url}")
@@ -285,7 +223,7 @@ public class DiaryService implements IDiaryService {
     // ★ 즐겨찾기 이후 추가/수정
     // requestAnalysisAndUpdate의 외부 API 호출을 트랜잭션 밖에서 실행하기 위해 메서드 전체를
     // @Transactional로 감싸지는 않되, updateDiaryDirectly(@Modifying 커스텀 쿼리라 활성 트랜잭션이
-    // 반드시 필요함)는 selfProvider 프록시를 통해 짧은 트랜잭션으로 따로 감싸서 호출함
+    // 반드시 필요함)는 DiaryWriteService를 통해 짧은 트랜잭션으로 따로 감싸서 호출함
     @Caching(evict = {
             @CacheEvict(value = "diaryCache", allEntries = true),
             @CacheEvict(value = "weeklyReportCache", key = "#pDTO.userNo()")
@@ -309,7 +247,7 @@ public class DiaryService implements IDiaryService {
             DiaryEntity entity = rEntity.get();
 
             if (entity.getUserNo().equals(userNo)) {
-                selfProvider.getObject().updateDiaryContent(diaryNo, title, content);
+                diaryWriteService.updateDiaryContent(diaryNo, title, content);
 
                 requestAnalysisAndUpdate(entity, title, content);
 
@@ -799,7 +737,7 @@ public class DiaryService implements IDiaryService {
     private static final int WEEKLY_REPORT_PERIOD_DAYS = 7;
 
     // ★ 즐겨찾기 이후 추가/수정
-    // Gemini 호출 비용 때문에 하루 단위(weeklyReportCache TTL 24시간)로 결과를 캐싱함
+    // Gemini 호출 비용 때문에 하루 단위(weeklyReportCache TTL 24시간)로 결과를 캐싱함 @Cacheable은 같은 요청이 들어오면 메스드 실행 x 값을 그대로 돌려줌
     @Cacheable(value = "weeklyReportCache", key = "#pDTO.userNo()")
     @Override
     public ReportCardDTO getWeeklyReport(DiaryDTO pDTO) throws Exception {
@@ -1018,7 +956,9 @@ public class DiaryService implements IDiaryService {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
-    @Transactional
+    // GCS 파일 삭제(외부 네트워크 호출)가 들어 있어서 @Transactional을 붙이면 그 호출이 끝날 때까지
+    // DB 커넥션을 붙잡게 되어 빼둠 — diaryImageRepository.delete(image)는 Spring Data JPA가
+    // 자동으로 트랜잭션 처리해주므로 DB 삭제 자체의 원자성엔 문제없음 (DB 삭제 후 GCS 파일을 지움)
     @Override
     public MsgDTO deleteDiaryImage(DiaryImageDTO pDTO) throws Exception {
 
