@@ -333,9 +333,12 @@ public class DiaryService implements IDiaryService {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
-    // GCS 이미지 삭제(외부 네트워크 호출)가 DB 삭제보다 먼저 일어나는데, @Transactional을 붙이면
-    // 그 GCS 호출이 끝날 때까지 DB 커넥션을 붙잡게 되어 빼둠 — diaryRepository.delete(entity)는
-    // Spring Data JPA가 메서드 단위로 자동 트랜잭션 처리해주므로 그 자체의 원자성엔 문제없음
+    // GCS 이미지 삭제(외부 네트워크 호출)가 들어 있어서 @Transactional을 붙이면 그 호출이 끝날 때까지
+    // DB 커넥션을 붙잡게 되어 빼둠 — diaryRepository.delete(entity)는 Spring Data JPA가 메서드 단위로
+    // 자동 트랜잭션 처리해주므로 그 자체의 원자성엔 문제없음.
+    // DB 삭제를 먼저 하고 성공한 뒤에 GCS 파일을 지움 — 순서가 반대면 DB 삭제가 실패했을 때
+    // 파일만 사라지고 일기에는 깨진 이미지 링크가 남음 (반대로 GCS 삭제가 실패하면 파일만 남을 뿐
+    // 화면에는 영향이 없고, GcsService.deleteImage는 실패해도 예외를 던지지 않음)
     @Caching(evict = {
             @CacheEvict(value = "diaryCache", allEntries = true),
             @CacheEvict(value = "weeklyReportCache", key = "#pDTO.userNo()")
@@ -360,11 +363,10 @@ public class DiaryService implements IDiaryService {
 
             if (entity.getUserNo().equals(userNo)) {
 
-                // DB 행은 FK cascade로 같이 지워지지만, GCS에 올라간 실제 파일은 직접 지워야 함
-                List<DiaryImageEntity> images = diaryImageRepository.findByDiaryNoOrderByImageOrderAsc(diaryNo);
-                for (DiaryImageEntity image : images) {
-                    gcsService.deleteImage(image.getImageUrl());
-                }
+                // DB 행은 FK cascade로 같이 지워지므로, 삭제 전에 GCS에서 지울 파일 URL을 미리 확보해 둠
+                List<String> imageUrls = diaryImageRepository.findByDiaryNoOrderByImageOrderAsc(diaryNo).stream()
+                        .map(DiaryImageEntity::getImageUrl)
+                        .toList();
 
                 diaryRepository.delete(entity);
 
@@ -373,6 +375,11 @@ public class DiaryService implements IDiaryService {
                     mongoTemplate.remove(query, "DIARY_LOGS");
                 } catch (Exception e) {
                     log.error(e.getMessage());
+                }
+
+                // DB 삭제가 끝난 뒤에 GCS에 올라간 실제 파일을 지움
+                for (String imageUrl : imageUrls) {
+                    gcsService.deleteImage(imageUrl);
                 }
 
                 res = 1;
@@ -558,6 +565,7 @@ public class DiaryService implements IDiaryService {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
+    @Transactional(readOnly = true)
     @Cacheable(value = "diaryCache", key = "#pDTO.userNo()", condition = "#pDTO.userNo() != null")
     @Override
     public List<DiaryDTO> getRecentDiaryList(DiaryDTO pDTO) throws Exception {

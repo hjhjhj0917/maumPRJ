@@ -169,6 +169,7 @@ public class ChatBotService implements IChatBotService {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
+    @Transactional(readOnly = true)
     @Override
     public List<ChatRoomDTO> getRooms(ChatRoomDTO pDTO) {
         log.info("{}.getRooms Start!", this.getClass().getName());
@@ -179,6 +180,7 @@ public class ChatBotService implements IChatBotService {
     }
 
     // ★ 즐겨찾기 이후 추가/수정
+    @Transactional(readOnly = true)
     @Override
     public List<ChatMessageDTO> getRoomMessages(ChatRoomDTO pDTO) throws Exception {
         log.info("{}.getRoomMessages Start!", this.getClass().getName());
