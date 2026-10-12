@@ -48,6 +48,8 @@ public class SttService implements ISttService {
         log.info("{}.transcribe Start!", this.getClass().getName());
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+
+        // 익명 클래스 정의 : 기존 ByteArrayResource는 이름을 제고하지 않아서 이름도 제공하게 재정의
         body.add("audio", new ByteArrayResource(audio.getBytes()) {
             @Override
             public String getFilename() {
@@ -62,7 +64,7 @@ public class SttService implements ISttService {
                     .contentType(MediaType.MULTIPART_FORM_DATA)
                     .body(BodyInserters.fromMultipartData(body))
                     .retrieve()
-                    .bodyToMono(SttResultDTO.class)
+                    .bodyToMono(SttResultDTO.class) // 역직렬화
                     // HttpClient의 responseTimeout과 별개로, block() 자체도 타임아웃을 줘서
                     // 응답 자체가 아예 안 오는 경우(연결은 됐지만 스트림이 멈추는 경우 등)까지 방어함
                     .block(RESPONSE_TIMEOUT);

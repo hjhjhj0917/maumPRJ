@@ -6,6 +6,7 @@ import com.example.maum.service.ISttService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -25,7 +26,7 @@ public class SttController {
 
     private final ISttService sttService;
 
-    @PostMapping(value = "/stt")
+    @PostMapping(value = "/stt", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CommonResponse<String>> speechToText(@RequestParam("audio") MultipartFile audio,
                                                                 @AuthenticationPrincipal Jwt jwt) throws Exception {
 
