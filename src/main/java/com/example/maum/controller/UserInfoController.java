@@ -179,11 +179,7 @@ public class UserInfoController {
 
         log.info("{}.getUserId Start!", this.getClass().getName());
 
-        String email = CmmUtil.nvl(uDTO.email());
-        String userName = CmmUtil.nvl(uDTO.userName());
-        String code = CmmUtil.nvl(uDTO.code());
-
-        log.info("email: {}, codeLength: {}", CmmUtil.maskEmail(email), code.length());
+        log.info("email: {}, codeLength: {}", CmmUtil.maskEmail(uDTO.email()), CmmUtil.nvl(uDTO.code()).length());
 
         UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserId(uDTO))
                 .orElseGet(() -> UserInfoDTO.builder().build());
