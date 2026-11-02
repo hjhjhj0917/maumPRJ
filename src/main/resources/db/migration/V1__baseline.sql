@@ -167,6 +167,8 @@ CREATE TABLE diary (
     diary_date   DATE         NOT NULL,
     title        VARCHAR(200) NOT NULL DEFAULT '',
     content      TEXT         NOT NULL DEFAULT '',
+    -- 글자 수는 본문에서 자동 계산(불일치 불가). 작성 습관 통계가 본문 전체를 읽지 않도록 둔다.
+    char_count   INT GENERATED ALWAYS AS (char_length(content)) STORED,
     status       VARCHAR(20)  NOT NULL DEFAULT 'DRAFT',
     is_favorite  BOOLEAN      NOT NULL DEFAULT FALSE,
     is_pinned    BOOLEAN      NOT NULL DEFAULT FALSE,
@@ -179,6 +181,9 @@ CREATE TABLE diary (
     updated_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
     CONSTRAINT uq_diary_public_id UNIQUE (public_id),
     CONSTRAINT ck_diary_status CHECK (status IN ('DRAFT', 'PUBLISHED')),
+    -- 본문 상한은 모델 입력과 과도한 저장을 막는 안전장치(v1에는 제한이 없었음). 값은 서비스 정책에 맞춰 조정 가능.
+    CONSTRAINT ck_diary_content_len CHECK (char_length(content) <= 10000),
+    CONSTRAINT ck_diary_temperature CHECK (temperature_c IS NULL OR temperature_c BETWEEN -60 AND 60),
     -- 날씨 API 응답을 이 분류로 매핑한다(제공자 확정 후 값 조정 가능).
     CONSTRAINT ck_diary_weather CHECK (weather_condition IS NULL OR weather_condition IN
         ('CLEAR', 'PARTLY_CLOUDY', 'CLOUDY', 'RAIN', 'SNOW', 'SLEET', 'FOG', 'THUNDERSTORM', 'OTHER')),
@@ -189,7 +194,8 @@ CREATE TABLE diary (
 -- user_id FK 전용(전체 행). 아래 두 인덱스는 부분 인덱스라 탈퇴 purge의 DELETE ... WHERE user_id 에는 쓰이지 않는다.
 CREATE INDEX ix_diary_user ON diary (user_id);
 -- 달력/목록/통계: 확정본만 인덱싱 (조회는 반드시 status = 'PUBLISHED' 조건 포함)
-CREATE INDEX ix_diary_user_date ON diary (user_id, diary_date, id) WHERE status = 'PUBLISHED';
+-- weather_condition 을 포함해 날씨 통계가 본문 행을 읽지 않고 인덱스만으로 끝나게 한다.
+CREATE INDEX ix_diary_user_date ON diary (user_id, diary_date, id) INCLUDE (weather_condition) WHERE status = 'PUBLISHED';
 -- 임시 저장 목록
 CREATE INDEX ix_diary_user_draft ON diary (user_id, updated_at DESC) WHERE status = 'DRAFT';
 CREATE TRIGGER trg_diary_updated BEFORE UPDATE ON diary
@@ -292,7 +298,7 @@ CREATE TABLE chat_message (
     has_audio     BOOLEAN     NOT NULL DEFAULT FALSE,
     cards         JSONB,                                    -- 카드 복원용 + 상담기관 지도 카드(기관명·주소·좌표·연락처 등)
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT ck_chat_message_role CHECK (role IN ('user', 'bot')),
+    CONSTRAINT ck_chat_message_role CHECK (role IN ('USER', 'BOT')),
     CONSTRAINT ck_chat_message_status CHECK (status IN ('STREAMING', 'COMPLETE', 'INTERRUPTED', 'FAILED')),
     CONSTRAINT uq_chat_message_seq UNIQUE (session_id, seq),
     CONSTRAINT uq_chat_message_client UNIQUE (session_id, client_msg_id, role)
