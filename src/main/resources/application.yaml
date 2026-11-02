@@ -13,10 +13,15 @@ spring:
 
   # Database Connection
   datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
+    driver-class-name: org.postgresql.Driver
     url: ${secure.datasource.url}
     username: ${secure.datasource.username}
     password: ${secure.datasource.password}
+
+  # Flyway: 앱 기동 시 자동 실행하지 않는다(배포 파이프라인의 별도 단계에서 한 번만 실행). 로컬은 application-local.yaml에서 켠다.
+  flyway:
+    enabled: false
+    locations: classpath:db/migration
 
   # MongoDB Connection
   mongodb:

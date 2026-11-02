@@ -1,0 +1,9 @@
+# 로컬 개발 전용 프로필. docker-compose.dev.yml 의 PostgreSQL 을 가리킨다.
+# 실행: SPRING_PROFILES_ACTIVE=local (운영 DB와 분리하려고 secure.* 값을 쓰지 않는다)
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/maum
+    username: maum
+    password: maum_local_only
+  flyway:
+    enabled: true

@@ -1,0 +1,15 @@
+# 로컬 개발용 PostgreSQL. 운영과 무관한 일회용 계정이다.
+#   docker compose -f docker-compose.dev.yml up -d
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: maum
+      POSTGRES_USER: maum
+      POSTGRES_PASSWORD: maum_local_only
+    ports:
+      - "5432:5432"
+    volumes:
+      - maum_pg_data:/var/lib/postgresql/data
+volumes:
+  maum_pg_data:
