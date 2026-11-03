@@ -16,21 +16,17 @@ public interface IUserInfoService extends UserDetailsService {
 
     UserInfoDTO getUserInfo(UserInfoDTO pDTO) throws Exception;
 
-    UserInfoDTO getUserIdExists(UserInfoDTO pDTO) throws Exception;
-
 
     /* [Authentication & Verification] */
 
     MsgDTO verifyEmailCode(UserInfoDTO pDTO) throws Exception;
 
-    List<ResponseCookie> logout(String accessToken, String userNo, long remainingMilliSeconds) throws Exception;
+    int updateLastLogin(UserInfoDTO pDTO);
+
+    List<ResponseCookie> logout(String accessToken, String publicId, long remainingMilliSeconds) throws Exception;
 
 
     /* [Account Recovery] */
-
-    UserInfoDTO getUserId(UserInfoDTO pDTO) throws Exception;
-
-    ExistsDTO findUserId(UserInfoDTO pDTO) throws Exception;
 
     ExistsDTO findUserPw(UserInfoDTO pDTO) throws Exception;
 

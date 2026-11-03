@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.Optional;
 
 @Slf4j
 @RequestMapping(value = "/api/v1/reg")
@@ -27,23 +26,6 @@ public class UserRegController {
 
     private final IUserInfoService userInfoService;
     private final PasswordEncoder bCryptPasswordEncoder;
-
-    @PostMapping(value = "/getUserIdExists")
-    public ResponseEntity<CommonResponse<UserInfoDTO>> getUserIdExists(@RequestBody UserInfoDTO pDTO) throws Exception {
-
-        log.info("{}.getUserIdExists Start!", this.getClass().getName());
-
-        log.info("userId: {}", CmmUtil.maskUserId(pDTO.userId()));
-
-        UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserIdExists(pDTO))
-                .orElseThrow(() -> new RuntimeException("아이디 중복 확인에 실패하였습니다."));
-
-        log.info("{}.getUserIdExists End!", this.getClass().getName());
-
-        return ResponseEntity.ok(
-                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO)
-        );
-    }
 
     @PostMapping(value = "/insertUserInfo")
     public ResponseEntity<CommonResponse<?>> insertUserInfo(@Valid @RequestBody UserInfoDTO pDTO, BindingResult bindingResult) {
@@ -60,7 +42,7 @@ public class UserRegController {
         String msg = "";
         MsgDTO dto;
 
-        log.info("userId: {}, email: {}", CmmUtil.maskUserId(pDTO.userId()), CmmUtil.maskEmail(pDTO.email()));
+        log.info("email: {}", CmmUtil.maskEmail(pDTO.email()));
 
         try {
 
@@ -77,14 +59,16 @@ public class UserRegController {
             if (res == 1) {
                 msg = "회원가입되었습니다.";
             } else if (res == 2) {
-                msg = "이미 가입된 아이디입니다.";
+                msg = "이미 가입된 이메일입니다.";
+            } else if (res == 3) {
+                msg = "이메일 인증을 먼저 완료해주세요.";
             } else {
                 msg = "오류로 인해 회원가입이 실패하였습니다.";
             }
         } catch (Exception e) {
 
-            msg = "실패하였습니다. : " + e;
-            res = 2;
+            msg = "오류로 인해 회원가입이 실패하였습니다.";
+            res = 0;
             log.error("회원가입 중 예외 발생", e);
         } finally {
 

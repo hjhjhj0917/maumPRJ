@@ -6,6 +6,7 @@ import com.example.maum.dto.MsgDTO;
 import com.example.maum.dto.UserInfoDTO;
 import com.example.maum.util.CmmUtil;
 import com.example.maum.service.IJwtTokenService;
+import com.example.maum.service.IUserInfoService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class LoginController {
 
     private final AuthenticationManager authenticationManager;
     private final IJwtTokenService jwtTokenService;
+    private final IUserInfoService userInfoService;
 
     @PostMapping(value = "/loginProc")
     public ResponseEntity<CommonResponse<MsgDTO>> loginProc(@RequestBody UserInfoDTO pDTO, HttpServletResponse response) {
@@ -36,31 +38,34 @@ public class LoginController {
 
         MsgDTO dto;
 
+        String email = CmmUtil.normalizeEmail(pDTO.email());
+
         try {
             // authenticationManager에 미인증 토큰을 넘기면 내부적으로 DaoAuthenticationProvider가
             // loadUserByUsername을 호출해 DB의 암호화된 비밀번호와 대조함
             Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(pDTO.userId(), pDTO.password())
+                    new UsernamePasswordAuthenticationToken(email, pDTO.password())
             );
 
             AuthInfo principal = (AuthInfo) auth.getPrincipal();
             UserInfoDTO u = principal.userInfoDTO();
 
             jwtTokenService.issueTokens(u, response);
+            userInfoService.updateLastLogin(u);
 
             dto = MsgDTO.builder()
                     .result(1)
                     .msg("로그인 성공")
                     .build();
 
-            log.info("로그인 성공: {}", CmmUtil.maskUserId(pDTO.userId()));
+            log.info("로그인 성공: {}", CmmUtil.maskEmail(email));
 
         } catch (Exception e) {
-            log.warn("로그인 실패 (userId: {}): {}", CmmUtil.maskUserId(pDTO.userId()), e.getMessage());
+            log.warn("로그인 실패 (email: {}): {}", CmmUtil.maskEmail(email), e.getMessage());
 
             dto = MsgDTO.builder()
                     .result(0)
-                    .msg("아이디 또는 비밀번호가 일치하지 않습니다.")
+                    .msg("이메일 또는 비밀번호가 일치하지 않습니다.")
                     .build();
         }
 
@@ -81,20 +86,20 @@ public class LoginController {
         if (jwt == null) {
 
             dto = UserInfoDTO.builder()
-                    .userId("")
-                    .userName("")
+                    .publicId("")
+                    .nickname("")
                     .roles("")
                     .build();
         } else {
 
-            String userId = jwt.getSubject();
-            String userName = jwt.getClaim("username");
+            String publicId = jwt.getSubject();
+            String nickname = jwt.getClaim("nickname");
             List<String> roles = jwt.getClaim("roles");
             String rolesCsv = (roles == null) ? "" : String.join(",", roles);
 
             dto = UserInfoDTO.builder()
-                    .userId(userId)
-                    .userName(userName)
+                    .publicId(publicId)
+                    .nickname(nickname)
                     .roles(rolesCsv)
                     .build();
         }

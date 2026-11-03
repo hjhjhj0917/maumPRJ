@@ -6,7 +6,6 @@ import com.example.maum.dto.MsgDTO;
 import com.example.maum.dto.UserInfoDTO;
 import com.example.maum.service.IUserInfoService;
 import com.example.maum.util.CmmUtil;
-import com.example.maum.util.EncryptUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -39,11 +38,11 @@ public class UserInfoController {
 
         log.info("{}.userInfo Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String publicId = CmmUtil.nvl(jwt.getSubject());
 
-        log.info("userNo: {}", userNo);
+        log.info("publicId: {}", publicId);
 
-        UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
+        UserInfoDTO pDTO = UserInfoDTO.builder().publicId(publicId).build();
 
         UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserInfo(pDTO))
                 .orElseGet(() -> UserInfoDTO.builder().build());
@@ -66,7 +65,7 @@ public class UserInfoController {
         log.info("email: {}", CmmUtil.maskEmail(email));
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .email(EncryptUtil.encAES128BCBCDeterministic(email))
+                .email(email)
                 .build();
 
         ExistsDTO rDTO = Optional.ofNullable(userInfoService.getEmailExists(pDTO))
@@ -111,9 +110,9 @@ public class UserInfoController {
         log.info("{}.logout Start!", this.getClass().getName());
 
         String accessToken = bearerTokenResolver.resolve(request);
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String publicId = CmmUtil.nvl(jwt.getSubject());
 
-        log.info("userNo: {}", userNo);
+        log.info("publicId: {}", publicId);
 
         long remainingMilliSeconds = 0;
         if (jwt.getExpiresAt() != null) {
@@ -121,11 +120,11 @@ public class UserInfoController {
         }
 
         if (remainingMilliSeconds > 0) {
-            List<ResponseCookie> cookies = Optional.ofNullable(userInfoService.logout(accessToken, userNo, remainingMilliSeconds))
+            List<ResponseCookie> cookies = Optional.ofNullable(userInfoService.logout(accessToken, publicId, remainingMilliSeconds))
                     .orElseGet(List::of);
             cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
         } else {
-            List<ResponseCookie> cookies = Optional.ofNullable(userInfoService.logout(null, userNo, 0))
+            List<ResponseCookie> cookies = Optional.ofNullable(userInfoService.logout(null, publicId, 0))
                     .orElseGet(List::of);
             cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
         }
@@ -143,68 +142,17 @@ public class UserInfoController {
     }
 
 
-    @PostMapping(value = "/findUserId")
-    public ResponseEntity<CommonResponse<ExistsDTO>> findUserId(@RequestBody UserInfoDTO uDTO) throws Exception {
-
-        log.info("{}.findUserId Start!", this.getClass().getName());
-
-        String email = CmmUtil.nvl(uDTO.email());
-        String userName = CmmUtil.nvl(uDTO.userName());
-
-        log.info("email: {}", CmmUtil.maskEmail(email));
-
-        UserInfoDTO pDTO = UserInfoDTO.builder()
-                .email(EncryptUtil.encAES128BCBCDeterministic(email))
-                .userName(userName)
-                .build();
-
-        ExistsDTO rDTO = Optional.ofNullable(userInfoService.findUserId(pDTO))
-                .orElseGet(() -> ExistsDTO.builder().exists(false).authNumber(0).build());
-
-        ExistsDTO resultDTO = ExistsDTO.builder()
-                .exists(rDTO.exists())
-                .authNumber(0)
-                .build();
-
-        log.info("{}.findUserId End!", this.getClass().getName());
-
-        return ResponseEntity.ok(
-                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), resultDTO)
-        );
-    }
-
-
-    @PostMapping(value = "/getUserId")
-    public ResponseEntity<CommonResponse<UserInfoDTO>> getUserId(@RequestBody UserInfoDTO uDTO) throws Exception {
-
-        log.info("{}.getUserId Start!", this.getClass().getName());
-
-        log.info("email: {}, codeLength: {}", CmmUtil.maskEmail(uDTO.email()), CmmUtil.nvl(uDTO.code()).length());
-
-        UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserId(uDTO))
-                .orElseGet(() -> UserInfoDTO.builder().build());
-
-        log.info("{}.getUserId End!", this.getClass().getName());
-
-        return ResponseEntity.ok(
-                CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO)
-        );
-    }
-
-
     @PostMapping(value = "/findUserPw")
     public ResponseEntity<CommonResponse<ExistsDTO>> findUserPw(@RequestBody UserInfoDTO uDTO) throws Exception {
 
         log.info("{}.findUserPw Start!", this.getClass().getName());
 
         String email = CmmUtil.nvl(uDTO.email());
-        String userId = CmmUtil.nvl(uDTO.userId());
 
-        log.info("email: {}, userId: {}", CmmUtil.maskEmail(email), CmmUtil.maskUserId(userId));
+        log.info("email: {}", CmmUtil.maskEmail(email));
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .email(EncryptUtil.encAES128BCBCDeterministic(email))
-                .userId(userId)
+                .email(email)
                 .build();
 
         ExistsDTO rDTO = Optional.ofNullable(userInfoService.findUserPw(pDTO))
@@ -253,13 +201,13 @@ public class UserInfoController {
 
         log.info("{}.updateProfileImg Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String publicId = CmmUtil.nvl(jwt.getSubject());
         String profileImage = CmmUtil.nvl(uDTO.profileImgUrl());
 
-        log.info("프로필 변경 요청 - userNo: {}, profileImage: {}", userNo, profileImage);
+        log.info("프로필 변경 요청 - publicId: {}, profileImage: {}", publicId, profileImage);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .userNo(userNo)
+                .publicId(publicId)
                 .profileImgUrl(profileImage)
                 .build();
 
@@ -284,13 +232,13 @@ public class UserInfoController {
 
         log.info("{}.verifyCurrentPassword Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String publicId = CmmUtil.nvl(jwt.getSubject());
         String password = CmmUtil.nvl(uDTO.password());
 
-        log.info("userNo: {}", userNo);
+        log.info("publicId: {}", publicId);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .userNo(userNo)
+                .publicId(publicId)
                 .password(password)
                 .build();
 
@@ -309,21 +257,18 @@ public class UserInfoController {
 
         log.info("{}.updateAccount Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String publicId = CmmUtil.nvl(jwt.getSubject());
         String password = CmmUtil.nvl(uDTO.password());
-        String email = CmmUtil.nvl(uDTO.email());
-        String addr = CmmUtil.nvl(uDTO.addr());
-        String detailAddr = CmmUtil.nvl(uDTO.detailAddr());
+        String nickname = CmmUtil.nvl(uDTO.nickname());
 
-        log.info("userNo: {}, 비밀번호 변경: {}, 이메일 변경: {}, 주소 변경: {}",
-                userNo, !password.isEmpty(), !email.isEmpty(), !addr.isEmpty() || !detailAddr.isEmpty());
+        log.info("publicId: {}, 비밀번호 변경: {}, 닉네임 변경: {}, 출생연도 변경: {}",
+                publicId, !password.isEmpty(), !nickname.isEmpty(), uDTO.birthYear() != null);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .userNo(userNo)
+                .publicId(publicId)
                 .password(password)
-                .email(email.isEmpty() ? "" : EncryptUtil.encAES128BCBCDeterministic(email))
-                .addr(addr)
-                .detailAddr(detailAddr)
+                .nickname(nickname)
+                .birthYear(uDTO.birthYear())
                 .build();
 
         int res = userInfoService.updateAccount(pDTO);
@@ -340,17 +285,16 @@ public class UserInfoController {
 
 
     @PostMapping(value = "/sendWithdrawEmailCode")
-    public ResponseEntity<CommonResponse<MsgDTO>> sendWithdrawEmailCode(@RequestBody UserInfoDTO uDTO,
-                                                                        @AuthenticationPrincipal Jwt jwt) throws Exception {
+    public ResponseEntity<CommonResponse<MsgDTO>> sendWithdrawEmailCode(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.sendWithdrawEmailCode Start!", this.getClass().getName());
 
-        String email = CmmUtil.nvl(uDTO.email());
+        String publicId = CmmUtil.nvl(jwt.getSubject());
 
-        log.info("email: {}", CmmUtil.maskEmail(email));
+        log.info("publicId: {}", publicId);
 
         UserInfoDTO pDTO = UserInfoDTO.builder()
-                .email(EncryptUtil.encAES128BCBCDeterministic(email))
+                .publicId(publicId)
                 .build();
 
         MsgDTO rDTO = Optional.ofNullable(userInfoService.sendWithdrawEmailCode(pDTO))
@@ -369,10 +313,10 @@ public class UserInfoController {
 
         log.info("{}.deleteUser Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String publicId = CmmUtil.nvl(jwt.getSubject());
 
-        log.info("userNo: {}", userNo);
-        UserInfoDTO pDTO = UserInfoDTO.builder().userNo(userNo).build();
+        log.info("publicId: {}", publicId);
+        UserInfoDTO pDTO = UserInfoDTO.builder().publicId(publicId).build();
 
         int res = userInfoService.deleteUser(pDTO);
 
@@ -384,8 +328,7 @@ public class UserInfoController {
                 remainingMilliSeconds = jwt.getExpiresAt().toEpochMilli() - System.currentTimeMillis();
             }
 
-            List<ResponseCookie> cookies = Optional.ofNullable(userInfoService.logout(accessToken, userNo, remainingMilliSeconds))
-
+            List<ResponseCookie> cookies = Optional.ofNullable(userInfoService.logout(accessToken, publicId, remainingMilliSeconds))
                     .orElseGet(List::of);
             cookies.forEach(cookie -> response.addHeader("Set-Cookie", cookie.toString()));
         }

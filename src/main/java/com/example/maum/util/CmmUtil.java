@@ -1,5 +1,7 @@
 package com.example.maum.util;
 
+import java.util.Locale;
+
 public class CmmUtil {
 	public static String nvl(String str, String chg_str) {
 		String res;
@@ -16,6 +18,11 @@ public class CmmUtil {
 
 	public static String nvl(String str){
 		return nvl(str,"");
+	}
+
+	// 이메일은 DB 제약(소문자, 앞뒤 공백 없음)과 같은 형태로 맞춰서 조회·저장·Redis 키에 사용함
+	public static String normalizeEmail(String email){
+		return nvl(email).trim().toLowerCase(Locale.ROOT);
 	}
 
 	// 로그에 로그인 아이디를 그대로 남기지 않도록 앞 두 글자만 보이게 가림 (예: us***)

@@ -66,8 +66,6 @@ public class SecurityConfig {
                                 "/api/v1/reg/**", "/api/v1/login/**",
                                 "/api/v1/account/getEmailExists",
                                 "/api/v1/account/verifyEmailCode",
-                                "/api/v1/account/findUserId",
-                                "/api/v1/account/getUserId",
                                 "/api/v1/account/findUserPw",
                                 "/api/v1/account/updateUserPw"
                         ).permitAll()

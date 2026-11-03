@@ -1,7 +1,9 @@
 package com.example.maum.service.impl;
 
+import com.example.maum.auth.UserStatus;
 import com.example.maum.dto.UserInfoDTO;
 import com.example.maum.service.IJwtTokenService;
+import com.example.maum.service.IUserInfoService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,17 +23,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JwtTokenService implements IJwtTokenService {
 
-    private static final String CLAIM_USERNAME = "username";
+    private static final String CLAIM_NICKNAME = "nickname";
     private static final String CLAIM_ROLES = "roles";
     private static final String CLAIM_TYPE = "type";
     private static final String TYPE_ACCESS = "access";
     private static final String TYPE_REFRESH = "refresh";
-    private static final String CLAIM_USERID = "userId";
     private static final String CLAIM_ABS_EXP = "absExp";
 
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
     private final RedisService redisService;
+    private final IUserInfoService userInfoService;
 
     @Value("${secure.jwt.token.creator}")
     private String issuer;
@@ -59,9 +61,8 @@ public class JwtTokenService implements IJwtTokenService {
                 .issuer(issuer)
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(ttlSec))
-                .subject(user.userNo())
-                .claim(CLAIM_USERID, user.userId())
-                .claim(CLAIM_USERNAME, user.userName())
+                .subject(user.publicId())
+                .claim(CLAIM_NICKNAME, user.nickname())
                 .claim(CLAIM_TYPE, type)
                 .claim(CLAIM_ROLES, roles);
 
@@ -106,8 +107,8 @@ public class JwtTokenService implements IJwtTokenService {
             String type = jwt.getClaimAsString(CLAIM_TYPE);
 
             if (TYPE_REFRESH.equals(type)) {
-                String userNo = jwt.getSubject();
-                String redisKey = "RT:" + userNo;
+                String publicId = jwt.getSubject();
+                String redisKey = "RT:" + publicId;
                 String savedToken = redisService.getValues(redisKey);
 
                 if (savedToken != null && savedToken.equals(refreshToken)) {
@@ -119,7 +120,7 @@ public class JwtTokenService implements IJwtTokenService {
                         absExp = Instant.ofEpochSecond(absExpEpoch);
                         // 리프레시가 반복돼도 최초 발급 시점 기준 절대 만료는 넘길 수 없음 (무기한 로그인 연장 방지)
                         if (Instant.now().isAfter(absExp)) {
-                            log.warn("절대 만료 시간이 지났습니다. 강제 로그아웃 처리됩니다. (userNo: {})", userNo);
+                            log.warn("절대 만료 시간이 지났습니다. 강제 로그아웃 처리됩니다. (publicId: {})", publicId);
                             redisService.deleteValues(redisKey);
                             return 0;
                         }
@@ -127,16 +128,17 @@ public class JwtTokenService implements IJwtTokenService {
                         absExp = Instant.now().plusSeconds(absoluteTtlSec);
                     }
 
-                    UserInfoDTO user = UserInfoDTO.builder()
-                            .userNo(userNo)
-                            .userId(jwt.getClaimAsString(CLAIM_USERID))
-                            .userName(jwt.getClaimAsString(CLAIM_USERNAME))
-                            .roles(String.join(",", jwt.getClaimAsStringList(CLAIM_ROLES)))
-                            .build();
+                    // 닉네임·권한·상태는 토큰 값을 복사하지 않고 DB에서 다시 읽어 변경 사항(닉네임 수정, 정지)을 반영함
+                    UserInfoDTO user = userInfoService.getUserInfo(UserInfoDTO.builder().publicId(publicId).build());
 
-                    issueTokensWithAbsExp(user, response, absExp);
+                    if (UserStatus.ACTIVE.name().equals(user.status())) {
+                        issueTokensWithAbsExp(user, response, absExp);
 
-                    res = 1;
+                        res = 1;
+                    } else {
+                        log.warn("활성 계정이 아니라 토큰 재발급을 거절합니다. (publicId: {}, status: {})", publicId, user.status());
+                        redisService.deleteValues(redisKey);
+                    }
                 } else {
                     log.warn("Redis에 저장된 토큰과 일치하지 않거나 만료되었습니다.");
                 }
@@ -195,7 +197,7 @@ public class JwtTokenService implements IJwtTokenService {
         String refreshToken = generateRefreshTokenWithAbsExp(user, absExp); // 발급된 절대 시간을 계속 이어감
 
         long rtExpirationMillis = refreshTtlSec * 1000L;
-        redisService.setValues("RT:" + user.userNo(), refreshToken, rtExpirationMillis);
+        redisService.setValues("RT:" + user.publicId(), refreshToken, rtExpirationMillis);
 
         writeTokenAsCookies(response, accessToken, refreshToken);
     }

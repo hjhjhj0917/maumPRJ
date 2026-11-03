@@ -23,7 +23,7 @@ public record AuthInfo(UserInfoDTO userInfoDTO) implements UserDetails {
 
         if (!roles.isEmpty()) {
             for (String role : roles.split(",")) {
-                pSet.add(new SimpleGrantedAuthority(role));
+                pSet.add(new SimpleGrantedAuthority("ROLE_" + role));
             }
         }
 
@@ -32,7 +32,7 @@ public record AuthInfo(UserInfoDTO userInfoDTO) implements UserDetails {
 
     @Override
     public String getUsername() {
-        return CmmUtil.nvl(userInfoDTO.userId());
+        return CmmUtil.nvl(userInfoDTO.email());
     }
 
     @Override
