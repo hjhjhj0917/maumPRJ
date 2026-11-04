@@ -211,24 +211,28 @@ CREATE TABLE diary_analysis (
     diary_id           BIGINT PRIMARY KEY REFERENCES diary (id) ON DELETE CASCADE,
     analysis_status    VARCHAR(12) NOT NULL DEFAULT 'PENDING',
     summary            TEXT,
+    -- 요약·음악 생성(2단계 분석) 상태. SKIPPED: 프라이버시 모드로 외부 AI 호출을 건너뜀(생성 중과 구분하려는 값).
+    summary_status     VARCHAR(10) NOT NULL DEFAULT 'PENDING',
     main_group_code    VARCHAR(20) REFERENCES emotion_group (code),   -- 대표 감정(대분류), 색상 표시용
     dep_level          SMALLINT,
     dep_score          NUMERIC(5, 4),
     model_version      VARCHAR(50),
     analyzed_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
-    embedding_status   VARCHAR(10) NOT NULL DEFAULT 'PENDING',   -- Mongo Atlas 벡터 동기화 상태
+    embedding_status   VARCHAR(10) NOT NULL DEFAULT 'PENDING',   -- Mongo Atlas 벡터 동기화 상태(SKIPPED: 프라이버시 모드)
     embedding_version  VARCHAR(50),
     embedded_at        TIMESTAMPTZ,
     CONSTRAINT ck_analysis_status CHECK (analysis_status IN ('PENDING', 'DONE', 'DEP_SKIPPED', 'FAILED')),
     CONSTRAINT ck_analysis_dep_level CHECK (dep_level IS NULL OR dep_level IN (0, 1)),
     CONSTRAINT ck_analysis_dep_score CHECK (dep_score IS NULL OR (dep_score >= 0 AND dep_score <= 1)),
     CONSTRAINT ck_analysis_dep_skipped CHECK (analysis_status <> 'DEP_SKIPPED' OR (dep_score IS NULL AND dep_level = 0)),
-    CONSTRAINT ck_analysis_embedding CHECK (embedding_status IN ('PENDING', 'DONE', 'FAILED'))
+    CONSTRAINT ck_analysis_summary CHECK (summary_status IN ('PENDING', 'DONE', 'FAILED', 'SKIPPED')),
+    CONSTRAINT ck_analysis_embedding CHECK (embedding_status IN ('PENDING', 'DONE', 'FAILED', 'SKIPPED'))
 );
 CREATE INDEX ix_analysis_group ON diary_analysis (main_group_code);
 -- 분석 대기/실패 건 재처리 대상 조회
 CREATE INDEX ix_analysis_retry ON diary_analysis (analyzed_at) WHERE analysis_status IN ('PENDING', 'FAILED');
-CREATE INDEX ix_analysis_embedding_retry ON diary_analysis (analyzed_at) WHERE embedding_status <> 'DONE';
+CREATE INDEX ix_analysis_summary_retry ON diary_analysis (analyzed_at) WHERE summary_status IN ('PENDING', 'FAILED');
+CREATE INDEX ix_analysis_embedding_retry ON diary_analysis (analyzed_at) WHERE embedding_status IN ('PENDING', 'FAILED');
 
 -- 일기별 세부 감정 점수(44개 전부 저장). KOTE는 감정별 독립 확률(sigmoid)이라 합이 1이 아니다.
 -- 화면의 "상위 10개 %"는 점수 내림차순 10개를 조회해 만들고, 표시 비율 계산(원 확률 vs 합 100% 정규화)은 앱에서 결정한다.

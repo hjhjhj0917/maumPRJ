@@ -8,32 +8,32 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "DIARY_IMAGE")
+@Table(name = "diary_image")
 @DynamicInsert
 @Builder
 @Entity
-// ★ 즐겨찾기 이후 추가/수정
 public class DiaryImageEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "IMAGE_NO")
-    private Integer imageNo;
+    @Column(name = "id")
+    private Long id;
 
-    @Column(name = "DIARY_NO", nullable = false)
-    private Integer diaryNo;
+    @Column(name = "diary_id", nullable = false)
+    private Long diaryId;
 
-    @Column(name = "IMAGE_URL", nullable = false, length = 500)
-    private String imageUrl;
+    @Column(name = "sort_order", nullable = false)
+    private Short sortOrder;
 
-    @Column(name = "IMAGE_ORDER", nullable = false)
-    private Integer imageOrder;
+    // 파일 위치(버킷 안의 경로)만 저장하고, 화면에 내보낼 때 URL 로 바꾼다
+    @Column(name = "storage_key", nullable = false, length = 500)
+    private String storageKey;
 
-    @Column(name = "CREATED_AT", insertable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private Instant createdAt;
 }

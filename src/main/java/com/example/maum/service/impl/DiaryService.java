@@ -1,51 +1,50 @@
 package com.example.maum.service.impl;
 
-import com.example.maum.dto.DepressionTrendDTO;
+import com.example.maum.diary.DiaryAnalysisRequestedEvent;
+import com.example.maum.diary.DiaryStatus;
+import com.example.maum.diary.EmotionCatalog;
 import com.example.maum.dto.DiaryDTO;
 import com.example.maum.dto.DiaryImageDTO;
 import com.example.maum.dto.DiaryMusicDTO;
-import com.example.maum.dto.DiaryStatsDTO;
-import com.example.maum.dto.EmotionStatDTO;
+import com.example.maum.dto.EmotionScoreDTO;
 import com.example.maum.dto.MsgDTO;
-import com.example.maum.dto.ReportCardDTO;
-import com.example.maum.dto.TopMusicDTO;
+import com.example.maum.repository.DiaryAnalysisRepository;
+import com.example.maum.repository.DiaryEmotionScoreRepository;
 import com.example.maum.repository.DiaryImageRepository;
-import com.example.maum.repository.DiaryLogRepository;
 import com.example.maum.repository.DiaryMusicRepository;
 import com.example.maum.repository.DiaryRepository;
+import com.example.maum.repository.SyncOutboxRepository;
+import com.example.maum.repository.UserRepository;
+import com.example.maum.repository.entity.DiaryAnalysisEntity;
 import com.example.maum.repository.entity.DiaryEntity;
 import com.example.maum.repository.entity.DiaryImageEntity;
-import com.example.maum.repository.entity.DiaryLogDocument;
-import com.example.maum.repository.projection.DepressionTrendProjection;
-import com.example.maum.repository.projection.TopMusicProjection;
+import com.example.maum.repository.entity.SyncOutboxEntity;
+import com.example.maum.repository.entity.UserEntity;
+import com.example.maum.repository.projection.DiaryListProjection;
 import com.example.maum.service.IDiaryService;
-import com.example.maum.service.IDiaryWriteService;
 import com.example.maum.service.IGcsService;
 import com.example.maum.util.CmmUtil;
-import com.example.maum.util.DateUtil;
-import com.example.maum.util.EmotionColorMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.*;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -54,889 +53,442 @@ import java.util.stream.Collectors;
 public class DiaryService implements IDiaryService {
 
     private static final int MAX_DIARY_IMAGE_COUNT = 3;
+    private static final int TOP_EMOTION_COUNT = 10;
+    private static final int RECENT_DIARY_LIMIT = 20;
+
+    // DB CHECK(ck_diary_content_len, diary.title VARCHAR(200), diary_temperature, ck_diary_weather)와 같은 기준
+    private static final int MAX_TITLE_LENGTH = 200;
+    private static final int MAX_CONTENT_LENGTH = 10000;
+    private static final int MAX_WEATHER_REGION_LENGTH = 50;
+    private static final BigDecimal MIN_TEMPERATURE = BigDecimal.valueOf(-60);
+    private static final BigDecimal MAX_TEMPERATURE = BigDecimal.valueOf(60);
+    private static final Set<String> WEATHER_CONDITIONS = Set.of(
+            "CLEAR", "PARTLY_CLOUDY", "CLOUDY", "RAIN", "SNOW", "SLEET", "FOG", "THUNDERSTORM", "OTHER");
 
     private final DiaryRepository diaryRepository;
-    private final DiaryLogRepository diaryLogRepository;
-    private final DiaryImageRepository diaryImageRepository;
+    private final DiaryAnalysisRepository diaryAnalysisRepository;
+    private final DiaryEmotionScoreRepository diaryEmotionScoreRepository;
     private final DiaryMusicRepository diaryMusicRepository;
+    private final DiaryImageRepository diaryImageRepository;
+    private final SyncOutboxRepository syncOutboxRepository;
+    private final UserRepository userRepository;
     private final IGcsService gcsService;
-    private final MongoTemplate mongoTemplate;
+    private final EmotionCatalog emotionCatalog;
+    private final ApplicationEventPublisher eventPublisher;
 
-    private final RestClient pythonApiRestClient;
+    // 이 서비스의 쓰기 메서드는 외부 호출(GCS 업로드 제외) 없이 DB 만 다루므로 메서드 전체를 하나의 트랜잭션으로 묶음.
+    // AI 분석은 커밋된 뒤에 이벤트로 시작되어(DiaryAnalysisService) 사용자의 응답을 기다리게 하지 않음
 
-    // Python 분석 API 호출(느린 외부 호출)은 트랜잭션 밖에서 하고, 그 결과를 DB에 쓰는 짧은 부분만
-    // 별도 서비스(DiaryWriteService)로 분리해 주입받아 호출함 — 같은 클래스 안에서 호출하면 프록시를
-    // 거치지 않아 @Transactional이 무시되지만, 다른 빈을 거치면 프록시가 트랜잭션을 적용해 줌
-    private final IDiaryWriteService diaryWriteService;
-
-    // ★ 즐겨찾기 이후 추가/수정
-    // 분석 응답에 포함된 감정 기반 음악 추천 결과(tracks)도 함께 저장함
-    private void requestAnalysisAndUpdate(DiaryEntity entity, String newTitle, String newContent) {
-
-        try {
-            Map<String, Object> requestMap = new HashMap<>();
-
-            requestMap.put("diary_no", entity.getDiaryNo());
-            requestMap.put("user_no", entity.getUserNo());
-            requestMap.put("title", newTitle);
-            requestMap.put("created_at", entity.getCreatedAt());
-            requestMap.put("content", newContent);
-            requestMap.put("disease_type", "depression");
-
-            ResponseEntity<Map> response = pythonApiRestClient.post()
-                    .uri(pythonApiUrl + "/api/analyze")
-                    .body(requestMap)
-                    .retrieve()
-                    .toEntity(Map.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                Map<String, Object> responseBody = response.getBody();
-                log.info("파이썬 분석 결과 수신 성공.");
-
-                try {
-                    String summary = (String) responseBody.get("analysis_summary");
-                    String mainEmotion = (String) responseBody.get("main_emotion");
-                    String emotionColor = (String) responseBody.get("main_color");
-
-                    Map<String, Object> depRes = (Map<String, Object>) responseBody.get("dep_res");
-                    Integer depLvl = Integer.parseInt(String.valueOf(depRes.get("final_level")));
-                    BigDecimal depScore = new BigDecimal(String.valueOf(depRes.get("raw_score")));
-                    Object isSymptomObj = depRes.get("is_symptom");
-                    Integer symptomYn = (isSymptomObj instanceof Boolean && (Boolean) isSymptomObj) ? 1 : 0;
-
-                    // updateAnalysisResultDirectly는 @Modifying 커스텀 쿼리라 활성 트랜잭션이 반드시
-                    // 필요함(표준 CRUD 메서드와 달리 자체 트랜잭션이 없음) — 음악 추천 저장(삭제+재삽입)과
-                    // 함께 하나의 트랜잭션으로 묶어야 원자적이므로, DiaryWriteService에서 한 번에 처리함
-                    diaryWriteService.applyAnalysisResult(
-                            entity.getDiaryNo(),
-                            summary,
-                            mainEmotion,
-                            emotionColor,
-                            depLvl,
-                            depScore,
-                            symptomYn,
-                            (List<Map<String, Object>>) responseBody.get("tracks")
-                    );
-
-                    log.info("분석 결과 DB 반영 완료 (Color: {})", emotionColor);
-
-                } catch (Exception parseEx) {
-                    log.error("분석 결과 파싱 실패: {}", parseEx.getMessage());
-                }
-            } else {
-                log.error("파이썬 분석 요청 실패. Status: {}", response.getStatusCode());
-            }
-        } catch (Exception e) {
-            log.error("파이썬 서버 통신 에러: {}", e.getMessage());
-        }
-    }
-
-    @Value("${secure.python.api.url}")
-    private String pythonApiUrl;
-
-    // requestAnalysisAndUpdate가 Python 분석 API를 동기 호출하는데, 여기에 @Transactional을
-    // 붙이면 그 호출이 끝날 때까지 DB 커넥션을 붙잡고 있게 되어 일부러 빼둠 — diaryRepository.save()
-    // 자체는 Spring Data JPA가 메서드 단위로 자동으로 트랜잭션 처리해주므로 원자성엔 문제없음
-    @Caching(evict = {
-            @CacheEvict(value = "diaryCache", allEntries = true),
-            @CacheEvict(value = "weeklyReportCache", key = "#pDTO.userNo()")
-    })
-    @Override
-    public int diaryInsert(DiaryDTO pDTO) throws Exception {
-
-        log.info("{}.diaryInsert Start!", this.getClass().getName());
-
-        int res = 0;
-
-        try {
-            String createdAt = CmmUtil.nvl(pDTO.createdAt()).trim();
-            LocalDate parsedDate = DateUtil.parseLocalDate(createdAt, "yyyy-MM-dd");
-
-            DiaryEntity pEntity = DiaryEntity.builder()
-                    .userNo(pDTO.userNo())
-                    .title(CmmUtil.nvl(pDTO.title()))
-                    .content(CmmUtil.nvl(pDTO.content()))
-                    .createdAt(parsedDate)
-                    .build();
-
-            pEntity = diaryRepository.save(pEntity);
-
-            res = pEntity.getDiaryNo();
-
-            requestAnalysisAndUpdate(pEntity, pEntity.getTitle(), pEntity.getContent());
-
-        } catch (Exception e) {
-            res = 0;
-            log.error("Diary Insert Error : {}", e.getMessage());
-        }
-
-        log.info("{}.diaryInsert End!", this.getClass().getName());
-
-        return res;
-    }
-
-    // ★ 즐겨찾기 이후 추가/수정
-    // diaryNo가 없으면 새로 생성하고, 있으면 그 자리에 덮어씀 (자동저장이 반복 호출되므로)
     @Transactional
     @Override
-    public int draftSave(DiaryDTO pDTO) throws Exception {
+    public String draftSave(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.draftSave Start!", this.getClass().getName());
 
-        int res = 0;
+        Long userId = resolveUserId(pDTO.userPublicId());
+        String title = CmmUtil.nvl(pDTO.title());
+        String content = CmmUtil.nvl(pDTO.content());
 
-        try {
-            String title = CmmUtil.nvl(pDTO.title());
-            String content = CmmUtil.nvl(pDTO.content());
+        validateLength(title, content);
 
-            if (pDTO.diaryNo() != null) {
-                Optional<DiaryEntity> rEntity = diaryRepository.findById(pDTO.diaryNo());
+        LocalDate diaryDate = parseDiaryDate(pDTO.diaryDate());
+        DiaryEntity diary;
 
-                if (rEntity.isPresent() && rEntity.get().getUserNo().equals(pDTO.userNo())) {
-                    diaryRepository.updateDiaryDirectly(Long.valueOf(pDTO.diaryNo()), title, content);
-                    res = pDTO.diaryNo();
-                }
-            } else {
-                String createdAt = CmmUtil.nvl(pDTO.createdAt()).trim();
-                LocalDate parsedDate = DateUtil.parseLocalDate(createdAt, "yyyy-MM-dd");
+        if (hasText(pDTO.publicId())) {
+            diary = findOwnedDiary(pDTO.publicId(), userId);
 
-                DiaryEntity pEntity = DiaryEntity.builder()
-                        .userNo(pDTO.userNo())
-                        .title(title)
-                        .content(content)
-                        .createdAt(parsedDate)
-                        .build();
-
-                pEntity = diaryRepository.save(pEntity);
-                res = pEntity.getDiaryNo();
+            if (diary.isPublished()) {
+                throw new IllegalArgumentException("이미 발행된 일기는 임시 저장할 수 없습니다.");
             }
-        } catch (Exception e) {
-            res = 0;
-            log.error("Diary Draft Save Error : {}", e.getMessage());
+
+            diary.changeText(title, content);
+            diary.changeDate(diaryDate);
+        } else {
+            diary = newDraft(userId, diaryDate, title, content);
         }
+
+        applyWeather(diary, pDTO);
+        diary = diaryRepository.save(diary);
 
         log.info("{}.draftSave End!", this.getClass().getName());
 
-        return res;
+        return diary.getPublicId().toString();
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
-    // requestAnalysisAndUpdate의 외부 API 호출을 트랜잭션 밖에서 실행하기 위해 메서드 전체를
-    // @Transactional로 감싸지는 않되, updateDiaryDirectly(@Modifying 커스텀 쿼리라 활성 트랜잭션이
-    // 반드시 필요함)는 DiaryWriteService를 통해 짧은 트랜잭션으로 따로 감싸서 호출함
-    @Caching(evict = {
-            @CacheEvict(value = "diaryCache", allEntries = true),
-            @CacheEvict(value = "weeklyReportCache", key = "#pDTO.userNo()")
-    })
+    @CacheEvict(value = "diaryCache", key = "#pDTO.userPublicId()")
+    @Transactional
+    @Override
+    public String diaryInsert(DiaryDTO pDTO) throws Exception {
+
+        log.info("{}.diaryInsert Start!", this.getClass().getName());
+
+        Long userId = resolveUserId(pDTO.userPublicId());
+        String title = CmmUtil.nvl(pDTO.title());
+        String content = CmmUtil.nvl(pDTO.content());
+
+        validateForPublish(title, content);
+
+        LocalDate diaryDate = parseDiaryDate(pDTO.diaryDate());
+        DiaryEntity diary;
+
+        if (hasText(pDTO.publicId())) {
+            diary = findOwnedDiary(pDTO.publicId(), userId);
+
+            if (diary.isPublished()) {
+                throw new IllegalArgumentException("이미 발행된 일기입니다.");
+            }
+
+            diary.changeText(title, content);
+            diary.changeDate(diaryDate);
+        } else {
+            diary = newDraft(userId, diaryDate, title, content);
+        }
+
+        applyWeather(diary, pDTO);
+        diary.publish(Instant.now());
+        diary = diaryRepository.save(diary);
+
+        diaryAnalysisRepository.save(DiaryAnalysisEntity.pending(diary.getId(), isAiEnabled(userId)));
+        eventPublisher.publishEvent(new DiaryAnalysisRequestedEvent(diary.getId()));
+
+        log.info("일기 발행 완료 (publicId: {})", diary.getPublicId());
+        log.info("{}.diaryInsert End!", this.getClass().getName());
+
+        return diary.getPublicId().toString();
+    }
+
+    @CacheEvict(value = "diaryCache", key = "#pDTO.userPublicId()")
+    @Transactional
     @Override
     public MsgDTO diaryUpdate(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.diaryUpdate Start!", this.getClass().getName());
 
-        int res = 0;
-        String msg = "일기 수정에 실패하였습니다.";
+        Long userId = resolveUserId(pDTO.userPublicId());
+        DiaryEntity diary = findOwnedDiary(pDTO.publicId(), userId);
 
-        String userNo = CmmUtil.nvl(pDTO.userNo());
-        Integer diaryNo = pDTO.diaryNo();
+        if (!diary.isPublished()) {
+            throw new IllegalArgumentException("임시 저장된 일기는 발행한 뒤에 수정할 수 있습니다.");
+        }
+
         String title = CmmUtil.nvl(pDTO.title());
         String content = CmmUtil.nvl(pDTO.content());
 
-        Optional<DiaryEntity> rEntity = diaryRepository.findById(diaryNo);
+        validateForPublish(title, content);
 
-        if (rEntity.isPresent()) {
-            DiaryEntity entity = rEntity.get();
+        MsgDTO rDTO;
 
-            if (entity.getUserNo().equals(userNo)) {
-                diaryWriteService.updateDiaryContent(diaryNo, title, content);
-
-                requestAnalysisAndUpdate(entity, title, content);
-
-                res = 1;
-                msg = "일기가 성공적으로 수정 및 재분석되었습니다.";
-            } else {
-                msg = "본인의 일기만 수정할 수 있습니다.";
-            }
+        // 제목·본문이 같으면 분석 결과가 그대로 유효하므로 재분석하지 않음
+        if (diary.hasSameText(title, content)) {
+            rDTO = MsgDTO.builder().result(1).msg("변경된 내용이 없습니다.").build();
         } else {
-            msg = "존재하지 않는 일기입니다.";
-        }
+            diary.changeText(title, content);
+            resetAnalysis(diary.getId(), userId);
+            eventPublisher.publishEvent(new DiaryAnalysisRequestedEvent(diary.getId()));
 
-        MsgDTO rDTO = MsgDTO.builder()
-                .result(res)
-                .msg(msg)
-                .build();
+            rDTO = MsgDTO.builder().result(1).msg("일기가 수정되었습니다. 변경된 내용으로 다시 분석합니다.").build();
+        }
 
         log.info("{}.diaryUpdate End!", this.getClass().getName());
 
         return rDTO;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
-    // GCS 이미지 삭제(외부 네트워크 호출)가 들어 있어서 @Transactional을 붙이면 그 호출이 끝날 때까지
-    // DB 커넥션을 붙잡게 되어 빼둠 — diaryRepository.delete(entity)는 Spring Data JPA가 메서드 단위로
-    // 자동 트랜잭션 처리해주므로 그 자체의 원자성엔 문제없음.
-    // DB 삭제를 먼저 하고 성공한 뒤에 GCS 파일을 지움 — 순서가 반대면 DB 삭제가 실패했을 때
-    // 파일만 사라지고 일기에는 깨진 이미지 링크가 남음 (반대로 GCS 삭제가 실패하면 파일만 남을 뿐
-    // 화면에는 영향이 없고, GcsService.deleteImage는 실패해도 예외를 던지지 않음)
-    @Caching(evict = {
-            @CacheEvict(value = "diaryCache", allEntries = true),
-            @CacheEvict(value = "weeklyReportCache", key = "#pDTO.userNo()")
-    })
+    // 외부 저장소(Mongo 벡터, GCS 이미지) 삭제는 DB 삭제와 같은 트랜잭션에서 sync_outbox 에 기록만 해 두고,
+    // 실제 삭제는 워커(4단계)가 재시도하며 처리함 — DB 삭제가 롤백되면 기록도 함께 사라져 파일만 지워지는 일이 없음
+    @CacheEvict(value = "diaryCache", key = "#pDTO.userPublicId()")
+    @Transactional
     @Override
     public MsgDTO diaryDelete(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.diaryDelete Start!", this.getClass().getName());
 
-        int res = 0;
-        String msg = "일기 삭제에 실패하였습니다.";
+        Long userId = resolveUserId(pDTO.userPublicId());
+        DiaryEntity diary = findOwnedDiary(pDTO.publicId(), userId);
 
-        String userNo = CmmUtil.nvl(pDTO.userNo());
-        Integer diaryNo = pDTO.diaryNo();
+        List<SyncOutboxEntity> outbox = new ArrayList<>();
 
-        log.info("삭제 시도 - diaryNo: {}, userNo: {}", diaryNo, userNo);
-
-        Optional<DiaryEntity> rEntity = diaryRepository.findById(diaryNo);
-
-        if (rEntity.isPresent()) {
-            DiaryEntity entity = rEntity.get();
-
-            if (entity.getUserNo().equals(userNo)) {
-
-                // DB 행은 FK cascade로 같이 지워지므로, 삭제 전에 GCS에서 지울 파일 URL을 미리 확보해 둠
-                List<String> imageUrls = diaryImageRepository.findByDiaryNoOrderByImageOrderAsc(diaryNo).stream()
-                        .map(DiaryImageEntity::getImageUrl)
-                        .toList();
-
-                diaryRepository.delete(entity);
-
-                try {
-                    Query query = new Query(Criteria.where("DIARY_NO").is(diaryNo));
-                    mongoTemplate.remove(query, "DIARY_LOGS");
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                }
-
-                // DB 삭제가 끝난 뒤에 GCS에 올라간 실제 파일을 지움
-                for (String imageUrl : imageUrls) {
-                    gcsService.deleteImage(imageUrl);
-                }
-
-                res = 1;
-                msg = "일기가 성공적으로 삭제되었습니다.";
-                log.info("일기 삭제 성공 - diaryNo: {}", diaryNo);
-
-            } else {
-                msg = "본인의 일기만 삭제할 수 있습니다.";
-                log.warn("권한 없는 삭제 시도 감지 - 요청자: {}, 실제작성자: {}", userNo, entity.getUserNo());
-            }
-        } else {
-            msg = "이미 삭제되었거나 존재하지 않는 일기입니다.";
+        if (diary.isPublished()) {
+            outbox.add(outboxOf(SyncOutboxEntity.TARGET_MONGO, diary.getPublicId().toString()));
         }
 
-        MsgDTO rDTO = MsgDTO.builder()
-                .result(res)
-                .msg(msg)
-                .build();
+        diaryImageRepository.findByDiaryIdOrderBySortOrderAsc(diary.getId())
+                .forEach(image -> outbox.add(outboxOf(SyncOutboxEntity.TARGET_STORAGE, image.getStorageKey())));
 
+        syncOutboxRepository.saveAll(outbox);
+        diaryRepository.delete(diary);
+
+        log.info("일기 삭제 완료 (publicId: {}, 외부 삭제 예약 {}건)", diary.getPublicId(), outbox.size());
         log.info("{}.diaryDelete End!", this.getClass().getName());
 
-        return rDTO;
+        return MsgDTO.builder().result(1).msg("일기가 성공적으로 삭제되었습니다.").build();
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getMonthlyDiaryList(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.getMonthlyDiaryList Start!", this.getClass().getName());
 
-        String userNo = pDTO.userNo();
-        String dateStr = CmmUtil.nvl(pDTO.createdAt());
-
-        log.info("Request Monthly Diary List - userNo: {}, createdAt: {}", userNo, dateStr);
-
-        if (dateStr.isEmpty() || !dateStr.contains("-")) {
-            log.warn("조회 날짜가 비어있거나 형식이 잘못되었습니다.");
-            return new ArrayList<>();
-        }
+        String dateStr = CmmUtil.nvl(pDTO.diaryDate());
 
         YearMonth yearMonth;
+
         try {
             yearMonth = YearMonth.parse(dateStr.length() > 7 ? dateStr.substring(0, 7) : dateStr);
-        } catch (Exception e) {
-            log.warn("YearMonth 파싱 실패: {}", dateStr);
+        } catch (DateTimeParseException e) {
+            log.warn("조회 월 형식이 잘못되었습니다: {}", dateStr);
             return new ArrayList<>();
         }
 
-        LocalDate start = yearMonth.atDay(1);
-        LocalDate end = yearMonth.atEndOfMonth();
+        Long userId = resolveUserId(pDTO.userPublicId());
 
-        log.info("Query Date Range: {} ~ {}", start, end);
+        List<DiaryDTO> rList = toListDTOs(diaryRepository.findMonthly(userId, yearMonth.atDay(1), yearMonth.atEndOfMonth()));
 
-        List<DiaryEntity> entities = diaryRepository.findAllByUserNoAndCreatedAtBetween(userNo, start, end);
-
-        log.info("Found {} diary entities.", entities.size());
-
-        List<DiaryDTO> rList = entities.stream()
-                .map(e -> DiaryDTO.builder()
-                        .diaryNo(e.getDiaryNo())
-                        .userNo(e.getUserNo())
-                        .title(e.getTitle())
-                        .emotionColor(e.getEmotionColor())
-                        .isFavorite(e.getIsFavorite())
-                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                        .build())
-                .toList();
-
-        log.info("{}.getMonthlyDiaryList End!", this.getClass().getName());
+        log.info("{}.getMonthlyDiaryList End! ({}건)", this.getClass().getName(), rList.size());
 
         return rList;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception {
+
         log.info("{}.getDiaryDetail Start!", this.getClass().getName());
 
-        // uploadDiaryImages와 동일한 패턴으로 통일 — GlobalExceptionHandler가 잡을 수 있는
-        // IllegalArgumentException을 던져야 400으로 응답됨(예전엔 checked Exception이라
-        // GlobalExceptionHandler를 거치지 못하고 500으로 응답됐음)
-        DiaryEntity rEntity = diaryRepository.findById(pDTO.diaryNo())
-                .orElseThrow(() -> new IllegalArgumentException("해당 일기를 찾을 수 없습니다."));
+        Long userId = resolveUserId(pDTO.userPublicId());
+        DiaryEntity diary = findOwnedDiary(pDTO.publicId(), userId);
 
-        if (!rEntity.getUserNo().equals(pDTO.userNo())) {
-            throw new IllegalArgumentException("해당 일기에 대한 접근 권한이 없습니다.");
+        List<DiaryImageDTO> images = diaryImageRepository.findByDiaryIdOrderBySortOrderAsc(diary.getId()).stream()
+                .map(this::toImageDTO)
+                .collect(Collectors.toList());
+
+        DiaryDTO.DiaryDTOBuilder builder = DiaryDTO.builder()
+                .publicId(diary.getPublicId().toString())
+                .title(diary.getTitle())
+                .content(diary.getContent())
+                .diaryDate(diary.getDiaryDate().toString())
+                .status(diary.getStatus().name())
+                .isFavorite(diary.isFavorite())
+                .isPinned(diary.isPinned())
+                .weatherCondition(diary.getWeatherCondition())
+                .temperatureC(diary.getTemperatureC())
+                .weatherRegion(diary.getWeatherRegion())
+                .images(images);
+
+        // 임시 저장본에는 분석이 없음. 발행본이면 단계별 상태와 이미 끝난 단계의 결과를 함께 내려줌
+        if (diary.isPublished()) {
+            diaryAnalysisRepository.findById(diary.getId()).ifPresent(analysis -> {
+                // 화면의 대표 감정은 44개 중 점수 1위, 이어서 상위 10개. 대분류는 색상에만 사용
+                List<EmotionScoreDTO> topEmotions = diaryEmotionScoreRepository
+                        .findTop(diary.getId(), PageRequest.of(0, TOP_EMOTION_COUNT)).stream()
+                        .map(score -> emotionCatalog.toScoreDTO(score.getEmotionId(), score.getScore()))
+                        .flatMap(Optional::stream)
+                        .collect(Collectors.toList());
+
+                builder.analysisStatus(analysis.getAnalysisStatus().name())
+                        .summaryStatus(analysis.getSummaryStatus().name())
+                        .summary(analysis.getSummary())
+                        .emotionColor(emotionCatalog.colorOf(analysis.getMainGroupCode()))
+                        .mainEmotion(topEmotions.isEmpty() ? null : topEmotions.get(0).name())
+                        .topEmotions(topEmotions)
+                        .depLevel(analysis.getDepLevel())
+                        .depScore(analysis.getDepScore())
+                        .musics(diaryMusicRepository.findByDiaryIdOrderByTrackOrderAsc(diary.getId()).stream()
+                                .map(music -> DiaryMusicDTO.builder()
+                                        .trackId(music.getTrackId())
+                                        .trackName(music.getTrackName())
+                                        .artistName(music.getArtistName())
+                                        .albumImageUrl(music.getAlbumImageUrl())
+                                        .spotifyUrl(music.getSpotifyUrl())
+                                        .trackOrder(music.getTrackOrder().intValue())
+                                        .build())
+                                .collect(Collectors.toList()));
+            });
         }
-
-        List<DiaryImageDTO> images = diaryImageRepository.findByDiaryNoOrderByImageOrderAsc(rEntity.getDiaryNo())
-                .stream()
-                .map(img -> DiaryImageDTO.builder()
-                        .imageNo(img.getImageNo())
-                        .diaryNo(img.getDiaryNo())
-                        .imageUrl(img.getImageUrl())
-                        .imageOrder(img.getImageOrder())
-                        .build())
-                .collect(Collectors.toList());
-
-        List<DiaryMusicDTO> musics = diaryMusicRepository.findByDiaryNoOrderByTrackOrderAsc(rEntity.getDiaryNo())
-                .stream()
-                .map(m -> DiaryMusicDTO.builder()
-                        .musicNo(m.getMusicNo())
-                        .diaryNo(m.getDiaryNo())
-                        .trackId(m.getTrackId())
-                        .trackName(m.getTrackName())
-                        .artistName(m.getArtistName())
-                        .albumImageUrl(m.getAlbumImageUrl())
-                        .spotifyUrl(m.getSpotifyUrl())
-                        .trackOrder(m.getTrackOrder())
-                        .build())
-                .collect(Collectors.toList());
-
-        DiaryDTO rDTO = DiaryDTO.builder()
-                .diaryNo(rEntity.getDiaryNo())
-                .userNo(rEntity.getUserNo())
-                .title(rEntity.getTitle())
-                .content(rEntity.getContent())
-                .emotionColor(rEntity.getEmotionColor())
-                .mainEmotion(rEntity.getMainEmotion())
-                .summary(rEntity.getSummary())
-                .depLvl(rEntity.getDepLvl())
-                .depScore(rEntity.getDepScore())
-                .symptomYn(rEntity.getSymptomYn())
-                .isFavorite(rEntity.getIsFavorite())
-                .createdAt(DateUtil.formatLocalDate(rEntity.getCreatedAt(), "yyyy-MM-dd"))
-                .images(images)
-                .musics(musics)
-                .build();
 
         log.info("{}.getDiaryDetail End!", this.getClass().getName());
 
-        return rDTO;
+        return builder.build();
     }
 
-    // 일기 목록(검색/색상/즐겨찾기)에서 공통으로 쓰는 엔티티 → DTO 변환
-    private DiaryDTO toListDTO(DiaryEntity e) {
-        return DiaryDTO.builder()
-                .diaryNo(e.getDiaryNo())
-                .title(e.getTitle())
-                .emotionColor(e.getEmotionColor())
-                .isFavorite(e.getIsFavorite())
-                .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                .build();
-    }
-
-    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> searchDiaryList(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.searchDiaryList Start!", this.getClass().getName());
 
-        List<DiaryEntity> entities = diaryRepository.findByUserNoAndTitleContainingOrderByCreatedAtDesc(
-                pDTO.userNo(), pDTO.title());
+        String keyword = CmmUtil.nvl(pDTO.title()).trim();
 
-        List<DiaryDTO> rList = entities.stream()
-                .map(this::toListDTO)
-                .toList();
+        if (keyword.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Long userId = resolveUserId(pDTO.userPublicId());
+
+        List<DiaryDTO> rList = toListDTOs(diaryRepository.searchByTitle(userId, escapeLike(keyword)));
 
         log.info("{}.searchDiaryList End!", this.getClass().getName());
 
         return rList;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
-    public List<DiaryDTO> getDiaryListByColors(String userNo, List<String> colors) throws Exception {
+    public List<DiaryDTO> getDiaryListByGroups(String userPublicId, List<String> groupCodes) throws Exception {
 
-        log.info("{}.getDiaryListByColors Start!", this.getClass().getName());
+        log.info("{}.getDiaryListByGroups Start!", this.getClass().getName());
 
-        List<DiaryEntity> entities = diaryRepository.findByUserNoAndEmotionColorInOrderByCreatedAtDesc(userNo, colors);
+        if (groupCodes == null || groupCodes.isEmpty()) {
+            return new ArrayList<>();
+        }
 
-        List<DiaryDTO> rList = entities.stream()
-                .map(this::toListDTO)
-                .toList();
+        Long userId = resolveUserId(userPublicId);
 
-        log.info("{}.getDiaryListByColors End!", this.getClass().getName());
+        List<DiaryDTO> rList = toListDTOs(diaryRepository.findByGroupCodes(userId, groupCodes));
+
+        log.info("{}.getDiaryListByGroups End!", this.getClass().getName());
 
         return rList;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
+    // 분석이 끝나 색상이 바뀌면 DiaryAnalysisService 가 이 캐시를 사용자 단위로 비움
     @Transactional(readOnly = true)
-    @Cacheable(value = "diaryCache", key = "#pDTO.userNo()", condition = "#pDTO.userNo() != null")
+    @Cacheable(value = "diaryCache", key = "#pDTO.userPublicId()", condition = "#pDTO.userPublicId() != null")
     @Override
     public List<DiaryDTO> getRecentDiaryList(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.getRecentDiaryList Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(pDTO.userNo());
+        Long userId = resolveUserId(pDTO.userPublicId());
 
-        log.info("userNo: {}", userNo);
-
-        List<DiaryEntity> entities = diaryRepository.findTop20ByUserNoOrderByIsPinnedDescCreatedAtDesc(userNo);
-
-        // 캐시(Redis JSON)에 저장되는 목록이라 불변 리스트가 아닌 ArrayList로 수집
-        List<DiaryDTO> rList = entities.stream()
-                .map(e -> DiaryDTO.builder()
-                        .diaryNo(e.getDiaryNo())
-                        .title(e.getTitle())
-                        .emotionColor(e.getEmotionColor())
-                        .isPinned(e.getIsPinned())
-                        .createdAt(DateUtil.formatLocalDate(e.getCreatedAt(), "yyyy-MM-dd"))
-                        .build())
-                .collect(Collectors.toList());
+        List<DiaryDTO> rList = toListDTOs(diaryRepository.findRecent(userId, PageRequest.of(0, RECENT_DIARY_LIMIT)));
 
         log.info("{}.getRecentDiaryList End!", this.getClass().getName());
 
         return rList;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
     @Transactional(readOnly = true)
     @Override
     public List<DiaryDTO> getFavoriteDiaryList(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.getFavoriteDiaryList Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(pDTO.userNo());
-
-        List<DiaryEntity> entities = Optional.ofNullable(
-                diaryRepository.findByUserNoAndIsFavoriteOrderByCreatedAtDesc(userNo, 1)
-        ).orElseGet(ArrayList::new);
-
-        log.info("Found {} favorite diary entities.", entities.size());
-
-        List<DiaryDTO> rList = entities.stream()
-                .map(this::toListDTO)
-                .toList();
+        List<DiaryDTO> rList = toListDTOs(diaryRepository.findFavorites(resolveUserId(pDTO.userPublicId())));
 
         log.info("{}.getFavoriteDiaryList End!", this.getClass().getName());
 
         return rList;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
+    @Transactional(readOnly = true)
     @Override
-    public List<EmotionStatDTO> getEmotionStats(DiaryDTO pDTO) throws Exception {
+    public List<DiaryDTO> getDraftDiaryList(DiaryDTO pDTO) throws Exception {
 
-        log.info("{}.getEmotionStats Start!", this.getClass().getName());
+        log.info("{}.getDraftDiaryList Start!", this.getClass().getName());
 
-        Integer userNo = Integer.parseInt(CmmUtil.nvl(pDTO.userNo()));
-        List<DiaryLogDocument> logs = diaryLogRepository.findByUserNo(userNo);
-        Map<String, Integer> countMap = new HashMap<>();
+        List<DiaryDTO> rList = toListDTOs(diaryRepository.findDrafts(resolveUserId(pDTO.userPublicId())));
 
-        for (DiaryLogDocument logDoc : logs) {
-            if (logDoc.getEmoRes() != null) {
-                for (Map.Entry<String, Double> entry : logDoc.getEmoRes().entrySet()) {
-                    if (entry.getValue() != null && entry.getValue() >= 0.6) {
-                        countMap.put(entry.getKey(), countMap.getOrDefault(entry.getKey(), 0) + 1);
-                    }
-                }
-            }
-        }
-
-        List<Map.Entry<String, Integer>> entryList = new ArrayList<>(countMap.entrySet());
-
-        entryList.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
-
-        List<EmotionStatDTO> rList = entryList.stream()
-                .map(entry -> new EmotionStatDTO(
-                        entry.getKey(),
-                        entry.getValue(),
-                        EmotionColorMapper.getColor(entry.getKey())))
-                .toList();
-
-        log.info("{}.getEmotionStats End!", this.getClass().getName());
+        log.info("{}.getDraftDiaryList End!", this.getClass().getName());
 
         return rList;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
-    @Transactional(readOnly = true)
-    @Override
-    public DiaryStatsDTO getDiaryStats(DiaryDTO pDTO) throws Exception {
-
-        log.info("{}.getDiaryStats Start!", this.getClass().getName());
-
-        String sUserNo = CmmUtil.nvl(pDTO.userNo());
-
-        long totalCount = diaryRepository.countByUserNo(sUserNo);
-
-        List<LocalDate> dates = Optional.ofNullable(
-                diaryRepository.findAllCreatedAtByUserNoOrderByCreatedAtDesc(sUserNo)
-        ).orElseGet(ArrayList::new);
-
-        int currentStreak = calculateCurrentStreak(dates);
-        int longestStreak = calculateLongestStreak(dates);
-
-        DiaryStatsDTO rDTO = DiaryStatsDTO.builder()
-                .totalCount(totalCount)
-                .currentStreak(currentStreak)
-                .longestStreak(longestStreak)
-                .build();
-
-        log.info("{}.getDiaryStats End!", this.getClass().getName());
-
-        return rDTO;
-    }
-
-    // ★ 즐겨찾기 이후 추가/수정
-    /*
-    최신순으로 정렬된 날짜 목록에서 오늘 또는 어제부터 이어지는 연속 작성일 계산
-    */
-    private int calculateCurrentStreak(List<LocalDate> descDates) {
-
-        if (descDates.isEmpty()) {
-            return 0;
-        }
-
-        LocalDate today = LocalDate.now();
-        LocalDate mostRecent = descDates.get(0);
-
-        if (!mostRecent.equals(today) && !mostRecent.equals(today.minusDays(1))) {
-            return 0;
-        }
-
-        int streak = 1;
-        LocalDate cursor = mostRecent;
-
-        for (int i = 1; i < descDates.size(); i++) {
-            LocalDate expected = cursor.minusDays(1);
-
-            if (descDates.get(i).equals(expected)) {
-                streak++;
-                cursor = expected;
-            } else {
-                break;
-            }
-        }
-
-        return streak;
-    }
-
-    // ★ 즐겨찾기 이후 추가/수정
-    private int calculateLongestStreak(List<LocalDate> descDates) {
-
-        if (descDates.isEmpty()) {
-            return 0;
-        }
-
-        int longest = 1;
-        int running = 1;
-
-        for (int i = 1; i < descDates.size(); i++) {
-            if (descDates.get(i).equals(descDates.get(i - 1).minusDays(1))) {
-                running++;
-            } else {
-                running = 1;
-            }
-            longest = Math.max(longest, running);
-        }
-
-        return longest;
-    }
-
-    // ★ 즐겨찾기 이후 추가/수정
-    @Transactional(readOnly = true)
-    @Override
-    public List<DepressionTrendDTO> getDepressionTrend(DiaryDTO pDTO) throws Exception {
-
-        log.info("{}.getDepressionTrend Start!", this.getClass().getName());
-
-        String sUserNo = CmmUtil.nvl(pDTO.userNo());
-        LocalDate fromDate = LocalDate.now().minusMonths(5).withDayOfMonth(1);
-
-        List<DepressionTrendProjection> projections = Optional.ofNullable(
-                diaryRepository.findDepressionTrendByUserNo(sUserNo, fromDate)
-        ).orElseGet(ArrayList::new);
-
-        List<DepressionTrendDTO> rList = projections.stream()
-                .map(p -> DepressionTrendDTO.builder()
-                        .month(p.getMonth())
-                        .avgDepScore(p.getAvgDepScore())
-                        .diaryCount(p.getDiaryCount())
-                        .build())
-                .collect(Collectors.toList());
-
-        log.info("{}.getDepressionTrend End!", this.getClass().getName());
-
-        return rList;
-    }
-
-    private static final int TOP_MUSIC_LIMIT = 5;
-
-    // ★ 즐겨찾기 이후 추가/수정
-    @Transactional(readOnly = true)
-    @Override
-    public List<TopMusicDTO> getTopRecommendedMusic(DiaryDTO pDTO) throws Exception {
-
-        log.info("{}.getTopRecommendedMusic Start!", this.getClass().getName());
-
-        String sUserNo = CmmUtil.nvl(pDTO.userNo());
-
-        List<TopMusicProjection> projections = Optional.ofNullable(
-                diaryMusicRepository.findTopRecommendedMusicByUserNo(sUserNo, PageRequest.of(0, TOP_MUSIC_LIMIT))
-        ).orElseGet(ArrayList::new);
-
-        List<TopMusicDTO> rList = projections.stream()
-                .map(p -> TopMusicDTO.builder()
-                        .trackName(p.getTrackName())
-                        .artistName(p.getArtistName())
-                        .albumImageUrl(p.getAlbumImageUrl())
-                        .spotifyUrl(p.getSpotifyUrl())
-                        .recommendCount(p.getRecommendCount())
-                        .build())
-                .collect(Collectors.toList());
-
-        log.info("{}.getTopRecommendedMusic End!", this.getClass().getName());
-
-        return rList;
-    }
-
-    private static final int WEEKLY_REPORT_PERIOD_DAYS = 7;
-
-    // ★ 즐겨찾기 이후 추가/수정
-    // Gemini 호출 비용 때문에 하루 단위(weeklyReportCache TTL 24시간)로 결과를 캐싱함 @Cacheable은 같은 요청이 들어오면 메스드 실행 x 값을 그대로 돌려줌
-    @Cacheable(value = "weeklyReportCache", key = "#pDTO.userNo()")
-    @Override
-    public ReportCardDTO getWeeklyReport(DiaryDTO pDTO) throws Exception {
-
-        log.info("{}.getWeeklyReport Start!", this.getClass().getName());
-
-        String sUserNo = CmmUtil.nvl(pDTO.userNo());
-
-        LocalDate today = LocalDate.now();
-        LocalDate weekAgo = today.minusDays(WEEKLY_REPORT_PERIOD_DAYS - 1);
-
-        List<DiaryEntity> entities = Optional.ofNullable(
-                diaryRepository.findAllByUserNoAndCreatedAtBetween(sUserNo, weekAgo, today)
-        ).orElseGet(ArrayList::new);
-
-        List<Map<String, Object>> entryMaps = entities.stream()
-                .filter(e -> e.getSummary() != null)
-                .map(e -> {
-                    Map<String, Object> entry = new HashMap<>();
-                    entry.put("title", CmmUtil.nvl(e.getTitle()));
-                    entry.put("summary", CmmUtil.nvl(e.getSummary()));
-                    entry.put("main_emotion", CmmUtil.nvl(e.getMainEmotion()));
-                    return entry;
-                })
-                .collect(Collectors.toList());
-
-        String comment;
-        try {
-            Map<String, Object> requestMap = new HashMap<>();
-            requestMap.put("user_no", Integer.parseInt(sUserNo));
-            requestMap.put("entries", entryMaps);
-
-            ResponseEntity<Map> response = pythonApiRestClient.post()
-                    .uri(pythonApiUrl + "/api/weekly-report")
-                    .body(requestMap)
-                    .retrieve()
-                    .toEntity(Map.class);
-
-            comment = (response.getStatusCode().is2xxSuccessful() && response.getBody() != null)
-                    ? CmmUtil.nvl((String) response.getBody().get("comment"))
-                    : "이번 한 주도 스스로를 잘 돌보고 계시네요. 다음 주도 응원할게요.";
-
-        } catch (Exception e) {
-            log.error("주간 리포트 생성 요청 실패: {}", e.getMessage());
-            comment = "이번 한 주도 스스로를 잘 돌보고 계시네요. 다음 주도 응원할게요.";
-        }
-
-        List<BigDecimal> depScores = entities.stream()
-                .map(DiaryEntity::getDepScore)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        BigDecimal avgDepScore = depScores.isEmpty()
-                ? null
-                : depScores.stream()
-                        .reduce(BigDecimal.ZERO, BigDecimal::add)
-                        .divide(BigDecimal.valueOf(depScores.size()), 1, RoundingMode.HALF_UP);
-
-        ReportCardDTO rDTO = ReportCardDTO.builder()
-                .comment(comment)
-                .periodStart(DateUtil.formatLocalDate(weekAgo, "yyyy-MM-dd"))
-                .periodEnd(DateUtil.formatLocalDate(today, "yyyy-MM-dd"))
-                .diaryCount(entities.size())
-                .avgDepScore(avgDepScore)
-                .build();
-
-        log.info("{}.getWeeklyReport End!", this.getClass().getName());
-
-        return rDTO;
-    }
-
-    // ★ 즐겨찾기 이후 추가/수정
     @Transactional
-    // @CacheEvict(value = "diaryCache", allEntries = true) 마이페이지 리스트에도 캐시를 적용할 건가 확인이 필요 (TODO)
     @Override
     public int updateFavorite(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.updateFavorite Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(pDTO.userNo());
-        Integer diaryNo = pDTO.diaryNo();
-        Integer isFavorite = pDTO.isFavorite();
+        if (pDTO.isFavorite() == null) {
+            throw new IllegalArgumentException("즐겨찾기 값이 필요합니다.");
+        }
 
-        log.info("userNo: {}, diaryNo: {}, isFavorite: {}", userNo, diaryNo, isFavorite);
-
-        int res = diaryRepository.updateFavorite(diaryNo, userNo, isFavorite);
+        findOwnedDiary(pDTO.publicId(), resolveUserId(pDTO.userPublicId())).changeFavorite(pDTO.isFavorite());
 
         log.info("{}.updateFavorite End!", this.getClass().getName());
 
-        return res;
+        return 1;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
-    // 사이드바 인라인 이름변경용
+    // 사이드바 이름 변경용. 이름만 바꾸는 가벼운 수정이라 재분석하지 않음 (본문이 같으면 분석 결과도 같으므로)
+    @CacheEvict(value = "diaryCache", key = "#pDTO.userPublicId()")
     @Transactional
-    @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
     public int updateTitle(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.updateTitle Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(pDTO.userNo());
-        Integer diaryNo = pDTO.diaryNo();
         String title = CmmUtil.nvl(pDTO.title());
 
-        int res = diaryRepository.updateTitleDirectly(diaryNo, userNo, title);
-
-        // MariaDB에서 본인 일기의 제목이 실제로 바뀐 경우에만 MongoDB(DIARY_LOGS)에도 같은 제목을 반영함 —
-        // 안 그러면 사이드바에서 이름을 바꿔도 분석 로그의 제목은 이전 값으로 남음.
-        // MongoDB 반영이 실패해도 MariaDB 쪽 변경은 이미 끝났으므로 로그만 남기고 넘어감
-        if (res > 0) {
-            try {
-                mongoTemplate.updateFirst(
-                        new Query(Criteria.where("DIARY_NO").is(diaryNo)),
-                        new Update().set("TITLE", title),
-                        "DIARY_LOGS"
-                );
-            } catch (Exception e) {
-                log.error("MongoDB 일기 제목 반영 실패 (diaryNo: {}): {}", diaryNo, e.getMessage());
-            }
+        if (title.isBlank() || title.length() > MAX_TITLE_LENGTH) {
+            throw new IllegalArgumentException("제목은 1자 이상 " + MAX_TITLE_LENGTH + "자 이하로 입력해주세요.");
         }
+
+        findOwnedDiary(pDTO.publicId(), resolveUserId(pDTO.userPublicId())).changeTitle(title);
 
         log.info("{}.updateTitle End!", this.getClass().getName());
 
-        return res;
+        return 1;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
+    @CacheEvict(value = "diaryCache", key = "#pDTO.userPublicId()")
     @Transactional
-    @CacheEvict(value = "diaryCache", allEntries = true)
     @Override
     public int updatePinned(DiaryDTO pDTO) throws Exception {
 
         log.info("{}.updatePinned Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(pDTO.userNo());
-        Integer diaryNo = pDTO.diaryNo();
-        Integer isPinned = pDTO.isPinned();
+        if (pDTO.isPinned() == null) {
+            throw new IllegalArgumentException("고정 값이 필요합니다.");
+        }
 
-        int res = diaryRepository.updatePinnedDirectly(diaryNo, userNo, isPinned);
+        findOwnedDiary(pDTO.publicId(), resolveUserId(pDTO.userPublicId())).changePinned(pDTO.isPinned());
 
         log.info("{}.updatePinned End!", this.getClass().getName());
 
-        return res;
+        return 1;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
-    // 루프 안에서 gcsService.uploadImage(외부 네트워크 호출)를 반복 호출하는데, @Transactional을
-    // 붙이면 이미지 개수만큼 호출이 끝날 때까지 DB 커넥션을 계속 붙잡게 되어 빼둠.
-    // 대신 "GCS 업로드 전부 → DB 저장 한 번" 순서로 처리해서, 중간에 하나라도 실패하면
-    // 이미 올라간 GCS 파일을 지우고(보상 처리) DB에는 아무것도 남기지 않음 —
-    // saveAll()은 Spring Data JPA가 자체 트랜잭션으로 묶어주므로 DB 저장은 전부 성공 또는 전부 실패함
+    // GCS 업로드(외부 네트워크 호출)가 반복되므로 @Transactional 을 붙이지 않음 (붙이면 업로드가 끝날 때까지 DB 커넥션을 붙잡음).
+    // "GCS 업로드 전부 → DB 저장 한 번" 순서로 처리해서, 중간에 하나라도 실패하면 이미 올라간 파일을 지우고(보상 처리)
+    // DB에는 아무것도 남기지 않음 — saveAll()은 Spring Data JPA가 자체 트랜잭션으로 묶어주므로 전부 성공 또는 전부 실패함
     @Override
-    public List<DiaryImageDTO> uploadDiaryImages(Integer diaryNo, String userNo, List<MultipartFile> images) throws Exception {
+    public List<DiaryImageDTO> uploadDiaryImages(String diaryPublicId, String userPublicId,
+                                                 List<MultipartFile> images) throws Exception {
 
         log.info("{}.uploadDiaryImages Start!", this.getClass().getName());
 
-        DiaryEntity entity = diaryRepository.findById(diaryNo)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 일기입니다."));
+        DiaryEntity diary = findOwnedDiary(diaryPublicId, resolveUserId(userPublicId));
 
-        if (!entity.getUserNo().equals(userNo)) {
-            throw new IllegalArgumentException("본인의 일기에만 이미지를 추가할 수 있습니다.");
-        }
+        List<DiaryImageEntity> existing = diaryImageRepository.findByDiaryIdOrderBySortOrderAsc(diary.getId());
 
-        int existingCount = diaryImageRepository.countByDiaryNo(diaryNo);
-
-        if (existingCount + images.size() > MAX_DIARY_IMAGE_COUNT) {
+        if (existing.size() + images.size() > MAX_DIARY_IMAGE_COUNT) {
             throw new IllegalArgumentException("이미지는 최대 " + MAX_DIARY_IMAGE_COUNT + "장까지 등록할 수 있습니다.");
         }
 
-        // 1단계: GCS에 먼저 모두 업로드 (DB는 건드리지 않음)
-        List<String> uploadedUrls = new ArrayList<>();
+        // 중간 이미지를 지운 뒤에도 순서가 겹치지 않도록 마지막 순서의 다음 번호부터 부여함
+        int nextOrder = existing.isEmpty() ? 0 : existing.get(existing.size() - 1).getSortOrder() + 1;
+        List<String> uploadedKeys = new ArrayList<>();
 
         try {
             for (MultipartFile image : images) {
-                uploadedUrls.add(gcsService.uploadImage(image, diaryNo));
+                uploadedKeys.add(gcsService.uploadImage(image, diary.getPublicId().toString()));
             }
 
-            // 2단계: 전부 성공했을 때만 DB에 한 번에 저장
-            int order = existingCount;
             List<DiaryImageEntity> toSave = new ArrayList<>();
 
-            for (String imageUrl : uploadedUrls) {
+            for (String storageKey : uploadedKeys) {
                 toSave.add(DiaryImageEntity.builder()
-                        .diaryNo(diaryNo)
-                        .imageUrl(imageUrl)
-                        .imageOrder(order++)
+                        .diaryId(diary.getId())
+                        .sortOrder((short) nextOrder++)
+                        .storageKey(storageKey)
                         .build());
             }
 
-            List<DiaryImageEntity> savedList = diaryImageRepository.saveAll(toSave);
-
-            List<DiaryImageDTO> rList = savedList.stream()
-                    .map(saved -> DiaryImageDTO.builder()
-                            .imageNo(saved.getImageNo())
-                            .diaryNo(diaryNo)
-                            .imageUrl(saved.getImageUrl())
-                            .imageOrder(saved.getImageOrder())
-                            .build())
+            List<DiaryImageDTO> rList = diaryImageRepository.saveAll(toSave).stream()
+                    .map(this::toImageDTO)
                     .collect(Collectors.toList());
 
             log.info("{}.uploadDiaryImages End!", this.getClass().getName());
@@ -945,46 +497,178 @@ public class DiaryService implements IDiaryService {
 
         } catch (Exception e) {
             // 보상 처리: 중간에 실패했으면 이미 GCS에 올라간 파일을 지워 고아 파일이 남지 않게 함
-            log.error("이미지 업로드 실패, 이미 업로드된 {}개 파일을 삭제합니다: {}", uploadedUrls.size(), e.getMessage());
+            log.error("이미지 업로드 실패, 이미 업로드된 {}개 파일을 삭제합니다: {}", uploadedKeys.size(), e.getMessage());
 
-            for (String uploadedUrl : uploadedUrls) {
-                gcsService.deleteImage(uploadedUrl);
-            }
+            uploadedKeys.forEach(gcsService::deleteImage);
 
             throw e;
         }
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
-    // GCS 파일 삭제(외부 네트워크 호출)가 들어 있어서 @Transactional을 붙이면 그 호출이 끝날 때까지
-    // DB 커넥션을 붙잡게 되어 빼둠 — diaryImageRepository.delete(image)는 Spring Data JPA가
-    // 자동으로 트랜잭션 처리해주므로 DB 삭제 자체의 원자성엔 문제없음 (DB 삭제 후 GCS 파일을 지움)
+    @Transactional
     @Override
     public MsgDTO deleteDiaryImage(DiaryImageDTO pDTO) throws Exception {
 
         log.info("{}.deleteDiaryImage Start!", this.getClass().getName());
 
-        Integer imageNo = pDTO.imageNo();
-        String userNo = CmmUtil.nvl(pDTO.userNo());
+        Long userId = resolveUserId(pDTO.userPublicId());
 
-        Optional<DiaryImageEntity> oImage = diaryImageRepository.findById(imageNo);
+        DiaryImageEntity image = Optional.ofNullable(pDTO.imageNo())
+                .flatMap(diaryImageRepository::findById)
+                .orElse(null);
 
-        if (oImage.isEmpty()) {
+        // 없는 이미지와 남의 이미지를 같은 응답으로 처리해 존재 여부가 드러나지 않게 함
+        boolean owned = image != null && diaryRepository.findById(image.getDiaryId())
+                .map(diary -> diary.getUserId().equals(userId))
+                .orElse(false);
+
+        if (!owned) {
             return MsgDTO.builder().result(0).msg("존재하지 않는 이미지입니다.").build();
         }
 
-        DiaryImageEntity image = oImage.get();
-        Optional<DiaryEntity> oEntity = diaryRepository.findById(image.getDiaryNo());
-
-        if (oEntity.isEmpty() || !oEntity.get().getUserNo().equals(userNo)) {
-            return MsgDTO.builder().result(0).msg("본인의 일기 이미지만 삭제할 수 있습니다.").build();
-        }
-
         diaryImageRepository.delete(image);
-        gcsService.deleteImage(image.getImageUrl());
+        syncOutboxRepository.save(outboxOf(SyncOutboxEntity.TARGET_STORAGE, image.getStorageKey()));
 
         log.info("{}.deleteDiaryImage End!", this.getClass().getName());
 
         return MsgDTO.builder().result(1).msg("이미지가 삭제되었습니다.").build();
+    }
+
+    // 분석을 처음부터 다시 하기 위해 이전 결과(감정 점수, 추천곡, 요약 등)를 모두 비움
+    private void resetAnalysis(Long diaryId, Long userId) {
+        boolean aiEnabled = isAiEnabled(userId);
+
+        diaryEmotionScoreRepository.deleteByDiaryId(diaryId);
+        diaryMusicRepository.deleteByDiaryId(diaryId);
+
+        diaryAnalysisRepository.findById(diaryId).ifPresentOrElse(
+                analysis -> analysis.reset(aiEnabled),
+                () -> diaryAnalysisRepository.save(DiaryAnalysisEntity.pending(diaryId, aiEnabled)));
+    }
+
+    // shortcut: 프라이버시 모드(AI_PROCESSING 동의) 도입 전이라 항상 허용함. 2b 단계에서 동의 이력으로 판단하도록 바꾼다
+    private boolean isAiEnabled(Long userId) {
+        return true;
+    }
+
+    private Long resolveUserId(String userPublicId) {
+        return userRepository.findByPublicId(parseUuid(userPublicId, "사용자 정보가 올바르지 않습니다."))
+                .map(UserEntity::getId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
+    }
+
+    // 없는 일기와 남의 일기를 같은 메시지로 처리해 존재 여부가 드러나지 않게 함
+    private DiaryEntity findOwnedDiary(String diaryPublicId, Long userId) {
+        return diaryRepository.findByPublicIdAndUserId(parseUuid(diaryPublicId, "일기 번호가 올바르지 않습니다."), userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 일기입니다."));
+    }
+
+    private UUID parseUuid(String value, String errorMessage) {
+        try {
+            return UUID.fromString(CmmUtil.nvl(value));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
+
+    private LocalDate parseDiaryDate(String value) {
+        try {
+            return LocalDate.parse(CmmUtil.nvl(value).trim());
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("일기 날짜가 올바르지 않습니다. (yyyy-MM-dd)");
+        }
+    }
+
+    private DiaryEntity newDraft(Long userId, LocalDate diaryDate, String title, String content) {
+        return DiaryEntity.builder()
+                .publicId(UUID.randomUUID())
+                .userId(userId)
+                .diaryDate(diaryDate)
+                .title(title)
+                .content(content)
+                .status(DiaryStatus.DRAFT)
+                .build();
+    }
+
+    private void validateLength(String title, String content) {
+        if (title.length() > MAX_TITLE_LENGTH) {
+            throw new IllegalArgumentException("제목은 " + MAX_TITLE_LENGTH + "자 이하로 입력해주세요.");
+        }
+
+        if (content.length() > MAX_CONTENT_LENGTH) {
+            throw new IllegalArgumentException("본문은 " + MAX_CONTENT_LENGTH + "자 이하로 입력해주세요.");
+        }
+    }
+
+    private void validateForPublish(String title, String content) {
+        if (title.isBlank() || content.isBlank()) {
+            throw new IllegalArgumentException("제목과 내용을 모두 입력해주세요.");
+        }
+
+        validateLength(title, content);
+    }
+
+    // 날씨 값이 하나라도 오면 세 값을 함께 교체함 (없는 값은 NULL). 날씨를 못 가져온 경우에는 값을 보내지 않으면 기존 값을 유지함
+    private void applyWeather(DiaryEntity diary, DiaryDTO pDTO) {
+        if (pDTO.weatherCondition() == null && pDTO.temperatureC() == null && pDTO.weatherRegion() == null) {
+            return;
+        }
+
+        String condition = pDTO.weatherCondition();
+        BigDecimal temperature = pDTO.temperatureC();
+        String region = pDTO.weatherRegion();
+
+        if (condition != null && !WEATHER_CONDITIONS.contains(condition)) {
+            throw new IllegalArgumentException("날씨 값이 올바르지 않습니다.");
+        }
+
+        if (temperature != null && (temperature.compareTo(MIN_TEMPERATURE) < 0 || temperature.compareTo(MAX_TEMPERATURE) > 0)) {
+            throw new IllegalArgumentException("기온 값이 올바르지 않습니다.");
+        }
+
+        if (region != null && region.length() > MAX_WEATHER_REGION_LENGTH) {
+            throw new IllegalArgumentException("지역명이 너무 깁니다.");
+        }
+
+        diary.changeWeather(condition, temperature, region);
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private SyncOutboxEntity outboxOf(String target, String refKey) {
+        return SyncOutboxEntity.builder()
+                .target(target)
+                .action(SyncOutboxEntity.ACTION_DELETE)
+                .refKey(refKey)
+                .build();
+    }
+
+    // LIKE 의 특수문자(% _ \)를 일반 글자로 검색하도록 이스케이프 (쿼리의 ESCAPE '\' 와 짝)
+    private String escapeLike(String keyword) {
+        return keyword.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    }
+
+    private List<DiaryDTO> toListDTOs(Collection<DiaryListProjection> rows) {
+        // 캐시(Redis JSON)에 저장되는 목록도 있어 불변 리스트가 아닌 ArrayList 로 수집
+        return rows.stream()
+                .map(row -> DiaryDTO.builder()
+                        .publicId(row.getPublicId().toString())
+                        .title(row.getTitle())
+                        .diaryDate(row.getDiaryDate().toString())
+                        .isFavorite(row.getFavorite())
+                        .isPinned(row.getPinned())
+                        .emotionColor(emotionCatalog.colorOf(row.getMainGroupCode()))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    private DiaryImageDTO toImageDTO(DiaryImageEntity image) {
+        return DiaryImageDTO.builder()
+                .imageNo(image.getId())
+                .imageUrl(gcsService.toUrl(image.getStorageKey()))
+                .imageOrder(image.getSortOrder().intValue())
+                .build();
     }
 }

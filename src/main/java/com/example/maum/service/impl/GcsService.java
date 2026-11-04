@@ -43,13 +43,14 @@ public class GcsService implements IGcsService {
         }
     }
 
+    // 버킷 안의 파일 경로(storage_key)를 돌려줌. DB에는 이 경로만 저장하고, 화면에 보낼 때 toUrl 로 주소를 만든다
     @Override
-    public String uploadImage(MultipartFile file, Integer diaryNo) throws Exception {
+    public String uploadImage(MultipartFile file, String diaryPublicId) throws Exception {
         if (storage == null) {
             throw new IllegalStateException("GCS 클라이언트가 초기화되지 않았습니다. 서비스 계정 설정을 확인하세요.");
         }
 
-        String objectName = "diary/" + diaryNo + "/" + UUID.randomUUID() + getExtension(file.getOriginalFilename());
+        String objectName = "diary/" + diaryPublicId + "/" + UUID.randomUUID() + getExtension(file.getOriginalFilename());
 
         BlobId blobId = BlobId.of(bucketName, objectName);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
@@ -58,21 +59,20 @@ public class GcsService implements IGcsService {
 
         storage.create(blobInfo, file.getBytes());
 
-        return String.format("https://storage.googleapis.com/%s/%s", bucketName, objectName);
+        return objectName;
     }
 
     @Override
-    public void deleteImage(String imageUrl) {
-        if (storage == null || imageUrl == null) return;
+    public String toUrl(String storageKey) {
+        return String.format("https://storage.googleapis.com/%s/%s", bucketName, storageKey);
+    }
+
+    @Override
+    public void deleteImage(String storageKey) {
+        if (storage == null || storageKey == null) return;
 
         try {
-            String prefix = "https://storage.googleapis.com/" + bucketName + "/";
-            if (!imageUrl.startsWith(prefix)) {
-                log.warn("알 수 없는 이미지 URL 형식이라 GCS에서 삭제하지 않음: {}", imageUrl);
-                return;
-            }
-            String objectName = imageUrl.substring(prefix.length());
-            storage.delete(BlobId.of(bucketName, objectName));
+            storage.delete(BlobId.of(bucketName, storageKey));
         } catch (Exception e) {
             log.error("GCS 이미지 삭제 실패: {}", e.getMessage());
         }

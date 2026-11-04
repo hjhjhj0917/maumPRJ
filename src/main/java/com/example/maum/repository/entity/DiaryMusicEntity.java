@@ -8,44 +8,43 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicInsert;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "DIARY_MUSIC")
+@Table(name = "diary_music")
 @DynamicInsert
 @Builder
 @Entity
-// ★ 즐겨찾기 이후 추가/수정
 public class DiaryMusicEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "MUSIC_NO")
-    private Integer musicNo;
+    @Column(name = "id")
+    private Long id;
 
-    @Column(name = "DIARY_NO", nullable = false)
-    private Integer diaryNo;
+    @Column(name = "diary_id", nullable = false)
+    private Long diaryId;
 
-    @Column(name = "TRACK_ID", nullable = false, length = 50)
+    @Column(name = "track_order", nullable = false)
+    private Short trackOrder;
+
+    @Column(name = "track_id", nullable = false, length = 64)
     private String trackId;
 
-    @Column(name = "TRACK_NAME", nullable = false, length = 200)
+    @Column(name = "track_name", nullable = false, length = 200)
     private String trackName;
 
-    @Column(name = "ARTIST_NAME", nullable = false, length = 200)
+    @Column(name = "artist_name", nullable = false, length = 200)
     private String artistName;
 
-    @Column(name = "ALBUM_IMAGE_URL", length = 500)
+    @Column(name = "album_image_url", length = 500)
     private String albumImageUrl;
 
-    @Column(name = "SPOTIFY_URL", nullable = false, length = 300)
+    @Column(name = "spotify_url", nullable = false, length = 300)
     private String spotifyUrl;
 
-    @Column(name = "TRACK_ORDER", nullable = false)
-    private Integer trackOrder;
-
-    @Column(name = "CREATED_AT", insertable = false, updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private Instant createdAt;
 }

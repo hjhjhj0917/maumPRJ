@@ -1,24 +1,23 @@
 package com.example.maum.service;
 
-import com.example.maum.dto.DepressionTrendDTO;
 import com.example.maum.dto.DiaryDTO;
 import com.example.maum.dto.DiaryImageDTO;
-import com.example.maum.dto.DiaryStatsDTO;
-import com.example.maum.dto.EmotionStatDTO;
 import com.example.maum.dto.MsgDTO;
-import com.example.maum.dto.ReportCardDTO;
-import com.example.maum.dto.TopMusicDTO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+// 일기 식별은 모두 publicId(UUID 문자열), 사용자 식별은 JWT subject 인 userPublicId 로 한다.
+// 통계·추이·인기곡·주간 리포트는 5단계에서 새 구조로 다시 만든다.
 public interface IDiaryService {
 
-    int diaryInsert(DiaryDTO pDTO) throws Exception;
+    // 임시 저장. publicId 가 있으면 그 임시 저장본을 덮어쓰고 없으면 새로 만든다. 저장된 publicId 를 돌려줌
+    String draftSave(DiaryDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
-    int draftSave(DiaryDTO pDTO) throws Exception;
+    // 발행. publicId 가 있으면 임시 저장본을 발행하고 없으면 바로 새로 발행한다. 분석은 뒤에서 시작됨
+    String diaryInsert(DiaryDTO pDTO) throws Exception;
 
+    // 발행된 일기의 제목·본문 수정. 제목이나 본문이 바뀐 경우에만 재분석한다
     MsgDTO diaryUpdate(DiaryDTO pDTO) throws Exception;
 
     MsgDTO diaryDelete(DiaryDTO pDTO) throws Exception;
@@ -27,42 +26,25 @@ public interface IDiaryService {
 
     DiaryDTO getDiaryDetail(DiaryDTO pDTO) throws Exception;
 
+    // 제목 검색 (pDTO.title 이 검색어)
     List<DiaryDTO> searchDiaryList(DiaryDTO pDTO) throws Exception;
 
-    List<DiaryDTO> getDiaryListByColors(String userNo, List<String> colors) throws Exception;
+    // 대분류 감정 코드로 필터
+    List<DiaryDTO> getDiaryListByGroups(String userPublicId, List<String> groupCodes) throws Exception;
 
     List<DiaryDTO> getRecentDiaryList(DiaryDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
     List<DiaryDTO> getFavoriteDiaryList(DiaryDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
-    List<EmotionStatDTO> getEmotionStats(DiaryDTO pDTO) throws Exception;
+    List<DiaryDTO> getDraftDiaryList(DiaryDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
-    DiaryStatsDTO getDiaryStats(DiaryDTO pDTO) throws Exception;
-
-    // ★ 즐겨찾기 이후 추가/수정
-    List<DepressionTrendDTO> getDepressionTrend(DiaryDTO pDTO) throws Exception;
-
-    // ★ 즐겨찾기 이후 추가/수정
-    List<TopMusicDTO> getTopRecommendedMusic(DiaryDTO pDTO) throws Exception;
-
-    // ★ 즐겨찾기 이후 추가/수정
-    ReportCardDTO getWeeklyReport(DiaryDTO pDTO) throws Exception;
-
-    // ★ 즐겨찾기 이후 추가/수정
     int updateFavorite(DiaryDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
     int updateTitle(DiaryDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
     int updatePinned(DiaryDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
-    List<DiaryImageDTO> uploadDiaryImages(Integer diaryNo, String userNo, List<MultipartFile> images) throws Exception;
+    List<DiaryImageDTO> uploadDiaryImages(String diaryPublicId, String userPublicId, List<MultipartFile> images) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
     MsgDTO deleteDiaryImage(DiaryImageDTO pDTO) throws Exception;
 }

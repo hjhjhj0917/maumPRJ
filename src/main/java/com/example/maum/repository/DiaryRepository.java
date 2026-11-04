@@ -1,105 +1,51 @@
 package com.example.maum.repository;
 
 import com.example.maum.repository.entity.DiaryEntity;
-import com.example.maum.repository.projection.DepressionTrendProjection;
+import com.example.maum.repository.projection.DiaryListProjection;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface DiaryRepository extends JpaRepository<DiaryEntity, Integer> {
+public interface DiaryRepository extends JpaRepository<DiaryEntity, Long> {
 
-    List<DiaryEntity> findAllByUserNoAndCreatedAtBetween(String userNo, LocalDate startDate, LocalDate endDate);
+    // 목록용 공통 SELECT. 분석 결과는 대분류 코드(색상 표시용)만 필요해서 LEFT JOIN 으로 함께 읽음
+    String LIST_FROM = "SELECT d.publicId AS publicId, d.title AS title, d.diaryDate AS diaryDate, "
+            + "d.favorite AS favorite, d.pinned AS pinned, a.mainGroupCode AS mainGroupCode "
+            + "FROM DiaryEntity d LEFT JOIN DiaryAnalysisEntity a ON a.diaryId = d.id "
+            + "WHERE d.userId = :userId AND d.status = com.example.maum.diary.DiaryStatus.";
+    String PUBLISHED = LIST_FROM + "PUBLISHED ";
 
-    List<DiaryEntity> findByUserNoAndTitleContainingOrderByCreatedAtDesc(String userNo, String title);
+    // 소유자 조건을 쿼리에 넣어 다른 사람의 일기를 아예 읽지 못하게 함
+    Optional<DiaryEntity> findByPublicIdAndUserId(UUID publicId, Long userId);
 
-    List<DiaryEntity> findByUserNoAndEmotionColorInOrderByCreatedAtDesc(String userNo, List<String> colors);
+    @Query(PUBLISHED + "AND d.diaryDate BETWEEN :start AND :end ORDER BY d.diaryDate, d.id")
+    List<DiaryListProjection> findMonthly(@Param("userId") Long userId,
+                                          @Param("start") LocalDate start, @Param("end") LocalDate end);
 
-    // ★ 즐겨찾기 이후 추가/수정
-    List<DiaryEntity> findTop20ByUserNoOrderByIsPinnedDescCreatedAtDesc(String userNo);
+    // keyword 의 % _ 는 호출하는 쪽에서 \ 로 이스케이프해서 넘김
+    @Query(PUBLISHED + "AND LOWER(d.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\' "
+            + "ORDER BY d.diaryDate DESC, d.id DESC")
+    List<DiaryListProjection> searchByTitle(@Param("userId") Long userId, @Param("keyword") String keyword);
 
-    // ★ 즐겨찾기 이후 추가/수정
-    List<DiaryEntity> findByUserNoAndIsFavoriteOrderByCreatedAtDesc(String userNo, Integer isFavorite);
+    @Query(PUBLISHED + "AND a.mainGroupCode IN :groupCodes ORDER BY d.diaryDate DESC, d.id DESC")
+    List<DiaryListProjection> findByGroupCodes(@Param("userId") Long userId,
+                                               @Param("groupCodes") Collection<String> groupCodes);
 
-    // ★ 즐겨찾기 이후 추가/수정
-    long countByUserNo(String userNo);
+    @Query(PUBLISHED + "ORDER BY d.pinned DESC, d.diaryDate DESC, d.id DESC")
+    List<DiaryListProjection> findRecent(@Param("userId") Long userId, Pageable pageable);
 
-    // ★ 즐겨찾기 이후 추가/수정
-    // 연속 작성일 계산용 - 최신순으로 작성 날짜만 조회
-    @Query("SELECT DISTINCT d.createdAt FROM DiaryEntity d WHERE d.userNo = :userNo ORDER BY d.createdAt DESC")
-    List<LocalDate> findAllCreatedAtByUserNoOrderByCreatedAtDesc(@Param("userNo") String userNo);
+    @Query(PUBLISHED + "AND d.favorite = TRUE ORDER BY d.diaryDate DESC, d.id DESC")
+    List<DiaryListProjection> findFavorites(@Param("userId") Long userId);
 
-    // ★ 즐겨찾기 이후 추가/수정
-    // 마이페이지 - 최근 N개월 월별 평균 우울 지수 추이
-    @Query(value = "SELECT DATE_FORMAT(CREATED_AT, '%Y-%m') AS month, " +
-            "AVG(DEP_SCORE) AS avgDepScore, COUNT(*) AS diaryCount " +
-            "FROM DIARY " +
-            "WHERE USER_NO = :userNo AND DEP_SCORE IS NOT NULL AND CREATED_AT >= :fromDate " +
-            "GROUP BY DATE_FORMAT(CREATED_AT, '%Y-%m') " +
-            "ORDER BY month ASC",
-            nativeQuery = true)
-    List<DepressionTrendProjection> findDepressionTrendByUserNo(
-            @Param("userNo") String userNo,
-            @Param("fromDate") LocalDate fromDate
-    );
-
-    @Modifying(clearAutomatically = true)
-    @Query(value = "UPDATE DIARY SET SUMMARY = :summary, MAIN_EMOTION = :mainEmotion, " +
-            "EMOTION_COLOR = :emotionColor, DEP_LVL = :depLvl, DEP_SCORE = :depScore, SYMPTOM_YN = :symptomYn " +
-            "WHERE DIARY_NO = :diaryNo",
-            nativeQuery = true)
-    int updateAnalysisResultDirectly(
-            @Param("diaryNo") Long diaryNo,
-            @Param("summary") String summary,
-            @Param("mainEmotion") String mainEmotion,
-            @Param("emotionColor") String emotionColor,
-            @Param("depLvl") Integer depLvl,
-            @Param("depScore") BigDecimal depScore,
-            @Param("symptomYn") Integer symptomYn
-    );
-
-    @Modifying(clearAutomatically = true)
-    @Query(value = "UPDATE DIARY SET TITLE = :title, CONTENT = :content WHERE DIARY_NO = :diaryNo",
-            nativeQuery = true)
-    int updateDiaryDirectly(
-            @Param("diaryNo") Long diaryNo,
-            @Param("title") String title,
-            @Param("content") String content
-    );
-
-    // ★ 즐겨찾기 이후 추가/수정
-    @Modifying(clearAutomatically = true)
-    @Query("UPDATE DiaryEntity d SET d.isFavorite = :isFavorite WHERE d.diaryNo = :diaryNo AND d.userNo = :userNo")
-    int updateFavorite(
-            @Param("diaryNo") Integer diaryNo,
-            @Param("userNo") String userNo,
-            @Param("isFavorite") Integer isFavorite
-    );
-
-    // ★ 즐겨찾기 이후 추가/수정
-    // 제목만 바꾸는 경우 diaryUpdate(전체 수정)처럼 CONTENT까지 다시 보낼 필요 없게, 제목만 직접 수정
-    @Modifying(clearAutomatically = true)
-    @Query(value = "UPDATE DIARY SET TITLE = :title WHERE DIARY_NO = :diaryNo AND USER_NO = :userNo",
-            nativeQuery = true)
-    int updateTitleDirectly(
-            @Param("diaryNo") Integer diaryNo,
-            @Param("userNo") String userNo,
-            @Param("title") String title
-    );
-
-    // ★ 즐겨찾기 이후 추가/수정
-    @Modifying(clearAutomatically = true)
-    @Query(value = "UPDATE DIARY SET IS_PINNED = :isPinned WHERE DIARY_NO = :diaryNo AND USER_NO = :userNo",
-            nativeQuery = true)
-    int updatePinnedDirectly(
-            @Param("diaryNo") Integer diaryNo,
-            @Param("userNo") String userNo,
-            @Param("isPinned") Integer isPinned
-    );
+    @Query(LIST_FROM + "DRAFT ORDER BY d.updatedAt DESC, d.id DESC")
+    List<DiaryListProjection> findDrafts(@Param("userId") Long userId);
 }

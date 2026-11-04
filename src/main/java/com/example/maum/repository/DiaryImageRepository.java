@@ -7,10 +7,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-// ★ 즐겨찾기 이후 추가/수정
-public interface DiaryImageRepository extends JpaRepository<DiaryImageEntity, Integer> {
+public interface DiaryImageRepository extends JpaRepository<DiaryImageEntity, Long> {
 
-    List<DiaryImageEntity> findByDiaryNoOrderByImageOrderAsc(Integer diaryNo);
+    List<DiaryImageEntity> findByDiaryIdOrderBySortOrderAsc(Long diaryId);
 
-    int countByDiaryNo(Integer diaryNo);
+    int countByDiaryId(Long diaryId);
 }

@@ -6,9 +6,8 @@ import lombok.Builder;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public record DiaryImageDTO(
-        Integer imageNo,
-        Integer diaryNo,
-        String userNo,
+        Long imageNo,
+        String userPublicId,
         String imageUrl,
         Integer imageOrder
 ) {
