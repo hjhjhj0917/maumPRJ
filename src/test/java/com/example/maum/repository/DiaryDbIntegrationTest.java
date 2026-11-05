@@ -13,6 +13,14 @@ import com.example.maum.repository.entity.UserAuthProviderEntity;
 import com.example.maum.repository.entity.UserEntity;
 import com.example.maum.repository.projection.DiaryListProjection;
 import com.example.maum.service.IDiaryWriteService;
+import com.example.maum.chat.ChatMessageStatus;
+import com.example.maum.chat.ChatRole;
+import com.example.maum.repository.entity.ChatMessageEntity;
+import com.example.maum.repository.entity.ChatSessionEntity;
+import com.example.maum.repository.entity.DiaryImageEntity;
+import com.example.maum.repository.entity.SyncOutboxEntity;
+import com.example.maum.service.IChatWriteService;
+import com.example.maum.service.impl.ChatWriteService;
 import com.example.maum.service.impl.DiaryWriteService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -50,6 +58,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // 실제 PostgreSQL(docker-compose.dev.yml 의 maum_test DB)에 Flyway 로 스키마를 만들고 JPQL·제약·저장 로직을 확인함.
@@ -76,7 +85,7 @@ class DiaryDbIntegrationTest {
     @Configuration
     @EnableTransactionManagement
     @EnableJpaRepositories(basePackages = "com.example.maum.repository")
-    @Import({DiaryWriteService.class, EmotionCatalog.class})
+    @Import({DiaryWriteService.class, EmotionCatalog.class, ChatWriteService.class})
     static class Config {
 
         @Bean
@@ -135,6 +144,16 @@ class DiaryDbIntegrationTest {
     EmotionCatalog emotionCatalog;
     @Autowired
     IDiaryWriteService diaryWriteService;
+    @Autowired
+    IChatWriteService chatWriteService;
+    @Autowired
+    ChatSessionRepository chatSessionRepository;
+    @Autowired
+    ChatMessageRepository chatMessageRepository;
+    @Autowired
+    SyncOutboxRepository syncOutboxRepository;
+    @Autowired
+    DiaryImageRepository diaryImageRepository;
 
     private UserEntity newUser(String email, UserStatus status) {
         return userRepository.save(UserEntity.builder()
@@ -362,5 +381,119 @@ class DiaryDbIntegrationTest {
 
         assertEquals(0, diaryEmotionScoreRepository.count());
         assertEquals(0, diaryAnalysisRepository.count());
+    }
+
+    private ChatSessionEntity newSession(UserEntity user) {
+        return chatSessionRepository.saveAndFlush(ChatSessionEntity.builder()
+                .publicId(UUID.randomUUID()).userId(user.getId()).build());
+    }
+
+    @Test
+    void 채팅_한_턴은_seq_를_이어서_채번하고_첫_메시지로_제목을_정한다() {
+        UserEntity user = newUser("chat1@example.com", UserStatus.ACTIVE);
+        ChatSessionEntity session = newSession(user);
+
+        IChatWriteService.Turn turn = chatWriteService.beginTurn(
+                user.getPublicId().toString(), session.getPublicId().toString(), "요즘 잠이 안 와요", UUID.randomUUID());
+        chatWriteService.finishTurn(turn.botMessageId(), ChatMessageStatus.COMPLETE, "많이 힘드시겠어요.", false,
+                List.of(Map.of("type", "hospital", "name", "마음센터")));
+        em.flush();
+        em.clear();
+
+        List<ChatMessageEntity> messages = chatMessageRepository.findBySessionIdOrderBySeqAsc(session.getId());
+        assertEquals(2, messages.size());
+        assertEquals(ChatRole.USER, messages.get(0).getRole());
+        assertEquals(1, messages.get(0).getSeq());
+        assertEquals(ChatRole.BOT, messages.get(1).getRole());
+        assertEquals(2, messages.get(1).getSeq());
+        assertEquals(ChatMessageStatus.COMPLETE, messages.get(1).getStatus());
+        assertEquals("마음센터", messages.get(1).getCards().get(0).get("name"));
+
+        ChatSessionEntity reloaded = chatSessionRepository.findById(session.getId()).orElseThrow();
+        assertEquals(2, reloaded.getLastSeq());
+        assertEquals("요즘 잠이 안 와요", reloaded.getTitle());
+    }
+
+    @Test
+    void 답변이_진행_중이면_같은_방의_새_요청을_막고_같은_요청_재전송은_저장된_답변을_준다() {
+        UserEntity user = newUser("chat2@example.com", UserStatus.ACTIVE);
+        ChatSessionEntity session = newSession(user);
+        String userId = user.getPublicId().toString();
+        String sessionId = session.getPublicId().toString();
+        UUID first = UUID.randomUUID();
+
+        IChatWriteService.Turn turn = chatWriteService.beginTurn(userId, sessionId, "안녕", first);
+
+        assertThrows(IllegalStateException.class,
+                () -> chatWriteService.beginTurn(userId, sessionId, "또 안녕", UUID.randomUUID()));
+        assertThrows(IllegalStateException.class, () -> chatWriteService.beginTurn(userId, sessionId, "안녕", first));
+
+        chatWriteService.finishTurn(turn.botMessageId(), ChatMessageStatus.COMPLETE, "반가워요", false, null);
+
+        assertEquals("반가워요", chatWriteService.beginTurn(userId, sessionId, "안녕", first).replay());
+        assertEquals(2, chatMessageRepository.findBySessionIdOrderBySeqAsc(session.getId()).size());
+    }
+
+    @Test
+    void 남의_채팅방에는_메시지를_보낼_수_없고_이전_대화가_맥락으로_전달된다() {
+        UserEntity owner = newUser("chat3@example.com", UserStatus.ACTIVE);
+        UserEntity other = newUser("chat4@example.com", UserStatus.ACTIVE);
+        ChatSessionEntity session = newSession(owner);
+
+        assertThrows(IllegalArgumentException.class, () -> chatWriteService.beginTurn(
+                other.getPublicId().toString(), session.getPublicId().toString(), "안녕", UUID.randomUUID()));
+
+        IChatWriteService.Turn first = chatWriteService.beginTurn(
+                owner.getPublicId().toString(), session.getPublicId().toString(), "첫 질문", UUID.randomUUID());
+        chatWriteService.finishTurn(first.botMessageId(), ChatMessageStatus.COMPLETE, "첫 답변", false, null);
+        IChatWriteService.Turn second = chatWriteService.beginTurn(
+                owner.getPublicId().toString(), session.getPublicId().toString(), "두번째 질문", UUID.randomUUID());
+
+        assertEquals(List.of("user", "bot"), second.history().stream().map(h -> h.role()).toList());
+        assertEquals("첫 답변", second.history().get(1).content());
+    }
+
+    @Test
+    void outbox_는_실패한_행을_시간이_지나야_다시_집고_횟수를_넘으면_집지_않는다() {
+        SyncOutboxEntity fresh = syncOutboxRepository.saveAndFlush(SyncOutboxEntity.builder()
+                .target("MONGO").action("DELETE").refKey("fresh").build());
+        SyncOutboxEntity failedOnce = syncOutboxRepository.saveAndFlush(SyncOutboxEntity.builder()
+                .target("MONGO").action("DELETE").refKey("failed-once").build());
+        SyncOutboxEntity failedJustNow = syncOutboxRepository.saveAndFlush(SyncOutboxEntity.builder()
+                .target("MONGO").action("DELETE").refKey("failed-just-now").build());
+        SyncOutboxEntity exhausted = syncOutboxRepository.saveAndFlush(SyncOutboxEntity.builder()
+                .target("MONGO").action("DELETE").refKey("exhausted").build());
+
+        // created_at 은 DB 가 now() 로 채우므로, 오래된 행처럼 보이게 직접 조정함
+        em.createNativeQuery("UPDATE sync_outbox SET created_at = now() - interval '10 minutes', attempts = 1 WHERE id = ?1")
+                .setParameter(1, failedOnce.getId()).executeUpdate();
+        em.createNativeQuery("UPDATE sync_outbox SET attempts = 3 WHERE id = ?1")
+                .setParameter(1, failedJustNow.getId()).executeUpdate();
+        em.createNativeQuery("UPDATE sync_outbox SET created_at = now() - interval '10 days', attempts = 12 WHERE id = ?1")
+                .setParameter(1, exhausted.getId()).executeUpdate();
+        em.clear();
+
+        List<String> keys = syncOutboxRepository.claimDue(12, 10).stream().map(SyncOutboxEntity::getRefKey).toList();
+
+        // 새 행은 바로, 1회 실패 행은 1분이 지났으니 대상. 3회 실패했지만 9분이 안 지난 행과 12회 실패한 행은 제외
+        assertTrue(keys.contains("fresh"));
+        assertTrue(keys.contains("failed-once"));
+        assertFalse(keys.contains("failed-just-now"));
+        assertFalse(keys.contains("exhausted"));
+    }
+
+    @Test
+    void 탈퇴_정리_대상_사용자의_일기_이미지_키를_모두_찾는다() {
+        UserEntity user = newUser("chat5@example.com", UserStatus.ACTIVE);
+        UserEntity other = newUser("chat6@example.com", UserStatus.ACTIVE);
+        DiaryEntity mine = newDiary(user, "2026-11-01", "내 일기", DiaryStatus.PUBLISHED);
+        DiaryEntity theirs = newDiary(other, "2026-11-01", "남의 일기", DiaryStatus.PUBLISHED);
+        diaryImageRepository.save(DiaryImageEntity.builder()
+                .diaryId(mine.getId()).sortOrder((short) 0).storageKey("diary/mine/a.png").build());
+        diaryImageRepository.save(DiaryImageEntity.builder()
+                .diaryId(theirs.getId()).sortOrder((short) 0).storageKey("diary/theirs/b.png").build());
+        em.flush();
+
+        assertEquals(List.of("diary/mine/a.png"), diaryImageRepository.findStorageKeysByUserIds(List.of(user.getId())));
     }
 }

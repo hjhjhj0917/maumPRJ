@@ -7,7 +7,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.example.maum.auth.UserStatus;
+
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,6 +22,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    List<UserEntity> findByStatusAndPurgeAtLessThanEqual(UserStatus status, Instant purgeAt);
 
     // 탈퇴 유예가 끝난 계정을 한 번에 삭제. 하위 테이블은 DB의 ON DELETE CASCADE 가 정리함
     @Modifying

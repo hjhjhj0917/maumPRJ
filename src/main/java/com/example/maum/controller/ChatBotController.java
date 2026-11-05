@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+// 사용자는 항상 JWT subject(사용자 publicId)로 정하고, 요청 본문에 담긴 사용자 값은 쓰지 않음
 @RestController
 @RequestMapping(value = "/api/v1/chat")
 @RequiredArgsConstructor
@@ -28,22 +29,21 @@ public class ChatBotController {
 
     private final IChatBotService chatBotService;
 
-    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE) /* 응답을 한 번에 주지 않고 스트리밍으로 조각조각 전달 */
     public Flux<String> chatStream(@RequestBody ChatBotDTO cDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.chatStream Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userPublicId = CmmUtil.nvl(jwt.getSubject());
         String message = CmmUtil.nvl(cDTO.message());
-        Integer chatRoomNo = cDTO.chatRoomNo();
 
-        log.info("userNo: {}, chatRoomNo: {}, messageLength: {}", userNo, chatRoomNo, message.length());
+        log.info("userPublicId: {}, sessionPublicId: {}, messageLength: {}", userPublicId, cDTO.sessionPublicId(), message.length());
 
         ChatBotDTO pDTO = ChatBotDTO.builder()
-                .userNo(userNo)
+                .userNo(userPublicId)
                 .message(message)
-                .chatRoomNo(chatRoomNo)
+                .sessionPublicId(CmmUtil.nvl(cDTO.sessionPublicId()))
+                .clientMsgId(cDTO.clientMsgId())
                 .build();
 
         Flux<String> res = Optional.ofNullable(chatBotService.streamChat(pDTO))
@@ -54,19 +54,14 @@ public class ChatBotController {
         return res;
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping(value = "/rooms")
     public ResponseEntity<CommonResponse<ChatRoomDTO>> createRoom(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.createRoom Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userPublicId = CmmUtil.nvl(jwt.getSubject());
 
-        log.info("userNo: {}", userNo);
-
-        ChatRoomDTO pDTO = ChatRoomDTO.builder().userNo(userNo).build();
-
-        ChatRoomDTO rDTO = Optional.ofNullable(chatBotService.createRoom(pDTO))
+        ChatRoomDTO rDTO = Optional.ofNullable(chatBotService.createRoom(ChatRoomDTO.builder().userPublicId(userPublicId).build()))
                 .orElseThrow(() -> new RuntimeException("채팅방 생성에 실패하였습니다."));
 
         log.info("{}.createRoom End!", this.getClass().getName());
@@ -76,19 +71,14 @@ public class ChatBotController {
         );
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
     @GetMapping(value = "/rooms")
     public ResponseEntity<CommonResponse<List<ChatRoomDTO>>> getRooms(@AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.getRooms Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userPublicId = CmmUtil.nvl(jwt.getSubject());
 
-        log.info("userNo: {}", userNo);
-
-        ChatRoomDTO pDTO = ChatRoomDTO.builder().userNo(userNo).build();
-
-        List<ChatRoomDTO> rList = Optional.ofNullable(chatBotService.getRooms(pDTO))
+        List<ChatRoomDTO> rList = Optional.ofNullable(chatBotService.getRooms(ChatRoomDTO.builder().userPublicId(userPublicId).build()))
                 .orElseGet(ArrayList::new);
 
         log.info("{}.getRooms End!", this.getClass().getName());
@@ -98,103 +88,84 @@ public class ChatBotController {
         );
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
-    @PostMapping(value = "/rooms/{chatRoomNo}/title")
-    public ResponseEntity<CommonResponse<Integer>> renameRoom(
-            @PathVariable Integer chatRoomNo, @RequestBody ChatRoomDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    @PostMapping(value = "/rooms/{publicId}/title")
+    public ResponseEntity<CommonResponse<String>> renameRoom(
+            @PathVariable String publicId, @RequestBody ChatRoomDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.renameRoom Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userPublicId = CmmUtil.nvl(jwt.getSubject());
 
-        log.info("userNo: {}, chatRoomNo: {}, titleLength: {}", userNo, chatRoomNo, CmmUtil.nvl(dDTO.roomTitle()).length());
+        log.info("userPublicId: {}, publicId: {}, titleLength: {}", userPublicId, publicId, CmmUtil.nvl(dDTO.roomTitle()).length());
 
-        ChatRoomDTO pDTO = ChatRoomDTO.builder()
-                .chatRoomNo(chatRoomNo)
-                .userNo(userNo)
+        chatBotService.renameRoom(ChatRoomDTO.builder()
+                .publicId(publicId)
+                .userPublicId(userPublicId)
                 .roomTitle(CmmUtil.nvl(dDTO.roomTitle()))
-                .build();
-
-        chatBotService.renameRoom(pDTO);
+                .build());
 
         log.info("{}.renameRoom End!", this.getClass().getName());
 
         return ResponseEntity.ok(
-                CommonResponse.of(HttpStatus.OK, "이름이 변경되었습니다.", chatRoomNo)
+                CommonResponse.of(HttpStatus.OK, "이름이 변경되었습니다.", publicId)
         );
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
-    @PostMapping(value = "/rooms/{chatRoomNo}/pin")
-    public ResponseEntity<CommonResponse<Integer>> pinRoom(
-            @PathVariable Integer chatRoomNo, @RequestBody ChatRoomDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    @PostMapping(value = "/rooms/{publicId}/pin")
+    public ResponseEntity<CommonResponse<String>> pinRoom(
+            @PathVariable String publicId, @RequestBody ChatRoomDTO dDTO, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.pinRoom Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userPublicId = CmmUtil.nvl(jwt.getSubject());
+        boolean isPinned = Boolean.TRUE.equals(dDTO.isPinned());
 
-        log.info("userNo: {}, chatRoomNo: {}, isPinned: {}", userNo, chatRoomNo, dDTO.isPinned());
-        Integer isPinned = dDTO.isPinned();
+        log.info("userPublicId: {}, publicId: {}, isPinned: {}", userPublicId, publicId, isPinned);
 
-        ChatRoomDTO pDTO = ChatRoomDTO.builder()
-                .chatRoomNo(chatRoomNo)
-                .userNo(userNo)
+        chatBotService.pinRoom(ChatRoomDTO.builder()
+                .publicId(publicId)
+                .userPublicId(userPublicId)
                 .isPinned(isPinned)
-                .build();
-
-        chatBotService.pinRoom(pDTO);
-
-        String msg = (isPinned != null && isPinned == 1) ? "상단에 고정되었습니다." : "고정이 해제되었습니다.";
+                .build());
 
         log.info("{}.pinRoom End!", this.getClass().getName());
 
         return ResponseEntity.ok(
-                CommonResponse.of(HttpStatus.OK, msg, chatRoomNo)
+                CommonResponse.of(HttpStatus.OK, isPinned ? "상단에 고정되었습니다." : "고정이 해제되었습니다.", publicId)
         );
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
-    @DeleteMapping(value = "/rooms/{chatRoomNo}")
-    public ResponseEntity<CommonResponse<Integer>> deleteRoom(
-            @PathVariable Integer chatRoomNo, @AuthenticationPrincipal Jwt jwt) throws Exception {
+    @DeleteMapping(value = "/rooms/{publicId}")
+    public ResponseEntity<CommonResponse<String>> deleteRoom(
+            @PathVariable String publicId, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.deleteRoom Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userPublicId = CmmUtil.nvl(jwt.getSubject());
 
-        log.info("userNo: {}, chatRoomNo: {}", userNo, chatRoomNo);
+        log.info("userPublicId: {}, publicId: {}", userPublicId, publicId);
 
-        ChatRoomDTO pDTO = ChatRoomDTO.builder()
-                .chatRoomNo(chatRoomNo)
-                .userNo(userNo)
-                .build();
-
-        chatBotService.deleteRoom(pDTO);
+        chatBotService.deleteRoom(ChatRoomDTO.builder().publicId(publicId).userPublicId(userPublicId).build());
 
         log.info("{}.deleteRoom End!", this.getClass().getName());
 
         return ResponseEntity.ok(
-                CommonResponse.of(HttpStatus.OK, "채팅방이 삭제되었습니다.", chatRoomNo)
+                CommonResponse.of(HttpStatus.OK, "채팅방이 삭제되었습니다.", publicId)
         );
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
-    @GetMapping(value = "/rooms/{chatRoomNo}/messages")
+    @GetMapping(value = "/rooms/{publicId}/messages")
     public ResponseEntity<CommonResponse<List<ChatMessageDTO>>> getRoomMessages(
-            @PathVariable Integer chatRoomNo, @AuthenticationPrincipal Jwt jwt) throws Exception {
+            @PathVariable String publicId, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.getRoomMessages Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userPublicId = CmmUtil.nvl(jwt.getSubject());
 
-        log.info("userNo: {}, chatRoomNo: {}", userNo, chatRoomNo);
+        log.info("userPublicId: {}, publicId: {}", userPublicId, publicId);
 
-        ChatRoomDTO pDTO = ChatRoomDTO.builder()
-                .chatRoomNo(chatRoomNo)
-                .userNo(userNo)
-                .build();
-
-        List<ChatMessageDTO> rList = Optional.ofNullable(chatBotService.getRoomMessages(pDTO))
+        List<ChatMessageDTO> rList = Optional.ofNullable(chatBotService.getRoomMessages(
+                        ChatRoomDTO.builder().publicId(publicId).userPublicId(userPublicId).build()))
                 .orElseGet(ArrayList::new);
 
         log.info("{}.getRoomMessages End!", this.getClass().getName());
@@ -204,18 +175,17 @@ public class ChatBotController {
         );
     }
 
-    // ★ 즐겨찾기 이후 추가/수정
     @PostMapping(value = "/messages/{chatMsgNo}/tts")
     public ResponseEntity<CommonResponse<List<String>>> synthesizeMessageAudio(
             @PathVariable Long chatMsgNo, @AuthenticationPrincipal Jwt jwt) throws Exception {
 
         log.info("{}.synthesizeMessageAudio Start!", this.getClass().getName());
 
-        String userNo = CmmUtil.nvl(jwt.getSubject());
+        String userPublicId = CmmUtil.nvl(jwt.getSubject());
 
-        log.info("userNo: {}, chatMsgNo: {}", userNo, chatMsgNo);
+        log.info("userPublicId: {}, chatMsgNo: {}", userPublicId, chatMsgNo);
 
-        List<String> audioChunks = Optional.ofNullable(chatBotService.synthesizeMessageAudio(chatMsgNo, userNo))
+        List<String> audioChunks = Optional.ofNullable(chatBotService.synthesizeMessageAudio(chatMsgNo, userPublicId))
                 .orElseGet(ArrayList::new);
 
         log.info("{}.synthesizeMessageAudio End!", this.getClass().getName());

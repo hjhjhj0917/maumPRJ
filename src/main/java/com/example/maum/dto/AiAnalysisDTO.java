@@ -79,4 +79,12 @@ public final class AiAnalysisDTO {
             @JsonProperty("embedding_version") String embeddingVersion
     ) {
     }
+
+    // 벡터(Mongo) 삭제 요청. action: DELETE(일기 한 건, ref_key=일기 publicId), PURGE_USER(탈퇴 일괄, ref_key=사용자 publicId)
+    @Builder
+    public record VectorDeleteRequest(
+            String action,
+            @JsonProperty("ref_key") String refKey
+    ) {
+    }
 }

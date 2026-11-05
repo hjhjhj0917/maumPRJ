@@ -11,24 +11,17 @@ public interface IChatBotService {
 
     Flux<String> streamChat(ChatBotDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
     ChatRoomDTO createRoom(ChatRoomDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
     List<ChatRoomDTO> getRooms(ChatRoomDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
     List<ChatMessageDTO> getRoomMessages(ChatRoomDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
     void renameRoom(ChatRoomDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
     void pinRoom(ChatRoomDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
     void deleteRoom(ChatRoomDTO pDTO) throws Exception;
 
-    // ★ 즐겨찾기 이후 추가/수정
-    List<String> synthesizeMessageAudio(Long chatMsgNo, String userNo) throws Exception;
+    List<String> synthesizeMessageAudio(Long chatMsgNo, String userPublicId) throws Exception;
 }
